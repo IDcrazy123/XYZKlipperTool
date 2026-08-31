@@ -2,7 +2,7 @@
   "phase": "02-ports-simulator",
   "status": "IMPLEMENTED_CANDIDATE_FOR_SUPERVISOR_REVIEW",
   "base_commit": "9417f69efbd57be0ca35241e65745f19c16ed15a",
-  "commit_under_test": "ea0090cca92a00a8a43d28a948022b378bdad663",
+  "commit_under_test": "b1fe29c1273698b03b372475313b9495e8412bbe",
   "branch": "phase/02-ports-simulator",
   "utc_time": "2026-08-31T15:30:00Z",
   "commands": [
@@ -20,6 +20,20 @@
     {"command": "git diff --check", "exit_code": 0, "output": "PASS"},
     {"command": "import-boundary, schema, link, secret, hash, and raw-evidence review", "exit_code": 0, "output": "PASS; raw evidence unchanged"}
   ],
+  "hash_links": {
+    "src/xyz_klipper_tool/domain/models.py": "sha256:d953f2c7bcf2d7086de4be5b1ffb4b1fc446686f2e27878f4871cb5fd1969f62",
+    "src/xyz_klipper_tool/ports/contracts.py": "sha256:cdabdd3d48263e1a5239667bc4e607253665d8b0d2d39d082876ede83d47c4e0",
+    "src/xyz_klipper_tool/ports/ownership.py": "sha256:400c9b954b5a223317c7d7a59a1fbb912ef65f1c835f66593e841411370d1e35",
+    "src/xyz_klipper_tool/adapters/fakes.py": "sha256:0d9a8d84b9e326e21ba1fcf557dce9477cdbd86366414350cbad85f622c5beeb",
+    "src/xyz_klipper_tool/configuration.py": "sha256:06f2f0c664996055bb4d7f082ffec81b562ad956dd00477a66eaab465726b781",
+    "src/xyz_klipper_tool/tool_selection.py": "sha256:6950c52555f2fe1d4c727698486010c1ae0ccc69f4c98f81190ad5b358d5f388",
+    "src/xyz_klipper_tool/stations/models.py": "sha256:8509ea49537c082d174e91a0e4e0f908e187d50074d1eb97697fdad6328e5fa1",
+    "src/xyz_klipper_tool/stations/use_cases.py": "sha256:0e0e039ebb50efb9af5ee674cc636aa3efe5f2de32b40096a932d091b2fdf60c",
+    "src/xyz_klipper_tool/persistence/json_store.py": "sha256:5939675c4063a95536ce8bd690bd9ae94d54988be460077956fb4434095ceb9f",
+    "schemas/station-envelope.v1.schema.json": "sha256:51a2bf8559dc18266749d167154b970e60a3c717f7f0a9747f1162c86f41eae6",
+    "tests/test_phase02.py": "sha256:7113dc6c6d49531a4869d0a9a625abefd1320a8977d6e135db1a3566cd7fe86e",
+    "tests/test_api_docs.py": "sha256:71e7d77a99470d4a924b70b5be914931b18d034a8c1c7b5bbf256d7b03aa0865"
+  },
   "schema_validator": "jsonschema==4.23.0 Draft202012Validator; station envelope negative contract PASS",
   "supervisor_decision": "PENDING",
   "hil": ["physical compatibility, travel safety, and all real adapters remain REQUIRES_HIL"],
