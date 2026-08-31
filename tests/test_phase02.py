@@ -61,9 +61,37 @@ class Phase02Tests(unittest.TestCase):
 
     def test_fake_boundaries_reject_untyped_and_oversize_values(self) -> None:
         with self.assertRaises(TypeError):
+            CurrentPose(cast(Any, 1), cast(Any, 2), cast(Any, 3))
+        with self.assertRaises(TypeError):
             FakePrinter(cast(Any, object()), cast(Any, "ready"))
         with self.assertRaises(ValueError):
             FakeCamera([b"x" * (8 * 1024 * 1024 + 1)]).capture()
+
+    def test_station_record_rejects_untyped_fields_before_attribute_access(
+        self,
+    ) -> None:
+        values: dict[str, Any] = {
+            "pose": cast(Any, object()),
+            "safe_z_mm": cast(Any, 5),
+            "taught_at_utc": cast(Any, "2026-08-31T00:00:00Z"),
+        }
+        for field, value in values.items():
+            kwargs: dict[str, Any] = {
+                "name": "cam",
+                "station_type": StationType.CAMERA,
+                "provider": ProviderKind.CAMERA,
+                "pose": self.pose(),
+                "safe_z_mm": Millimetres(5),
+                "revision": "r1",
+                "taught_at_utc": datetime(2026, 8, 31, tzinfo=timezone.utc),
+                "configuration_fingerprint": "fp",
+                "provenance": "test",
+            }
+            kwargs[field] = value
+            with self.assertRaises((TypeError, ValueError)):
+                from xyz_klipper_tool.stations.models import StationRecord
+
+                StationRecord(**kwargs)
 
     def test_fingerprint_is_stable_and_redacts_secrets(self) -> None:
         a = fingerprint({"z": 2, "secret_token": "do-not-store", "a": [1, True]})

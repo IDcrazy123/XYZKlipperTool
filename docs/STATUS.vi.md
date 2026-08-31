@@ -13,7 +13,7 @@
 |---|---|---|
 | 00 Quy tắc, nguồn, license, bằng chứng | `IMPLEMENTED` | Artifact governance song ngữ, manifest SHA-256 23 file, nhập 21 JSON Z, kiểm tra offline đạt |
 | 01 Domain model, đơn vị, dấu, thống kê | `PASS` | Commit được supervisor duyệt `9d58fecb6cc19342c1bcd9dd62eafb8bf03c1a0d`; 16/16 test pin, coverage 95%, mọi gate offline nêu trên đạt; hành vi vật lý vẫn `REQUIRES_HIL` |
-| 02 Adapter và simulator | `PASS` | Gate correction của supervisor đạt tại `a6a3c9527e5870b10a53b5b9f6eb124d062fe7a7`; 26 test, coverage 91%, hành vi vật lý vẫn `REQUIRES_HIL` |
+| 02 Adapter và simulator | `IMPLEMENTED` | Candidate offline; 27 test và coverage 91%; chờ supervisor review correction; hành vi vật lý vẫn `REQUIRES_HIL` |
 | 03 Camera và pipeline thị giác | `PLANNED` | Chưa bắt đầu |
 | 04 Điều phối X/Y theo chu kỳ độc lập | `PLANNED` | Chưa bắt đầu |
 | 05 Z provider công tắc vật lý | `PLANNED` | Chưa bắt đầu |

@@ -39,6 +39,12 @@ class StationRecord:
     provenance: str
 
     def __post_init__(self) -> None:
+        if type(self.pose) is not CurrentPose:
+            raise TypeError("pose must be an exact CurrentPose")
+        if type(self.safe_z_mm) is not Millimetres:
+            raise TypeError("safe_z_mm must be an exact Millimetres")
+        if type(self.taught_at_utc) is not datetime:
+            raise TypeError("taught_at_utc must be an exact datetime")
         validate_text(self.name, "name")
         validate_text(self.revision, "revision")
         validate_text(self.configuration_fingerprint, "configuration_fingerprint")

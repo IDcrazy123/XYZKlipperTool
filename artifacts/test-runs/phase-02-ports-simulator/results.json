@@ -4,9 +4,9 @@
   "base_commit": "9417f69efbd57be0ca35241e65745f19c16ed15a",
   "commit_under_test": "a6a3c9527e5870b10a53b5b9f6eb124d062fe7a7",
   "branch": "phase/02-ports-simulator",
-  "utc_time": "2026-08-31T15:30:00Z",
+  "utc_time": "2026-08-31T14:58:18Z",
   "commands": [
-    {"command": "$env:PYTHONPATH='src'; C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m coverage run -m unittest discover -s tests", "exit_code": 0, "tests": 26},
+    {"command": "$env:PYTHONPATH='src'; C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m coverage run -m unittest discover -s tests", "exit_code": 0, "tests": 27},
     {"command": "$env:PYTHONPATH='src'; C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m coverage report -m", "exit_code": 0, "total_coverage_percent": 91},
     {"command": "$env:PYTHONPATH='src'; C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m mypy src/xyz_klipper_tool tests", "exit_code": 0, "output": "Success: no issues found in 24 source files"},
     {"command": "$env:PYTHONPATH='src'; C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m pyright src/xyz_klipper_tool tests", "exit_code": 0, "output": "0 errors, 0 warnings, 0 informations"},
@@ -24,24 +24,24 @@
     {"command": "python -c \"import re; from pathlib import Path; root=Path('.'); bad=[]; files=list(root.glob('*.md'))+list(root.glob('docs/**/*.md')); [bad.append((str(p),t)) for p in files for t in re.findall(r'\\\\[[^]]+\\\\]\\\\(([^)]+)\\\\)',p.read_text(encoding='utf-8')) if not t.startswith(('http://','https://','#','mailto:')) and not (root/t.split('#')[0]).exists()]; assert not bad,bad; print('markdown local links: PASS')\"", "exit_code": 0, "output": "markdown local links: PASS"},
     {"command": "git diff --check", "exit_code": 0, "output": "PASS"},
     {"command": "git diff 9417f69efbd57be0ca35241e65745f19c16ed15a -- evidence/imported --quiet", "exit_code": 0, "output": "raw evidence unchanged: PASS"},
-    {"command": "Get-FileHash -Algorithm SHA256 src/xyz_klipper_tool/persistence/json_store.py; Get-FileHash -Algorithm SHA256 schemas/station-envelope.v1.schema.json", "exit_code": 0, "output": "PASS; hashes recorded in manifest.json"}
+    {"command": "$j=Get-Content artifacts/test-runs/phase-02-ports-simulator/results.json | ConvertFrom-Json; $bad=@(); foreach($p in $j.hash_links.PSObject.Properties.Name){$a=(Get-FileHash -Algorithm SHA256 $p).Hash.ToLower(); if(('sha256:'+ $a) -ne $j.hash_links.$p){$bad+=$p}}; if($bad.Count){$bad; exit 1}; 'all listed hashes: PASS'", "exit_code": 0, "output": "all listed hashes: PASS"}
   ],
   "hash_links": {
     "src/xyz_klipper_tool/domain/models.py": "sha256:d953f2c7bcf2d7086de4be5b1ffb4b1fc446686f2e27878f4871cb5fd1969f62",
-    "src/xyz_klipper_tool/ports/contracts.py": "sha256:988aed6b5c72205573a1d690c602dc535ab3cec3d9e86d985bee176c760d3cbc",
-    "src/xyz_klipper_tool/ports/ownership.py": "sha256:abf7f648116d673cf6c8c8d945c1c7c4fef7375a1a6dd2956037ee8689f94755",
+    "src/xyz_klipper_tool/ports/contracts.py": "sha256:6e596c95f18f7d8a74b1db0446da0a597bb1f48c049969e42d74a0049d107fc1",
+    "src/xyz_klipper_tool/ports/ownership.py": "sha256:d729374f06ef9b2986d66cfcff3d262c5055f9bfbecec368ff8cfeff9749f00c",
     "src/xyz_klipper_tool/adapters/fakes.py": "sha256:abf7f648116d673cf6c8c8d945c1c7c4fef7375a1a6dd2956037ee8689f94755",
     "src/xyz_klipper_tool/configuration.py": "sha256:06f2f0c664996055bb4d7f082ffec81b562ad956dd00477a66eaab465726b781",
     "src/xyz_klipper_tool/tool_selection.py": "sha256:d26a6591fed51b77d65fce03e18355c6106d545c8183618ee8183d4ed56e581a",
-    "src/xyz_klipper_tool/stations/models.py": "sha256:e5d88aa3e40a169f8cf776e047a8f5063abccf97b9b407f7f53977d58bcb6066",
+    "src/xyz_klipper_tool/stations/models.py": "sha256:9125e7355634df58aecda75035e815be4d1c36a0624d1bced4b970f6979c0b88",
     "src/xyz_klipper_tool/stations/use_cases.py": "sha256:6a75e5061cc81f5b1c81b4dc9026ff146a567bb814a244e09846a997e4ecbc26",
     "src/xyz_klipper_tool/persistence/json_store.py": "sha256:d3f473ab90f9f561ef8386b591467dc1fb0638e97e786a7273fd837b731771b8",
     "schemas/station-envelope.v1.schema.json": "sha256:6494b24bd9fa21839ba7461fb8268811c86b92e5180984d65063b1c0e0c2071a",
-    "tests/test_phase02.py": "sha256:1f70ad1d19ae1647a3f062129e2e15127896694c007a4cd368e9a979ea4a3f70",
+    "tests/test_phase02.py": "sha256:e163a7f8b87da6ba49483f4fc00ab6bbff7631891a401f55491818c0570af667",
     "tests/test_api_docs.py": "sha256:71e7d77a99470d4a924b70b5be914931b18d034a8c1c7b5bbf256d7b03aa0865"
   },
   "schema_validator": "jsonschema==4.23.0 Draft202012Validator; station envelope negative contract PASS",
-  "supervisor_decision": "PASS",
+  "supervisor_decision": "PENDING",
   "hil": ["physical compatibility, travel safety, and all real adapters remain REQUIRES_HIL"],
   "raw_evidence_modified": false,
   "contains_secrets": false

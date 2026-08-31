@@ -37,6 +37,12 @@ class CurrentPose:
 
     def __post_init__(self) -> None:
         if (
+            type(self.x_mm) is not Millimetres
+            or type(self.y_mm) is not Millimetres
+            or type(self.z_mm) is not Millimetres
+        ):
+            raise TypeError("current pose coordinates must be exact Millimetres")
+        if (
             type(self.frame) is not CoordinateFrame
             or self.frame is not CoordinateFrame.MACHINE
         ):
