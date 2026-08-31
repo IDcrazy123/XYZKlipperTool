@@ -5,10 +5,14 @@ from dataclasses import dataclass
 from enum import Enum
 
 
-def _finite(value: float, name: str) -> float:
-    if not math.isfinite(value):
+def _finite(value: object, name: str) -> float:
+    value_object: object = value
+    if not isinstance(value_object, (int, float)) or isinstance(value_object, bool):
+        raise ValueError(f"{name} must be finite")  # noqa: TRY004
+    numeric_value = float(value_object)
+    if not math.isfinite(numeric_value):
         raise ValueError(f"{name} must be finite")
-    return float(value)
+    return numeric_value
 
 
 @dataclass(frozen=True)
@@ -76,6 +80,13 @@ class Vector2Mm:
     def __post_init__(self) -> None:
         object.__setattr__(self, "x_mm", _finite(self.x_mm, "x_mm"))
         object.__setattr__(self, "y_mm", _finite(self.y_mm, "y_mm"))
+        frame_object: object = self.frame
+        sign_object: object = self.sign
+        if (
+            type(frame_object) is not CoordinateFrame
+            or type(sign_object) is not SignConvention
+        ):
+            raise ValueError("frame and sign must be typed enums")
 
 
 @dataclass(frozen=True)
@@ -90,6 +101,13 @@ class PixelVector2:
     def __post_init__(self) -> None:
         object.__setattr__(self, "x_px", _finite(self.x_px, "x_px"))
         object.__setattr__(self, "y_px", _finite(self.y_px, "y_px"))
+        frame_object: object = self.frame
+        sign_object: object = self.sign
+        if (
+            type(frame_object) is not CoordinateFrame
+            or type(sign_object) is not SignConvention
+        ):
+            raise ValueError("frame and sign must be typed enums")
 
 
 @dataclass(frozen=True)
@@ -107,6 +125,8 @@ class PixelScale:
             object.__setattr__(self, name, value)
 
     def to_mm(self, pixels: PixelVector2) -> Vector2Mm:
+        if pixels.frame is not CoordinateFrame.CAMERA_IMAGE:
+            raise ValueError("PixelScale requires CAMERA_IMAGE source frame")
         return Vector2Mm(
             pixels.x_px * self.x_mm_per_px,
             pixels.y_px * self.y_mm_per_px,
@@ -115,6 +135,8 @@ class PixelScale:
         )
 
     def to_pixels(self, millimetres: Vector2Mm) -> PixelVector2:
+        if millimetres.frame is not CoordinateFrame.MACHINE:
+            raise ValueError("PixelScale requires MACHINE source frame")
         return PixelVector2(
             millimetres.x_mm / self.x_mm_per_px,
             millimetres.y_mm / self.y_mm_per_px,
@@ -127,4 +149,11 @@ def convert_sign(
     value_mm: Millimetres, source: SignConvention, target: SignConvention
 ) -> Millimetres:
     """Convert between residual and correction signs; the surrounding result supplies frame."""
-    return value_mm if source is target else Millimetres(-value_mm.value_mm)
+    if source is target:
+        return value_mm
+    if {source, target} != {
+        SignConvention.REFERENCE_MINUS_MEASURED,
+        SignConvention.CORRECTION_TO_APPLY,
+    }:
+        raise ValueError("BLOCKED_BY_SOURCE: provider sign mapping is not established")
+    return Millimetres(-value_mm.value_mm)

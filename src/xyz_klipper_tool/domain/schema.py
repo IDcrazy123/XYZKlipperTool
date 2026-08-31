@@ -52,6 +52,7 @@ def _context(data: dict[str, Any], provider: ProviderKind) -> MeasurementContext
         "station_revision",
         "configuration_fingerprint",
         "calibration_identity",
+        "provider",
         "axis",
     )
     if any(key not in data for key in required):
@@ -93,12 +94,14 @@ def _base(result: Any) -> dict[str, Any]:
 
 
 def encode_switch_z_result(result: SwitchZMeasurementResult) -> str:
+    """Encode a switch Z result to versioned JSON text only; never writes or blocks."""
     data = _base(result)
     data["z_offset_mm"] = result.z_offset_mm.value_mm
     return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
 
 def encode_cartographer_result(result: CartographerTouchMeasurementResult) -> str:
+    """Encode a Cartographer Touch Z result to versioned JSON text only."""
     data = _base(result)
     data["z_offset_mm"] = result.z_offset_mm.value_mm
     return json.dumps(data, sort_keys=True, separators=(",", ":"))
@@ -115,7 +118,10 @@ def _decode(
     ReasonCode,
     ClaimState,
 ]:
-    context = _context(data, provider)
+    try:
+        context = _context(data, provider)
+    except (KeyError, TypeError, ValueError, AttributeError) as exc:
+        raise SchemaPayloadError("invalid context") from exc
     for key in (
         "z_offset_mm",
         "frame",
@@ -126,22 +132,27 @@ def _decode(
     ):
         if key not in data:
             raise SchemaPayloadError("missing result field")
-    return (
-        context,
-        Millimetres(data["z_offset_mm"]),
-        CoordinateFrame(data["frame"]),
-        SignConvention(data["sign"]),
-        Verdict(data["verdict"]),
-        ReasonCode(data["reason_code"]),
-        ClaimState(data["claim_state"]),
-    )
+    try:
+        return (
+            context,
+            Millimetres(data["z_offset_mm"]),
+            CoordinateFrame(data["frame"]),
+            SignConvention(data["sign"]),
+            Verdict(data["verdict"]),
+            ReasonCode(data["reason_code"]),
+            ClaimState(data["claim_state"]),
+        )
+    except (KeyError, TypeError, ValueError, AttributeError) as exc:
+        raise SchemaPayloadError("invalid result field") from exc
 
 
 def decode_switch_z_result(payload: str) -> SwitchZMeasurementResult:
+    """Decode a switch Z result in memory; malformed input fails closed without I/O."""
     return SwitchZMeasurementResult(*_decode(_read(payload), ProviderKind.SWITCH))
 
 
 def decode_cartographer_result(payload: str) -> CartographerTouchMeasurementResult:
+    """Decode a Cartographer Touch Z result in memory; no blocking or side effects."""
     return CartographerTouchMeasurementResult(
         *_decode(_read(payload), ProviderKind.CARTOGRAPHER_TOUCH)
     )

@@ -1,9 +1,11 @@
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["src/xyz_klipper_tool"]
+ignore_missing_imports = true
+files = ["src/xyz_klipper_tool", "tests"]
 
 [tool.pyright]
-include = ["src/xyz_klipper_tool"]
+include = ["src/xyz_klipper_tool", "tests"]
 typeCheckingMode = "strict"
 pythonVersion = "3.11"
+reportMissingModuleSource = "none"

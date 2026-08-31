@@ -57,6 +57,10 @@ class Observation:
                 or not getattr(self, name).strip()
             ):
                 raise ValueError(f"{name} must be non-empty")
+        provider_object: object = self.provider
+        axis_object: object = self.axis
+        if type(provider_object) is not ProviderKind or type(axis_object) is not Axis:
+            raise ValueError("provider and axis must be typed enums")
 
 
 @dataclass(frozen=True)
@@ -175,18 +179,22 @@ def summarize(
         if reject:
             rejections.append(
                 Rejection(
-                    item.sample_id, AcceptanceStatus.REJECTED, ReasonCode.LIMIT_EXCEEDED
+                    item.sample_id,
+                    AcceptanceStatus.REJECTED,
+                    ReasonCode.OUTLIER_REJECTED,
                 )
             )
         else:
             filtered.append(item.value_mm.value_mm)
     filtered_values = tuple(sorted(filtered))
-    reason = (
-        ReasonCode.INSUFFICIENT_SAMPLES if len(filtered_values) < 2 else ReasonCode.NONE
-    )
-    verdict = (
-        Verdict.WARNING if reason is ReasonCode.INSUFFICIENT_SAMPLES else Verdict.PASS
-    )
+    if len(filtered_values) < 2:
+        reason, verdict = ReasonCode.INSUFFICIENT_SAMPLES, Verdict.WARNING
+    elif any(item.status is SampleStatus.INVALID for item in raw):
+        reason, verdict = ReasonCode.INVALID_SAMPLE, Verdict.INVALID
+    elif any(item.status is SampleStatus.WARNING for item in raw):
+        reason, verdict = ReasonCode.WARNING_SAMPLE, Verdict.WARNING
+    else:
+        reason, verdict = ReasonCode.NONE, Verdict.PASS
     if limit_mm is not None and (not math.isfinite(limit_mm) or limit_mm < 0):
         raise ValueError("limit_mm must be finite and non-negative")
     if (

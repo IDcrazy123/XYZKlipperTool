@@ -7,7 +7,8 @@ from .units import CoordinateFrame, Millimetres, SignConvention, Vector2Mm
 
 
 def _id(value: str, name: str) -> str:
-    if not value.strip():
+    value_object: object = value
+    if type(value_object) is not str or not value_object.strip():
         raise ValueError(f"{name} must be non-empty")
     return value
 
@@ -71,6 +72,8 @@ class Verdict(str, Enum):
 class ReasonCode(str, Enum):
     NONE = "NONE"
     INVALID_SAMPLE = "INVALID_SAMPLE"
+    WARNING_SAMPLE = "WARNING_SAMPLE"
+    OUTLIER_REJECTED = "OUTLIER_REJECTED"
     INSUFFICIENT_SAMPLES = "INSUFFICIENT_SAMPLES"
     STALE_FINGERPRINT = "STALE_FINGERPRINT"
     ROLLBACK_REQUIRED = "ROLLBACK_REQUIRED"
@@ -105,6 +108,10 @@ class MeasurementContext:
             "calibration_identity",
         ):
             _id(getattr(self, name), name)
+        provider_object: object = self.provider
+        axis_object: object = self.axis
+        if type(provider_object) is not ProviderKind or type(axis_object) is not Axis:
+            raise ValueError("provider and axis must be typed enums")
 
 
 @dataclass(frozen=True)
@@ -160,11 +167,21 @@ class FreshnessExpectation:
     configuration_fingerprint: str
     station_revision: str
 
+    def __post_init__(self) -> None:
+        _id(self.configuration_fingerprint, "configuration_fingerprint")
+        _id(self.station_revision, "station_revision")
+
 
 @dataclass(frozen=True)
 class FreshnessResult:
     fresh: bool
     reason_code: ReasonCode
+
+    def __post_init__(self) -> None:
+        if (self.fresh and self.reason_code is not ReasonCode.NONE) or (
+            not self.fresh and self.reason_code is ReasonCode.NONE
+        ):
+            raise ValueError("freshness and reason_code are incoherent")
 
 
 @dataclass(frozen=True)
@@ -174,6 +191,7 @@ class ApplyPlan:
     preview_only: bool = True
 
     def __post_init__(self) -> None:
+        _id(self.configuration_fingerprint, "configuration_fingerprint")
         if not self.preview_only:
             raise ValueError("apply plan is preview-only in pure domain")
 
@@ -182,6 +200,9 @@ class ApplyPlan:
 class RollbackEntry:
     tool_id: str
     previous_offset_xy_mm: Vector2Mm
+
+    def __post_init__(self) -> None:
+        _id(self.tool_id, "tool_id")
 
 
 @dataclass(frozen=True)

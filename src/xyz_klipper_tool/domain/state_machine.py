@@ -37,6 +37,8 @@ _TRANSITIONS: dict[RunState, set[RunState]] = {
 
 
 class RunStateMachine:
+    """Pure non-blocking state holder; illegal and terminal transitions fail closed."""
+
     def __init__(self) -> None:
         self._state = RunState.CREATED
 
@@ -45,6 +47,7 @@ class RunStateMachine:
         return self._state
 
     def transition(self, target: RunState) -> TransitionResult:
+        """Attempt a transition without I/O; invalid requests leave state unchanged."""
         previous = self._state
         if target not in _TRANSITIONS[previous]:
             reason = (
