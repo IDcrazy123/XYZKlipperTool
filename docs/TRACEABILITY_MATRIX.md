@@ -24,6 +24,11 @@ Every requirement below occurs exactly once.
 | REQ-SEC-001 | Master prompt; ASSUMPTION | threat model; security policy | actual: secret scan; planned: SSRF/bounds tests |
 | REQ-RESOURCE-001 | Master prompt; ASSUMPTION | resource-limit policy | planned: payload/job/history limit tests |
 | REQ-PORT-001 | SRC-002; Master prompt | pure `domain/` package boundary | actual: standard-library import-boundary scan |
+| REQ-PORT-002 | Master prompt; ASSUMPTION | `ports/contracts.py` typed boundary protocols | actual: `tests/test_phase02.py`; mypy/pyright |
+| REQ-SIM-001 | Master prompt; EVID-XY-001 | `adapters/fakes.py`; `tool_selection.py` | actual: dynamic ordering, duplicate/mismatch, no-writer tests |
+| REQ-STATION-002 | Master prompt; ASSUMPTION | `stations/models.py`; `stations/use_cases.py` | actual: safe-Z, namespace, show/clear and current-pose tests |
+| REQ-PERSIST-002 | Master prompt; ASSUMPTION | `persistence/json_store.py`; station schema | actual: corruption, fault-stage, checksum/version and recovery tests |
+| REQ-LOCK-001 | Master prompt; ASSUMPTION | `adapters/fakes.py` `FakeRunLock` | actual: double acquire, wrong release, cleanup tests |
 | REQ-NONBLOCK-001 | SRC-002; SRC-003 | host/Klippy boundary | planned: fake reactor non-blocking tests |
 | REQ-INSTALL-001 | Master prompt; ASSUMPTION | roadmap; installer policy | planned: sandbox idempotency tests |
 | REQ-OPS-001 | Master prompt; ASSUMPTION | progress/reporting records | actual: parity/link/diff checks; planned release docs gate |

@@ -24,6 +24,11 @@ Mỗi ID ổn định xuất hiện một lần và có ít nhất một tham ch
 | REQ-SEC-001 | Bind loopback/Unix, che secret, chống SSRF/path traversal và tắt cloud mặc định | `PLANNED` | Master prompt; ASSUMPTION: mặc định local-only |
 | REQ-RESOURCE-001 | Giới hạn body/image/history/job/retry/queue/selector/string/number và pin dependency | `PLANNED` | Master prompt; ASSUMPTION: limit cấu hình là hữu hạn |
 | REQ-PORT-001 | Domain độc lập và có port/adapter yêu cầu, fake trước hardware | `PLANNED` | Master prompt; SRC-002 |
+| REQ-PORT-002 | Định nghĩa boundary có kiểu cho printer-state/current-pose, clock, lock, store, reader và writer với contract side effect rõ | `IMPLEMENTED` | Master prompt; ASSUMPTION: port là boundary đảo chiều phụ thuộc |
+| REQ-SIM-001 | Có fake xác định, scripted, dynamic tool selection và fault injection nhưng không hành động vật lý | `IMPLEMENTED` | Master prompt; EVID-XY-001 |
+| REQ-STATION-002 | Teach/show/clear station tách provider từ current pose tường minh; bỏ SAFE_Z thì fail closed | `IMPLEMENTED` | Master prompt; ASSUMPTION: không có clearance default được xác thực |
+| REQ-PERSIST-002 | Lưu state station có version, atomic, checksum, backup hữu hạn, recovery và fail closed khi corrupt | `IMPLEMENTED` | Master prompt; ASSUMPTION: contract rename/fsync của filesystem |
+| REQ-LOCK-001 | Từ chối conflict ownership run/teach/apply và cleanup lock xác định | `IMPLEMENTED` | Master prompt; ASSUMPTION: một owner cục bộ hoạt động |
 | REQ-NONBLOCK-001 | Giữ camera/network/filesystem ngoài Klipper reactor và phối hợp bounded | `PLANNED` | SRC-002; SRC-003 |
 | REQ-INSTALL-001 | Install/update/rollback/uninstall idempotent, dry-run, scope-checked, không phá hủy mặc định | `PLANNED` | Master prompt; ASSUMPTION: không purge ngầm |
 | REQ-OPS-001 | Có evidence, diagnostic, support redaction, tài liệu và progress/reporting record chính xác | `PLANNED` | Master prompt; ASSUMPTION: vận hành report-only |

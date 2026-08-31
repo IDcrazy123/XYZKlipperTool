@@ -24,6 +24,11 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-SEC-001 | Master prompt; ASSUMPTION | threat model; security policy | actual: secret scan; planned: SSRF/bounds |
 | REQ-RESOURCE-001 | Master prompt; ASSUMPTION | resource-limit policy | planned: limit payload/job/history |
 | REQ-PORT-001 | SRC-002; Master prompt | boundary package thuần `domain/` | actual: scan import standard library |
+| REQ-PORT-002 | Master prompt; ASSUMPTION | protocol boundary có kiểu trong `ports/contracts.py` | actual: `tests/test_phase02.py`; mypy/pyright |
+| REQ-SIM-001 | Master prompt; EVID-XY-001 | `adapters/fakes.py`; `tool_selection.py` | actual: test thứ tự động, duplicate/mismatch, không writer |
+| REQ-STATION-002 | Master prompt; ASSUMPTION | `stations/models.py`; `stations/use_cases.py` | actual: test safe-Z, namespace, show/clear và current-pose |
+| REQ-PERSIST-002 | Master prompt; ASSUMPTION | `persistence/json_store.py`; schema station | actual: test corrupt, fault-stage, checksum/version và recovery |
+| REQ-LOCK-001 | Master prompt; ASSUMPTION | `FakeRunLock` trong `adapters/fakes.py` | actual: test double acquire, wrong release, cleanup |
 | REQ-NONBLOCK-001 | SRC-002; SRC-003 | boundary host/Klippy | planned: fake reactor non-blocking |
 | REQ-INSTALL-001 | Master prompt; ASSUMPTION | roadmap; installer policy | planned: sandbox idempotency |
 | REQ-OPS-001 | Master prompt; ASSUMPTION | progress/reporting records | actual: parity/link/diff; planned release docs |

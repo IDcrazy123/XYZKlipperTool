@@ -20,3 +20,6 @@
 | TEST-016 | contract schema Phase 01 | `set PYTHONPATH=src; python -m unittest tests.test_schema -v` | schema cả hai provider kiểm tra required/const/enum/finite và fault codec đạt |
 | TEST-017 | coverage Phase 01 | `python -m coverage run -m unittest discover -s tests; python -m coverage report -m` | 16 test đạt; tổng coverage 95% |
 | TEST-018 | type-check Phase 01 đã pin | venv cô lập; `python -m mypy`; `pyright` theo requirements đã pin | PASS: mypy và pyright không lỗi |
+| TEST-019 | contract port/fake/station Phase 02 | `PYTHONPATH=src; python -m unittest discover -s tests -v` | port, fake xác định, tool động, workflow station và cô lập writer đạt |
+| TEST-020 | ma trận fault persistence Phase 02 | `PYTHONPATH=src; python -m unittest tests.test_phase02 -v` | fault temp/flush/replace, corrupt, checksum, version và backup fail closed |
+| TEST-021 | schema và fingerprint Phase 02 | jsonschema Draft 2020-12 đã pin cùng test fingerprint | contract envelope station, ordering canonical, redaction và phát hiện đổi đạt |

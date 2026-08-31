@@ -3,8 +3,8 @@
 - Dự án: **XYZ Klipper Tool**
 - Trạng thái kho: Phase 01 được supervisor duyệt tại `9d58fecb6cc19342c1bcd9dd62eafb8bf03c1a0d`
 - Mức sẵn sàng production: **CHƯA SẴN SÀNG**
-- Phase hiện tại: Phase 01 — mô hình miền, đơn vị, dấu và thống kê
-- Cổng kế tiếp: lập kế hoạch Phase 02; hành vi vật lý vẫn `REQUIRES_HIL`
+- Phase hiện tại: Phase 02 — port, fake adapter, simulator và persistence station
+- Cổng kế tiếp: supervisor review Phase 02; hành vi vật lý vẫn `REQUIRES_HIL`
 - Hành động vật lý trên máy in: trạng thái kho hiện tại không cho phép
 
 ## Sổ phase
@@ -13,7 +13,7 @@
 |---|---|---|
 | 00 Quy tắc, nguồn, license, bằng chứng | `IMPLEMENTED` | Artifact governance song ngữ, manifest SHA-256 23 file, nhập 21 JSON Z, kiểm tra offline đạt |
 | 01 Domain model, đơn vị, dấu, thống kê | `PASS` | Commit được supervisor duyệt `9d58fecb6cc19342c1bcd9dd62eafb8bf03c1a0d`; 16/16 test pin, coverage 95%, mọi gate offline nêu trên đạt; hành vi vật lý vẫn `REQUIRES_HIL` |
-| 02 Adapter và simulator | `PLANNED` | Chưa bắt đầu |
+| 02 Adapter và simulator | `IMPLEMENTED` | Candidate offline; 23 test và contract fake/persistence bounded đạt; chờ supervisor review |
 | 03 Camera và pipeline thị giác | `PLANNED` | Chưa bắt đầu |
 | 04 Điều phối X/Y theo chu kỳ độc lập | `PLANNED` | Chưa bắt đầu |
 | 05 Z provider công tắc vật lý | `PLANNED` | Chưa bắt đầu |

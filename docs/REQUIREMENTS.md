@@ -24,6 +24,11 @@ Each stable ID occurs once and has at least one `SRC-*`, `EVID-*`, or `ASSUMPTIO
 | REQ-SEC-001 | Bind local services to loopback/Unix socket, redact secrets, prevent SSRF/path traversal, and disable cloud by default | `PLANNED` | Master prompt; ASSUMPTION: local-only default |
 | REQ-RESOURCE-001 | Bound body/image/history/jobs/retries/queues/selectors/strings/numbers and pin dependencies | `PLANNED` | Master prompt; ASSUMPTION: configured limits are finite |
 | REQ-PORT-001 | Keep domain independent and expose the required ports/adapters with fakes before hardware | `PLANNED` | Master prompt; SRC-002 |
+| REQ-PORT-002 | Define typed printer-state/current-pose, clock, lock, store, reader, and writer boundaries with explicit side-effect contracts | `IMPLEMENTED` | Master prompt; ASSUMPTION: ports are dependency-inversion boundaries |
+| REQ-SIM-001 | Provide deterministic scripted fakes, dynamic tool selection, and fault injection without physical actions | `IMPLEMENTED` | Master prompt; EVID-XY-001 |
+| REQ-STATION-002 | Teach/show/clear provider-separated stations from explicit current pose; omitted SAFE_Z fails closed | `IMPLEMENTED` | Master prompt; ASSUMPTION: no validated clearance default |
+| REQ-PERSIST-002 | Persist versioned station state atomically with checksum, bounded backup, recovery, and fail-closed corruption handling | `IMPLEMENTED` | Master prompt; ASSUMPTION: filesystem rename/fsync contract |
+| REQ-LOCK-001 | Reject concurrent run/teach/apply ownership conflicts and preserve deterministic lock cleanup | `IMPLEMENTED` | Master prompt; ASSUMPTION: one active local owner |
 | REQ-NONBLOCK-001 | Keep camera/network/filesystem work outside the Klipper reactor and use bounded coordination | `PLANNED` | SRC-002; SRC-003 |
 | REQ-INSTALL-001 | Make install/update/rollback/uninstall idempotent, dry-run, scope-checked, and non-destructive by default | `PLANNED` | Master prompt; ASSUMPTION: no implicit purge |
 | REQ-OPS-001 | Provide evidence, diagnostics, support redaction, documentation, and exact progress/reporting records | `PLANNED` | Master prompt; ASSUMPTION: report-only operations |

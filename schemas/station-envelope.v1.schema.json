@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xyz-klipper-tool.invalid/schemas/station-envelope.v1.schema.json",
+  "title": "XYZ Klipper Tool station envelope v1",
+  "type": "object",
+  "required": ["schema_version", "record", "checksum"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "checksum": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "record": {
+      "type": "object",
+      "required": ["name", "station_type", "provider", "pose", "safe_z_mm", "revision", "taught_at_utc", "configuration_fingerprint", "provenance"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "station_type": {"enum": ["camera", "switch_z", "cartographer_touch_z"]},
+        "provider": {"enum": ["camera", "switch", "cartographer_touch"]},
+        "pose": {
+          "type": "object",
+          "required": ["x_mm", "y_mm", "z_mm", "frame"],
+          "properties": {"x_mm": {"type": "number"}, "y_mm": {"type": "number"}, "z_mm": {"type": "number"}, "frame": {"const": "machine"}},
+          "additionalProperties": true
+        },
+        "safe_z_mm": {"type": "number"},
+        "revision": {"type": "string", "minLength": 1},
+        "taught_at_utc": {"type": "string", "format": "date-time"},
+        "configuration_fingerprint": {"type": "string", "minLength": 1},
+        "provenance": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

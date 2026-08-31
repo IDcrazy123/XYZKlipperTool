@@ -5,9 +5,9 @@ from pathlib import Path
 
 class PublicApiDocumentationTests(unittest.TestCase):
     def test_public_domain_classes_and_functions_have_docstrings(self) -> None:
-        root = Path(__file__).parents[1] / "src" / "xyz_klipper_tool" / "domain"
+        root = Path(__file__).parents[1] / "src" / "xyz_klipper_tool"
         missing: list[str] = []
-        for path in root.glob("*.py"):
+        for path in root.rglob("*.py"):
             tree = ast.parse(path.read_text())
             for node in ast.walk(tree):
                 if (

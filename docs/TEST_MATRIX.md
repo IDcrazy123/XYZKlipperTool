@@ -20,3 +20,6 @@
 | TEST-016 | Phase 01 schema contract | `set PYTHONPATH=src; python -m unittest tests.test_schema -v` | both provider schemas enforce required/const/enum/finite contract and codec faults pass |
 | TEST-017 | Phase 01 coverage | `python -m coverage run -m unittest discover -s tests; python -m coverage report -m` | 16 tests pass; TOTAL coverage 95% |
 | TEST-018 | Phase 01 pinned type checks | isolated venv; `python -m mypy`; `pyright` using pinned requirements | PASS: mypy and pyright clean |
+| TEST-019 | Phase 02 port/fake/station contracts | `PYTHONPATH=src; python -m unittest discover -s tests -v` | ports, deterministic fakes, dynamic tools, station workflows, and writer isolation pass |
+| TEST-020 | Phase 02 persistence fault matrix | `PYTHONPATH=src; python -m unittest tests.test_phase02 -v` | atomic temp/flush/replace, corruption, checksum, version, and backup faults fail closed |
+| TEST-021 | Phase 02 schemas and fingerprint | pinned `jsonschema` Draft 2020-12 plus configuration fingerprint tests | station envelope contract, canonical ordering, redaction, and change detection pass |

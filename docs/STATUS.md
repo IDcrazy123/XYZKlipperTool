@@ -3,8 +3,8 @@
 - Project: **XYZ Klipper Tool**
 - Repository state: Phase 01 supervisor-approved at `9d58fecb6cc19342c1bcd9dd62eafb8bf03c1a0d`
 - Production readiness: **NOT READY**
-- Current phase: Phase 01 — domain model, units, signs, and statistics
-- Next gate: Phase 02 planning; physical behavior remains `REQUIRES_HIL`
+- Current phase: Phase 02 — ports, fake adapters, simulator, and station persistence
+- Next gate: supervisor review of Phase 02; physical behavior remains `REQUIRES_HIL`
 - Physical printer actions: none authorized by this repository state
 
 ## Phase ledger
@@ -13,7 +13,7 @@
 |---|---|---|
 | 00 Governance, sources, license, evidence | `IMPLEMENTED` | Paired governance artifacts, 23-file SHA-256 manifest, 21 Z JSON imports, offline checks passed |
 | 01 Domain model, units, signs, statistics | `PASS` | Supervisor-approved commit `9d58fecb6cc19342c1bcd9dd62eafb8bf03c1a0d`; 16/16 pinned tests, 95% coverage, all listed offline gates pass; physical behavior remains `REQUIRES_HIL` |
-| 02 Adapters and simulator | `PLANNED` | Not started |
+| 02 Adapters and simulator | `IMPLEMENTED` | Offline candidate; 23 tests and bounded persistence/fake contracts pass; supervisor review pending |
 | 03 Camera and vision pipeline | `PLANNED` | Not started |
 | 04 Independent-cycle X/Y orchestration | `PLANNED` | Not started |
 | 05 Physical-switch Z provider | `PLANNED` | Not started |
