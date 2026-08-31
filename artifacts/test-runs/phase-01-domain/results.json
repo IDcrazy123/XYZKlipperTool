@@ -1,13 +1,13 @@
 {
   "phase": "01-domain-correction-pass",
   "status": "IMPLEMENTED_CANDIDATE_FOR_SUPERVISOR_REVIEW",
-  "commit_under_test": "921e93e0b2e699bcf0524550feae7ef43f4f8a42",
+  "commit_under_test": "db2c01ed2bc197cc067d1d840465d4697ce4a8ab",
   "base_commit": "c93cc95b54079058e7aab2961374d693a19b1ebe",
   "branch": "phase/01-domain",
   "utc_time": "2026-08-31T13:35:00Z",
   "commands": [
-    {"command": "python -m coverage run -m unittest discover -s tests", "exit_code": 0, "tests": 14},
-    {"command": "python -m coverage report -m", "exit_code": 0, "total_coverage_percent": 94},
+    {"command": "python -m coverage run -m unittest discover -s tests", "exit_code": 0, "tests": 16},
+    {"command": "python -m coverage report -m", "exit_code": 0, "total_coverage_percent": 95},
     {"command": "ruff check src tests", "exit_code": 0},
     {"command": "ruff format --check src tests", "exit_code": 0},
     {"command": "python scripts/check_markdown_pairs.py", "exit_code": 0},
@@ -19,7 +19,7 @@
     {"command": "C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m pyright src/xyz_klipper_tool tests", "exit_code": 0, "output": "0 errors, 0 warnings, 0 informations"},
     {"command": "python -m ruff check src tests", "exit_code": 0, "output": "All checks passed!"},
     {"command": "python -m ruff format --check src tests", "exit_code": 0, "output": "11 files already formatted"},
-    {"command": "python -m unittest discover -s tests", "exit_code": 0, "tests": 14, "output": "OK"}
+    {"command": "python -m unittest discover -s tests", "exit_code": 0, "tests": 16, "output": "OK"}
   ],
   "hash_links": {
     "src/xyz_klipper_tool/domain/models.py": "sha256:d69a96382a44a67bf545f5adc096ebc95430a35d40ef7ab10b190769c4d8b4d9",
@@ -31,7 +31,7 @@
     "schemas/switch-measurement-result.v1.schema.json": "sha256:bc3d3843ae5e044dfee5e34d5f013acf2c7c2a6f8ce64889a6c26cbd1d865808",
     "tests/test_domain.py": "sha256:0a3ec2a25bd16717fbfc93e121d6cd49210a526464e919fed08f8dcad072257a",
     "tests/test_schema.py": "sha256:475f63f8447506ebf631bfa64265678720d8061224a2feda78b0f6bb4cdc1f76",
-    "tests/test_evidence_fixture.py": "sha256:957af20b09a38ea291109dbece8eab2318947da61b6e44f332feb7a38dea3a22",
+    "tests/test_evidence_fixture.py": "sha256:afb8b296ee1624ae363b57b84b34f5b802e45d755954b775bdb7a5eb4939c8d9",
     "tests/test_api_docs.py": "sha256:aab81a4c1ad96b4446733c277bd5f34053ac2f8d604b1d3fd509391cf8337799"
   },
   "schema_validator": "jsonschema==4.23.0 Draft202012Validator; positive and missing/type/enum/provider/axis/non-finite cases PASS",
