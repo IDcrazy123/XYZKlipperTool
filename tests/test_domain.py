@@ -1,83 +1,154 @@
+import math
 import unittest
 
 from xyz_klipper_tool.domain.models import (
-    ClaimState,
+    ApplyPlan,
+    Axis,
+    FreshnessResult,
+    ProviderKind,
     ReasonCode,
+    RollbackEntry,
+    RollbackPlan,
     RunId,
-    SwitchMeasurementResult,
-    ToolVisitId,
     Verdict,
 )
 from xyz_klipper_tool.domain.state_machine import RunState, RunStateMachine
 from xyz_klipper_tool.domain.statistics import (
     Observation,
     OutlierPolicy,
+    ReferencePair,
     SampleStatus,
+    SampleSufficiency,
     summarize,
 )
-from xyz_klipper_tool.domain.units import PixelScale, PixelVector2, Vector2Mm
+from xyz_klipper_tool.domain.units import (
+    Celsius,
+    CoordinateFrame,
+    Millimetres,
+    PixelScale,
+    PixelVector2,
+    Seconds,
+    SignConvention,
+    Vector2Mm,
+    convert_sign,
+)
+
+
+def obs(
+    value, sample, provider=ProviderKind.SWITCH, axis=Axis.Z, status=SampleStatus.VALID
+):
+    return Observation(
+        "run",
+        "cycle",
+        "visit",
+        sample,
+        "station-1",
+        "fingerprint-1",
+        "calibration-1",
+        provider,
+        axis,
+        Millimetres(value),
+        status,
+    )
 
 
 class DomainTests(unittest.TestCase):
-    def test_conversion_is_reversible(self):
-        scale = PixelScale(0.2, 0.4)
-        pixels = PixelVector2(12.5, -3.0)
-        restored = scale.to_pixels(scale.to_mm(pixels))
-        self.assertAlmostEqual(restored.x_px, pixels.x_px)
-        self.assertAlmostEqual(restored.y_px, pixels.y_px)
+    def test_units_sign_frame_and_bidirectional_conversion_table(self):
+        for frame, sign in (
+            (CoordinateFrame.CAMERA_IMAGE, SignConvention.REFERENCE_MINUS_MEASURED),
+            (CoordinateFrame.TOOL, SignConvention.CORRECTION_TO_APPLY),
+        ):
+            value = PixelVector2(12.5, -3, frame, sign)
+            restored = PixelScale(0.2, 0.4).to_pixels(PixelScale(0.2, 0.4).to_mm(value))
+            self.assertAlmostEqual(restored.x_px, value.x_px)
+            self.assertEqual(restored.sign, sign)
+        self.assertEqual(
+            convert_sign(
+                Millimetres(2),
+                SignConvention.REFERENCE_MINUS_MEASURED,
+                SignConvention.CORRECTION_TO_APPLY,
+            ).value_mm,
+            -2,
+        )
 
-    def test_statistics_empty_and_singleton_are_typed(self):
+    def test_units_reject_nan_inf_and_empty_ids(self):
+        for constructor in (Millimetres, Seconds, Celsius):
+            for value in (math.nan, math.inf, -math.inf):
+                with self.assertRaises(ValueError):
+                    constructor(value)
+        with self.assertRaises(ValueError):
+            obs(1, "")
+
+    def test_statistics_empty_singleton_invalid_warning_and_drift(self):
         empty = summarize([])
-        one = summarize([Observation("s1", 2.0)])
-        self.assertTrue(empty.insufficient_samples)
-        self.assertIsNone(empty.sample_sd_mm)
-        self.assertEqual(one.mean_mm, 2.0)
-        self.assertIsNone(one.sample_sd_mm)
-
-    def test_invalid_never_enters_estimator_and_warning_is_counted(self):
+        one = summarize([obs(2, "a")])
+        self.assertEqual(
+            empty.filtered.sufficiency, SampleSufficiency.INSUFFICIENT_SAMPLES
+        )
+        self.assertIsNone(one.filtered.sample_sd_mm)
         result = summarize(
             [
-                Observation("a", 1.0),
-                Observation("b", 100.0, SampleStatus.INVALID),
-                Observation("c", 3.0, SampleStatus.WARNING),
-            ]
+                obs(1, "a"),
+                obs(100, "bad", status=SampleStatus.INVALID),
+                obs(3, "b", status=SampleStatus.WARNING),
+            ],
+            reference=ReferencePair(Millimetres(10), Millimetres(12)),
         )
-        self.assertEqual(result.filtered_values_mm, (1.0, 3.0))
-        self.assertEqual((result.invalid_count, result.warning_count), (1, 1))
+        self.assertEqual(result.filtered.values_mm, (1.0, 3.0))
+        self.assertEqual(result.invalid_count, 1)
+        self.assertEqual(result.reference_drift_mm, Millimetres(2))
+        self.assertIsNotNone(result.filtered.uncertainty_mm)
 
-    def test_outlier_policy_keeps_raw_and_filters_explicitly(self):
+    def test_outlier_rejection_is_reasoned_and_raw_is_immutable(self):
+        with self.assertRaises(ValueError):
+            OutlierPolicy("invalid", -1, True)
         result = summarize(
-            [Observation("a", 1.0), Observation("b", 1.1), Observation("c", 9.0)],
-            OutlierPolicy("median_threshold", 0.2, True),
+            [obs(1, "a"), obs(1.1, "b"), obs(9, "c")],
+            OutlierPolicy("threshold", 0.2, True),
         )
-        self.assertEqual(result.total_count, 3)
-        self.assertEqual(result.filtered_values_mm, (1.0, 1.1))
-        self.assertEqual(len(result.raw_observations), 3)
+        self.assertEqual(result.rejected_count, 1)
+        self.assertEqual(result.rejections[0].reason_code, ReasonCode.LIMIT_EXCEEDED)
+        self.assertEqual(result.unfiltered.values_mm, (1, 1.1, 9))
+        self.assertEqual(result.filtered.values_mm, (1, 1.1))
 
-    def test_metamorphic_translation_preserves_sd_mad_range(self):
-        values = [Observation(str(i), float(i)) for i in range(1, 5)]
-        shifted = [Observation(str(i), float(i) + 10) for i in range(1, 5)]
-        a, b = summarize(values), summarize(shifted)
-        self.assertAlmostEqual(a.sample_sd_mm, b.sample_sd_mm)
-        self.assertAlmostEqual(a.mad_mm, b.mad_mm)
-        self.assertAlmostEqual(a.range_mm, b.range_mm)
-
-    def test_state_machine_rejects_illegal_transition_fail_closed(self):
-        machine = RunStateMachine()
-        result = machine.transition(RunState.RUNNING)
-        self.assertFalse(result.accepted)
-        self.assertEqual(machine.state, RunState.CREATED)
-        self.assertEqual(result.reason_code.value, "INVALID_TRANSITION")
-
-    def test_provider_result_is_explicit_and_hil(self):
-        result = SwitchMeasurementResult(
-            RunId("r"),
-            ToolVisitId("v"),
-            Vector2Mm(1, 2),
-            Verdict.WARNING,
-            ReasonCode.PROVIDER_CONTRACT_UNVERIFIED,
+    def test_series_cannot_mix_provider_or_axis_and_limits_fail_closed(self):
+        with self.assertRaises(ValueError):
+            summarize(
+                [obs(1, "a"), obs(2, "b", provider=ProviderKind.CARTOGRAPHER_TOUCH)]
+            )
+        result = summarize([obs(9, "a"), obs(10, "b")], limit_mm=5)
+        self.assertEqual(
+            (result.verdict, result.reason_code),
+            (Verdict.INVALID, ReasonCode.LIMIT_EXCEEDED),
         )
-        self.assertEqual(result.claim_state, ClaimState.REQUIRES_HIL)
+
+    def test_state_machine_success_terminal_and_fault(self):
+        m = RunStateMachine()
+        self.assertTrue(m.transition(RunState.VALIDATING).accepted)
+        self.assertTrue(m.transition(RunState.RUNNING).accepted)
+        self.assertTrue(m.transition(RunState.COMPLETED).accepted)
+        fault = m.transition(RunState.RUNNING)
+        self.assertFalse(fault.accepted)
+        self.assertEqual(m.state, RunState.COMPLETED)
+
+    def test_apply_freshness_and_rollback_are_data_only_and_fail_closed(self):
+        plan = ApplyPlan(RunId("run"), "fingerprint")
+        self.assertTrue(plan.preview_only)
+        with self.assertRaises(ValueError):
+            ApplyPlan(RunId("run"), "fingerprint", False)
+        self.assertFalse(FreshnessResult(False, ReasonCode.STALE_FINGERPRINT).fresh)
+        rollback = RollbackPlan(
+            (
+                RollbackEntry(
+                    "tool",
+                    Vector2Mm(
+                        1, 2, CoordinateFrame.MACHINE, SignConvention.PROVIDER_REPORTED
+                    ),
+                ),
+            ),
+            RunId("run"),
+        )
+        self.assertEqual(rollback.source_run_id.value, "run")
 
 
 if __name__ == "__main__":

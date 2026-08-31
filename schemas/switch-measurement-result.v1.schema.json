@@ -1,13 +1,1 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "xyz-klipper-tool/switch-measurement-result.v1",
-  "type": "object",
-  "required": ["schema_version", "run_id", "tool_visit_id", "x_mm", "y_mm", "verdict", "reason_code", "claim_state"],
-  "properties": {
-    "schema_version": {"const": 1}, "run_id": {"type": "string"}, "tool_visit_id": {"type": "string"},
-    "x_mm": {"type": "number"}, "y_mm": {"type": "number"},
-    "verdict": {"enum": ["PASS", "WARNING", "INVALID"]},
-    "reason_code": {"type": "string"}, "claim_state": {"type": "string"}
-  },
-  "additionalProperties": true
-}
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"xyz-klipper-tool/switch-z-result.v1","type":"object","additionalProperties":true,"required":["schema_version","run_id","outer_cycle_id","tool_visit_id","sample_id","station_revision","configuration_fingerprint","calibration_identity","provider","axis","frame","sign","z_offset_mm","verdict","reason_code","claim_state"],"properties":{"schema_version":{"const":1},"run_id":{"type":"string","minLength":1},"outer_cycle_id":{"type":"string","minLength":1},"tool_visit_id":{"type":"string","minLength":1},"sample_id":{"type":"string","minLength":1},"station_revision":{"type":"string","minLength":1},"configuration_fingerprint":{"type":"string","minLength":1},"calibration_identity":{"type":"string","minLength":1},"provider":{"const":"switch"},"axis":{"const":"Z"},"frame":{"enum":["camera_image","machine","tool","provider"]},"sign":{"enum":["reference_minus_measured","correction_to_apply","provider_reported"]},"z_offset_mm":{"type":"number"},"verdict":{"enum":["PASS","WARNING","INVALID"]},"reason_code":{"type":"string","minLength":1},"claim_state":{"enum":["OBSERVED","IMPLEMENTED","PLANNED","REQUIRES_HIL"]}}}

@@ -1,7 +1,7 @@
 # Trạng thái dự án
 
 - Dự án: **XYZ Klipper Tool**
-- Trạng thái kho: hoàn tất triển khai miền Phase 01 offline; chờ supervisor review
+- Trạng thái kho: hoàn tất correction pass miền Phase 01 offline; chờ supervisor re-review
 - Mức sẵn sàng production: **CHƯA SẴN SÀNG**
 - Phase hiện tại: Phase 01 — mô hình miền, đơn vị, dấu và thống kê
 - Cổng kế tiếp: supervisor review Phase 01 trước khi merge
@@ -12,7 +12,7 @@
 | Phase | Trạng thái | Bằng chứng |
 |---|---|---|
 | 00 Quy tắc, nguồn, license, bằng chứng | `IMPLEMENTED` | Artifact governance song ngữ, manifest SHA-256 23 file, nhập 21 JSON Z, kiểm tra offline đạt |
-| 01 Domain model, đơn vị, dấu, thống kê | `IMPLEMENTED` | Test miền thuần và schema đạt; hành vi vật lý vẫn `REQUIRES_HIL` |
+| 01 Domain model, đơn vị, dấu, thống kê | `NEEDS_WORK` | Test correction đạt; host chưa có mypy/pyright đã pin; hành vi vật lý vẫn `REQUIRES_HIL` |
 | 02 Adapter và simulator | `PLANNED` | Chưa bắt đầu |
 | 03 Camera và pipeline thị giác | `PLANNED` | Chưa bắt đầu |
 | 04 Điều phối X/Y theo chu kỳ độc lập | `PLANNED` | Chưa bắt đầu |

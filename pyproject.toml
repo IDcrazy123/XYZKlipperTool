@@ -1,0 +1,9 @@
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src/xyz_klipper_tool"]
+
+[tool.pyright]
+include = ["src/xyz_klipper_tool"]
+typeCheckingMode = "strict"
+pythonVersion = "3.11"

@@ -38,3 +38,7 @@ This phase performs no physical action and cannot establish physical safety. HIL
 ## Test strategy
 
 Run `python -m unittest discover -s tests -v`, import-boundary and schema checks, available lint/type/coverage checks, all Phase 00 governance checkers, and `git diff --check`. Record exact commands, exit codes, counts, and artifact hashes in the Phase 01 progress record and test-run JSON.
+
+## Correction-pass closure criteria
+
+The correction pass must keep the gate `NEEDS_WORK` unless pinned mypy/pyright dependencies are installed and run successfully. Contract tests must exercise both Z providers, hierarchy and provider isolation, finite/non-empty validation, explicit rejection records, reference drift, schema required/type/enum/finite constraints, freshness/apply/rollback invariants, and all listed negative paths.

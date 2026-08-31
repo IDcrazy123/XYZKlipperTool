@@ -38,3 +38,7 @@ Phase này không thực hiện hành động vật lý và không thể xác l�
 ## Chiến lược test
 
 Chạy `python -m unittest discover -s tests -v`, kiểm tra import-boundary và schema, các kiểm tra lint/type/coverage khả dụng, toàn bộ checker governance Phase 00 và `git diff --check`. Ghi command, exit code, số lượng và hash artifact chính xác trong progress record và JSON test-run Phase 01.
+
+## Tiêu chí đóng correction pass
+
+Correction pass phải giữ cổng `NEEDS_WORK` trừ khi dependency mypy/pyright đã pin được cài đặt và chạy thành công. Contract test phải chạy cả hai Z provider, hierarchy và cô lập provider, validation finite/non-empty, rejection record tường minh, reference drift, required/type/enum/finite của schema, invariant freshness/apply/rollback và mọi negative path đã nêu.

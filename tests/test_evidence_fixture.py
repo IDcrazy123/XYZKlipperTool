@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from xyz_klipper_tool.domain.statistics import Observation, summarize
+from xyz_klipper_tool.domain.units import Millimetres
 
 
 class EvidenceFixtureTests(unittest.TestCase):
@@ -12,12 +13,23 @@ class EvidenceFixtureTests(unittest.TestCase):
         )
         result = summarize(
             [
-                Observation(f"t3-{i}", value)
+                Observation(
+                    "run",
+                    "cycle",
+                    "visit",
+                    f"t3-{i}",
+                    "station",
+                    "fingerprint",
+                    "calibration",
+                    "switch",
+                    "Z",
+                    Millimetres(value),
+                )
                 for i, value in enumerate(fixture["x_mm_values"])
             ]
         )
-        self.assertAlmostEqual(result.mean_mm, 0.012666666666666666)
-        self.assertAlmostEqual(result.median_mm, 0.005)
+        self.assertAlmostEqual(result.filtered.mean_mm, 0.012666666666666666)
+        self.assertAlmostEqual(result.filtered.median_mm, 0.005)
         self.assertEqual(fixture["fixture_kind"], "evidence_only")
 
 
