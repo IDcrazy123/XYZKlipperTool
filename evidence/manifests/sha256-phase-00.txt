@@ -1,0 +1,25 @@
+# SHA-256 manifest for immutable Phase 00 imports
+# Created: 2026-08-31
+f27715158d7a238509a6a2b20bead4b727723cfb59ef213a2a90615689130a6f  evidence/imported/xy/ktamv-xy-independent-cycles-20260831.csv
+0cadc499af50ee21d6aa477447ced05d689622fcf4b882da16b30c60559b19e3  evidence/imported/xy/ktamv-xy-independent-cycles-20260831.md
+976dde4c86e2f3b4b169f7126b74bb46025061a717d6b950caf7e1b10a28c6b0  evidence/imported/z/20260824-142736-783-z-cartographer_touch-01.json
+ede5e95d177542cbe5ee2fee897a1d84551381a21e945a6bf6a5e80d471b7e72  evidence/imported/z/20260824-143244-485-z-cartographer_touch-01.json
+b661b9049b4c15992bea0eaf088f4286f156572128f19573f92b196dae87282c  evidence/imported/z/20260824-143855-453-z-cartographer_touch-01.json
+52b1437cf2912afb8765a255635ddcb29f25f6f7c77f1a7c70631a896b4f7fd7  evidence/imported/z/20260824-144628-534-z-cartographer_touch-01.json
+5754406f1a5efdc206a2f97e6b1ad34f6ef557caa1e23989c2402c9f0935d13a  evidence/imported/z/20260824-145142-725-z-cartographer_touch-01.json
+686c02449492e24e219edf047c21f90264273e2fe45fbdf7abc9bb83ba5369d7  evidence/imported/z/20260824-145648-209-z-cartographer_touch-01.json
+bebedd3ed1e4b17433d5a7732bbce677f607a42e0c3d414fb2eb4123d572841a  evidence/imported/z/20260825-090432-020-z-switch-01.json
+f79a81730dda205c137cc51a9c8d0e96e11ec6fd3142a86fb2118a1539254aa2  evidence/imported/z/20260825-090849-227-z-cartographer_touch-01.json
+323302857efc57e99f7904b88b928d8779216e9421e014e225050fc2687b9afb  evidence/imported/z/20260825-091729-285-z-cartographer_touch-01.json
+c2b154df8e8f4781bddce7c035f8cff896275449cd2bff85f6f76af88a7a3333  evidence/imported/z/20260825-093855-408-z-switch-01.json
+81b11d87a1046b2d02b35af74b3060e11c86dbddf10f7bf2a19be74f8ece9992  evidence/imported/z/20260825-094308-892-z-switch-01.json
+e398dd88599aa05bc6143e2b37b8f199b3dab16ae2860974a0ef0c159df9243a  evidence/imported/z/20260825-094715-333-z-switch-01.json
+31fb4f66be0bd0834890dfda71ba195f9eef21c776f388001b1458f758169e8e  evidence/imported/z/20260825-095200-233-z-cartographer_touch-01.json
+5f0d3e172c0b2c59ff99795618e9ee874a2d38973d1f67a737e0429add545d62  evidence/imported/z/20260825-095639-268-z-cartographer_touch-01.json
+51868fb3fde2ba4a69cb321a7d27fa3fd456f8a35c43c23b870e15fcc111d718  evidence/imported/z/20260825-131829-509-z-cartographer_touch-01.json
+367d577de26543c7a88998f5233caba848da042cc370a788e84919ed43b3d1b7  evidence/imported/z/20260825-132248-757-z-cartographer_touch-01.json
+d462bc9889411bf0c42a5862fd167b7b0a4f4775c89008412d1cabe042e0f57d  evidence/imported/z/20260825-132649-786-z-cartographer_touch-01.json
+4eec5c3b1e0f9e738de81f02d0b9d64d343e24834c682e49927d5e427e088730  evidence/imported/z/20260825-133058-681-z-cartographer_touch-01.json
+2a709b2f7b5083f8cfb6ea5f30c00f6c86cbd820299d53aa9f5e9040a7d75b9c  evidence/imported/z/20260825-133515-148-z-cartographer_touch-01.json
+570ff8de65a327f656e4656c24cf742db80d03e7d166930ed706eb1a49d3200c  evidence/imported/z/20260825-133944-202-z-cartographer_touch-01.json
+4c1b35a3b1a02f43b40a83ad281bb2fe58493066dcd6e6c6b9a859370d5415b0  evidence/imported/z/20260826-114524-081-z-switch-01.json

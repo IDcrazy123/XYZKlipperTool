@@ -1,0 +1,16 @@
+cycle,tool,safe_x_mm,safe_y_mm,safe_z_mm,residual_x_mm,residual_y_mm,samples,spread_x_mm,spread_y_mm,lighting,notes
+1,T0,30.200,120.000,40.000,0.000,0.000,1,0.000,0.000,camera_default,T0 reference after preparatory T1->T0 pickup
+1,T1,104.000,120.000,40.2464,0.004,-0.078,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+1,T2,176.000,120.000,39.7312,0.006,-0.130,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+1,T3,249.500,120.000,39.8104,0.029,-0.073,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+1,T4,321.500,120.000,40.1028,0.004,-0.078,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+2,T0,30.200,120.000,40.000,0.001,-0.026,1,0.000,0.000,camera_default,independent T4->T0 pickup
+2,T1,104.000,120.000,40.2464,0.004,-0.078,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+2,T2,176.000,120.000,39.7312,0.004,-0.078,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+2,T3,249.500,120.000,39.8104,0.005,-0.104,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+2,T4,321.500,120.000,40.1028,0.004,-0.078,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+3,T0,30.200,120.000,40.000,0.001,-0.026,1,0.000,0.000,camera_default,independent T4->T0 pickup
+3,T1,104.000,120.000,40.2464,0.004,-0.078,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+3,T2,176.000,120.000,39.7312,0.005,-0.104,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+3,T3,249.500,120.000,39.8104,0.004,-0.078,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement
+3,T4,321.500,120.000,40.1028,0.003,-0.052,1,0.000,0.000,camera_default,GET_POSITION immediately before measurement

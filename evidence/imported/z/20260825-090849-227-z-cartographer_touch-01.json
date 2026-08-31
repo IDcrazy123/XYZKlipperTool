@@ -1,0 +1,55 @@
+{
+  "applied": false,
+  "cleanup_errors": [
+    {
+      "error": "toolchanger active state is still unavailable after toolchanger_recovery_gcode",
+      "phase": "recover toolchanger"
+    },
+    {
+      "error": "skipped because active tool state was not recovered",
+      "phase": "restore original tool"
+    }
+  ],
+  "completed": 1787648929.2270663,
+  "configuration_changed": false,
+  "configuration_fingerprint": "sha256:ce7778145d6d65790b775f923bd7db58df2736f40eb0d1b94fc53af36ae46268",
+  "duration_seconds": 142.70542359352112,
+  "history_file": "20260825-090849-227-z-cartographer_touch-01.json",
+  "measured": 1787648929.2270663,
+  "mode": "Z",
+  "note": "report only; measured values were not applied automatically",
+  "offsets": {
+    "0": {
+      "trigger_z": -0.313507,
+      "z": 0.0,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "1": {
+      "trigger_z": -0.055507,
+      "z": 0.258,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    }
+  },
+  "primary_error": "Primary error:\n  CARTOGRAPHER_TOUCH_PROBE failed: Unable to find 3 samples within 0.010mm in a window of 5 after 10 touches\nCleanup errors:\n  - recover toolchanger: toolchanger active state is still unavailable after toolchanger_recovery_gcode\n  - restore original tool: skipped because active tool state was not recovered\nMachine state:\n  active_tool: none\n  position: 174.746875,168.084375,15.000000",
+  "reference_tool": 0,
+  "reference_xy_drift": null,
+  "reference_z_drift": null,
+  "schema_version": 2,
+  "session_id": "5ee260781605410c9be298447d84bac8",
+  "started": 1787648786.5216427,
+  "status": "INVALID",
+  "temperature": 150.0,
+  "tool_vision_version": "3.4.0-rc2",
+  "validation": {
+    "checks": [],
+    "quality": {},
+    "reasons": [
+      "calibration failed: Primary error:\n  CARTOGRAPHER_TOUCH_PROBE failed: Unable to find 3 samples within 0.010mm in a window of 5 after 10 touches\nCleanup errors:\n  - recover toolchanger: toolchanger active state is still unavailable after toolchanger_recovery_gcode\n  - restore original tool: skipped because active tool state was not recovered\nMachine state:\n  active_tool: none\n  position: 174.746875,168.084375,15.000000"
+    ],
+    "status": "INVALID"
+  },
+  "z_method": "cartographer_touch",
+  "z_value_semantics": "candidate_absolute_relative_to_reference"
+}

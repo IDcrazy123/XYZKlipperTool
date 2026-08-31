@@ -1,0 +1,79 @@
+{
+  "applied": false,
+  "cleanup_errors": [],
+  "completed": 1787663909.5099561,
+  "configuration_changed": false,
+  "configuration_fingerprint": "sha256:ce7778145d6d65790b775f923bd7db58df2736f40eb0d1b94fc53af36ae46268",
+  "duration_seconds": 249.39649057388306,
+  "history_file": "20260825-131829-509-z-cartographer_touch-01.json",
+  "measured": 1787663909.5099561,
+  "mode": "Z",
+  "note": "report only; measured values were not applied automatically",
+  "offsets": {
+    "0": {
+      "reference_drift_z": 0.016000000000000014,
+      "reference_return_trigger_z": 0.136917,
+      "trigger_z": 0.120917,
+      "z": 0.0,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "1": {
+      "trigger_z": 0.356917,
+      "z": 0.236,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "2": {
+      "trigger_z": -0.147083,
+      "z": -0.268,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "3": {
+      "trigger_z": -0.067083,
+      "z": -0.188,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "4": {
+      "trigger_z": 0.228917,
+      "z": 0.10800000000000001,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    }
+  },
+  "reference_tool": 0,
+  "reference_xy_drift": null,
+  "reference_z_drift": 0.016000000000000014,
+  "schema_version": 2,
+  "session_id": "8a300b187aae403b8e440c97dc153ede",
+  "started": 1787663660.1134655,
+  "status": "WARNING",
+  "temperature": 150.0,
+  "tool_vision_version": "3.4.0-rc2",
+  "validation": {
+    "checks": [
+      {
+        "config_option": "max_reference_z_drift",
+        "detail": "max_reference_z_drift is not configured",
+        "limit": null,
+        "name": "reference_z_drift_mm",
+        "observed": 0.016000000000000014,
+        "status": "WARNING"
+      }
+    ],
+    "quality": {
+      "max_xy_uncertainty_mm": null,
+      "reference_xy_drift_mm": null,
+      "reference_z_drift_mm": 0.016000000000000014,
+      "transform": {}
+    },
+    "reasons": [
+      "max_reference_z_drift is not configured"
+    ],
+    "status": "WARNING"
+  },
+  "z_method": "cartographer_touch",
+  "z_value_semantics": "candidate_absolute_relative_to_reference"
+}

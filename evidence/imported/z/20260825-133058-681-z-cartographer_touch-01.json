@@ -1,0 +1,79 @@
+{
+  "applied": false,
+  "cleanup_errors": [],
+  "completed": 1787664658.6811142,
+  "configuration_changed": false,
+  "configuration_fingerprint": "sha256:ce7778145d6d65790b775f923bd7db58df2736f40eb0d1b94fc53af36ae46268",
+  "duration_seconds": 216.96604442596436,
+  "history_file": "20260825-133058-681-z-cartographer_touch-01.json",
+  "measured": 1787664658.6811142,
+  "mode": "Z",
+  "note": "report only; measured values were not applied automatically",
+  "offsets": {
+    "0": {
+      "reference_drift_z": 0.0,
+      "reference_return_trigger_z": -0.100767,
+      "trigger_z": -0.100767,
+      "z": 0.0,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "1": {
+      "trigger_z": 0.151233,
+      "z": 0.252,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "2": {
+      "trigger_z": -0.366767,
+      "z": -0.266,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "3": {
+      "trigger_z": -0.294767,
+      "z": -0.194,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    },
+    "4": {
+      "trigger_z": -0.010767,
+      "z": 0.09,
+      "z_method": "cartographer_touch",
+      "z_model": "default"
+    }
+  },
+  "reference_tool": 0,
+  "reference_xy_drift": null,
+  "reference_z_drift": 0.0,
+  "schema_version": 2,
+  "session_id": "b33cb70419fd43a2be62101250eb665c",
+  "started": 1787664441.7150698,
+  "status": "WARNING",
+  "temperature": 150.0,
+  "tool_vision_version": "3.4.0-rc2",
+  "validation": {
+    "checks": [
+      {
+        "config_option": "max_reference_z_drift",
+        "detail": "max_reference_z_drift is not configured",
+        "limit": null,
+        "name": "reference_z_drift_mm",
+        "observed": 0.0,
+        "status": "WARNING"
+      }
+    ],
+    "quality": {
+      "max_xy_uncertainty_mm": null,
+      "reference_xy_drift_mm": null,
+      "reference_z_drift_mm": 0.0,
+      "transform": {}
+    },
+    "reasons": [
+      "max_reference_z_drift is not configured"
+    ],
+    "status": "WARNING"
+  },
+  "z_method": "cartographer_touch",
+  "z_value_semantics": "candidate_absolute_relative_to_reference"
+}

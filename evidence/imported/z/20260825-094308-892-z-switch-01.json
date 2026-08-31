@@ -1,0 +1,74 @@
+{
+  "applied": false,
+  "cleanup_errors": [],
+  "completed": 1787650988.8927813,
+  "configuration_changed": false,
+  "configuration_fingerprint": "sha256:fa2d8ab5724a266b00be669abb268efae682d1bf7f06c83c232e88bedeb022ff",
+  "duration_seconds": 197.66065859794617,
+  "history_file": "20260825-094308-892-z-switch-01.json",
+  "measured": 1787650988.8927813,
+  "mode": "Z",
+  "note": "report only; measured values were not applied automatically",
+  "offsets": {
+    "0": {
+      "reference_drift_z": 0.02999999999518077,
+      "reference_return_trigger_z": 1.5678917526854834,
+      "trigger_z": 1.5378917526903026,
+      "z": 0.0,
+      "z_method": "switch"
+    },
+    "1": {
+      "trigger_z": 1.6678917526891035,
+      "z": 0.12999999999880085,
+      "z_method": "switch"
+    },
+    "2": {
+      "trigger_z": 1.1538917526881942,
+      "z": -0.38400000000210843,
+      "z_method": "switch"
+    },
+    "3": {
+      "trigger_z": 1.351891752687225,
+      "z": -0.1860000000030777,
+      "z_method": "switch"
+    },
+    "4": {
+      "trigger_z": 1.6338917526862309,
+      "z": 0.09599999999592823,
+      "z_method": "switch"
+    }
+  },
+  "reference_tool": 0,
+  "reference_xy_drift": null,
+  "reference_z_drift": 0.02999999999518077,
+  "schema_version": 2,
+  "session_id": "2c60141ff38a43e1a492d5db11bf4de7",
+  "started": 1787650791.2321227,
+  "status": "WARNING",
+  "temperature": 150.0,
+  "tool_vision_version": "3.4.0-rc2",
+  "validation": {
+    "checks": [
+      {
+        "config_option": "max_reference_z_drift",
+        "detail": "max_reference_z_drift is not configured",
+        "limit": null,
+        "name": "reference_z_drift_mm",
+        "observed": 0.02999999999518077,
+        "status": "WARNING"
+      }
+    ],
+    "quality": {
+      "max_xy_uncertainty_mm": null,
+      "reference_xy_drift_mm": null,
+      "reference_z_drift_mm": 0.02999999999518077,
+      "transform": {}
+    },
+    "reasons": [
+      "max_reference_z_drift is not configured"
+    ],
+    "status": "WARNING"
+  },
+  "z_method": "switch",
+  "z_value_semantics": "candidate_absolute_relative_to_reference"
+}

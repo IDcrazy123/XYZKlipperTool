@@ -1,0 +1,137 @@
+{
+  "applied": false,
+  "cleanup_errors": [
+    {
+      "error": "TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n",
+      "phase": "abort_gcode"
+    },
+    {
+      "error": "TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n",
+      "phase": "recover toolchanger"
+    },
+    {
+      "error": "skipped because active tool state was not recovered",
+      "phase": "restore original tool"
+    },
+    {
+      "error": "TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n",
+      "phase": "turn off T0 heater"
+    },
+    {
+      "error": "TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n",
+      "phase": "turn off T1 heater"
+    },
+    {
+      "error": "TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n",
+      "phase": "turn off T2 heater"
+    },
+    {
+      "error": "TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n",
+      "phase": "turn off T3 heater"
+    },
+    {
+      "error": "TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n",
+      "phase": "turn off T4 heater"
+    },
+    {
+      "error": "TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n",
+      "phase": "restore G-code state"
+    }
+  ],
+  "completed": 1787744724.0815156,
+  "configuration_changed": false,
+  "configuration_fingerprint": "sha256:059577ea2fa549f203ebaa68fa8b6eb03aa8f393de7161b08b37bf6880fca5c1",
+  "configured_relative_offsets": {
+    "0": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "1": {
+      "x": -0.243,
+      "y": -0.252,
+      "z": 0.2464
+    },
+    "2": {
+      "x": 0.746,
+      "y": 0.086,
+      "z": -0.2688
+    },
+    "3": {
+      "x": 0.304,
+      "y": 0.449,
+      "z": -0.1896
+    },
+    "4": {
+      "x": 0.041,
+      "y": 0.352,
+      "z": 0.1028
+    }
+  },
+  "duration_seconds": 18.68133568763733,
+  "environment": {
+    "bed": {
+      "before_home": {
+        "actual_c": 70.14,
+        "available": true,
+        "power": 0.22064537535443168,
+        "stability": "not_evaluated",
+        "stability_tolerance_c": null,
+        "target_c": 70.0
+      },
+      "end": {
+        "actual_c": 71.72,
+        "available": true,
+        "power": 0.0,
+        "stability": "not_evaluated",
+        "stability_tolerance_c": null,
+        "target_c": 70.0
+      },
+      "start": {
+        "actual_c": 71.59,
+        "available": true,
+        "power": 0.0,
+        "stability": "not_evaluated",
+        "stability_tolerance_c": null,
+        "target_c": 70.0
+      }
+    },
+    "nozzle": {
+      "requested_c": 150.0,
+      "wait_required_each_selected_tool": true,
+      "waited_tools": []
+    }
+  },
+  "history_file": "20260826-114524-081-z-switch-01.json",
+  "home_before_measurement": true,
+  "measured": 1787744724.0815156,
+  "mode": "Z",
+  "note": "report only; measured values were not applied automatically",
+  "offsets": {},
+  "primary_error": "Primary error:\n  Primary error:\n  TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\nCleanup errors:\n  - abort_gcode: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - recover toolchanger: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - restore original tool: skipped because active tool state was not recovered\n  - turn off T0 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - turn off T1 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - turn off T2 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - turn off T3 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - turn off T4 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\nMachine state:\n  active_tool: none\n  position: 173.200000,167.600000,10.000000\nCleanup errors:\n  - restore G-code state: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\nMachine state:\n  active_tool: none\n  position: 173.200000,167.600000,10.000000",
+  "production_comparison": {
+    "assessment": "NOT_EVALUATED",
+    "available": false,
+    "semantics": "candidate_minus_configured_relative",
+    "tools": {}
+  },
+  "reference_tool": 0,
+  "reference_xy_drift": null,
+  "reference_z_drift": null,
+  "schema_version": 2,
+  "session_id": "f99c109687a24935baf591341b99f236",
+  "started": 1787744705.4001799,
+  "status": "INVALID",
+  "temperature": 150.0,
+  "tool_vision_version": "3.4.0-rc2",
+  "validation": {
+    "checks": [],
+    "quality": {},
+    "reasons": [
+      "calibration failed: Primary error:\n  Primary error:\n  TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\nCleanup errors:\n  - abort_gcode: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - recover toolchanger: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - restore original tool: skipped because active tool state was not recovered\n  - turn off T0 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - turn off T1 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - turn off T2 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - turn off T3 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\n  - turn off T4 heater: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\nMachine state:\n  active_tool: none\n  position: 173.200000,167.600000,10.000000\nCleanup errors:\n  - restore G-code state: TMC 'stepper_x' reports error: DRV_STATUS: c01f0010 s2vsa=1(ShortToSupply_A!) cs_actual=31 stealth=1 stst=1\nOnce the underlying issue is corrected, use the\n\"FIRMWARE_RESTART\" command to reset the firmware, reload the\nconfig, and restart the host software.\nPrinter is shutdown\n\nMachine state:\n  active_tool: none\n  position: 173.200000,167.600000,10.000000"
+    ],
+    "status": "INVALID"
+  },
+  "z_method": "switch",
+  "z_value_semantics": "candidate_absolute_relative_to_reference"
+}

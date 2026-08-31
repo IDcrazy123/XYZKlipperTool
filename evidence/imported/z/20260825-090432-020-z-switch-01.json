@@ -1,0 +1,33 @@
+{
+  "applied": false,
+  "cleanup_errors": [],
+  "completed": 1787648672.0202184,
+  "configuration_changed": false,
+  "configuration_fingerprint": null,
+  "duration_seconds": 0.0017576217651367188,
+  "history_file": "20260825-090432-020-z-switch-01.json",
+  "measured": 1787648672.0202184,
+  "mode": "Z",
+  "note": "report only; measured values were not applied automatically",
+  "offsets": {},
+  "primary_error": "Z target -8.000 is outside [-5.000, 347.000]",
+  "reference_tool": 0,
+  "reference_xy_drift": null,
+  "reference_z_drift": null,
+  "schema_version": 2,
+  "session_id": "1f6fd8c9a7504f4980da951f87288505",
+  "started": 1787648672.0184608,
+  "status": "INVALID",
+  "temperature": 150.0,
+  "tool_vision_version": "3.4.0-rc2",
+  "validation": {
+    "checks": [],
+    "quality": {},
+    "reasons": [
+      "calibration failed: Z target -8.000 is outside [-5.000, 347.000]"
+    ],
+    "status": "INVALID"
+  },
+  "z_method": "switch",
+  "z_value_semantics": "candidate_absolute_relative_to_reference"
+}
