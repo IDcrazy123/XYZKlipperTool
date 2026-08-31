@@ -9,3 +9,4 @@
 | TEST-005 | Link scan | local Markdown target audit | no missing local targets |
 | TEST-006 | License/provenance | ledger and notices review | every upstream row pinned or follow-up recorded |
 | TEST-007 | Production-code boundary | file inventory/search | no `src/`, `klippy/`, or measurement implementation |
+| TEST-008 | Master prompt parity | `python scripts/check_master_prompt_parity.py` | 18 sections, 42 headings and all code/command tokens present |

@@ -9,3 +9,4 @@
 | TEST-005 | Scan link | audit target local Markdown | không thiếu target |
 | TEST-006 | License/provenance | review ledger/notices | row upstream pin hoặc follow-up rõ |
 | TEST-007 | Ranh giới production code | inventory/search | không có `src/`, `klippy/`, mã đo |
+| TEST-008 | Parity master prompt | `python scripts/check_master_prompt_parity.py` | đủ 18 mục, 42 heading và mọi code/command token |
