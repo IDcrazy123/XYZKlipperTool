@@ -1,12 +1,15 @@
+import importlib
 import json
 import math
 import unittest
 from pathlib import Path
 from typing import Any
 
-from jsonschema import (
-    Draft202012Validator,  # pyright: ignore[reportMissingModuleSource]
-)
+_jsonschema: Any = None
+try:
+    _jsonschema = importlib.import_module("jsonschema")
+except ModuleNotFoundError:
+    pass
 
 from xyz_klipper_tool.domain.models import (
     Axis,
@@ -117,6 +120,7 @@ class SchemaTests(unittest.TestCase):
                 if rule.get("type") == "number":
                     self.assertTrue(math.isfinite(payload[key]))
 
+    @unittest.skipUnless(_jsonschema is not None, "install pinned dev validator")
     def test_draft_2020_schema_rejects_negative_instances(self) -> None:
         root = Path(__file__).parents[1]
         cases = (
@@ -130,7 +134,7 @@ class SchemaTests(unittest.TestCase):
             ),
         )
         for filename, positive in cases:
-            validator: Any = Draft202012Validator(
+            validator: Any = _jsonschema.Draft202012Validator(
                 json.loads((root / "schemas" / filename).read_text())
             )
             self.assertEqual(list(validator.iter_errors(positive)), [])
