@@ -1,7 +1,13 @@
 """Side-effect-controlled station workflows over ports."""
 
 from xyz_klipper_tool.domain.models import ReasonCode
-from xyz_klipper_tool.ports import Clock, CurrentPoseProvider, StationStore
+from xyz_klipper_tool.ports import (
+    Clock,
+    CurrentPoseProvider,
+    RunLock,
+    RunOperation,
+    StationStore,
+)
 
 from .models import CurrentPose, StationRecord, StationType, validate_text
 
@@ -28,6 +34,7 @@ def teach_station(
     revision: str,
     provenance: str,
     safe_z_mm: object | None,
+    lock: RunLock,
 ) -> StationRecord:
     """Teach from explicit current pose; omitted SAFE_Z fails closed and no movement occurs."""
     validate_text(name, "name")
@@ -43,19 +50,23 @@ def teach_station(
 
     if type(provider) is not ProviderKind or type(safe_z_mm) is not Millimetres:
         raise ValueError("provider and SAFE_Z must be typed")
-    record = StationRecord(
-        name,
-        _station_type(provider),
-        provider,
-        pose,
-        safe_z_mm,
-        revision,
-        clock.now_utc(),
-        configuration_fingerprint,
-        provenance,
-    )
-    store.put(record.station_type.value, record.name, record)
-    return record
+    token = lock.acquire(RunOperation.TEACH)
+    try:
+        record = StationRecord(
+            name,
+            _station_type(provider),
+            provider,
+            pose,
+            safe_z_mm,
+            revision,
+            clock.now_utc(),
+            configuration_fingerprint,
+            provenance,
+        )
+        store.put(record.station_type.value, record.name, record)
+        return record
+    finally:
+        lock.release(token)
 
 
 def show_stations(store: StationStore, name: str | None = None) -> tuple[object, ...]:
@@ -66,6 +77,8 @@ def show_stations(store: StationStore, name: str | None = None) -> tuple[object,
         for namespace in StationType:
             value = store.get(namespace.value, name)
             if value is not None:
+                if not isinstance(value, StationRecord):
+                    raise TypeError("corrupt station value")
                 result.append(value)
         return tuple(result)
     result = []
@@ -73,6 +86,8 @@ def show_stations(store: StationStore, name: str | None = None) -> tuple[object,
         for station_name in sorted(store.list(namespace.value)):
             value = store.get(namespace.value, station_name)
             if value is not None:
+                if not isinstance(value, StationRecord):
+                    raise ValueError("corrupt station value")
                 result.append(value)
     return tuple(result)
 
@@ -82,20 +97,29 @@ def clear_station(
     station_type: StationType,
     name: str,
     confirm: str | None = None,
+    lock: RunLock | None = None,
 ) -> tuple[object, ...]:
     """Return a preview or perform exact-confirmed removal; no offset writer is called."""
     if type(station_type) is not StationType:
         raise ValueError("station_type must be typed")
     validate_text(name, "name")
-    existing = store.get(station_type.value, name)
-    if existing is None:
-        return ()
-    preview = (existing,)
-    if confirm is None:
+    if lock is None:
+        raise ValueError("teach/clear operation requires a run lock")
+    token = lock.acquire(RunOperation.TEACH)
+    try:
+        existing = store.get(station_type.value, name)
+        if existing is None:
+            return ()
+        if not isinstance(existing, StationRecord):
+            raise TypeError("corrupt station value")
+        preview = (existing,)
+        if confirm is None:
+            return preview
+        if confirm != f"CLEAR:{station_type.value}:{name}":
+            raise ValueError(
+                f"{ReasonCode.CONFIRMATION_REQUIRED.value}: exact token required"
+            )
+        store.remove(station_type.value, name)
         return preview
-    if confirm != f"CLEAR:{station_type.value}:{name}":
-        raise ValueError(
-            f"{ReasonCode.CONFIRMATION_REQUIRED.value}: exact token required"
-        )
-    store.remove(station_type.value, name)
-    return preview
+    finally:
+        lock.release(token)

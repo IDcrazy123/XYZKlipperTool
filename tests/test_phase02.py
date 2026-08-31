@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from xyz_klipper_tool.adapters import (
     FakeClock,
@@ -16,6 +16,7 @@ from xyz_klipper_tool.configuration import fingerprint
 from xyz_klipper_tool.domain.models import ProviderKind, ToolId
 from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres
 from xyz_klipper_tool.persistence import JsonStationStore, PersistenceError
+from xyz_klipper_tool.ports import RunOperation
 from xyz_klipper_tool.stations import (
     CurrentPose,
     StationType,
@@ -45,15 +46,31 @@ class Phase02Tests(unittest.TestCase):
             discover_tools(FakeToolchanger([ToolId("T1"), ToolId("T1")]))
         with self.assertRaises(ValueError):
             discover_tools(FakeToolchanger([ToolId("T1")], ToolId("T1"), ToolId("T2")))
+        with self.assertRaises(ValueError):
+            discover_tools(FakeToolchanger([ToolId("T1")]))
+        with self.assertRaises(ValueError):
+            discover_tools(
+                FakeToolchanger([ToolId("T1")], ToolId("unknown"), ToolId("unknown")),
+                ToolId("T1"),
+            )
+        with self.assertRaises(ValueError):
+            discover_tools(FakeToolchanger([ToolId("T1")]), ToolId("T1"), 0)
 
     def test_fingerprint_is_stable_and_redacts_secrets(self) -> None:
         a = fingerprint({"z": 2, "secret_token": "do-not-store", "a": [1, True]})
         b = fingerprint({"a": [1, True], "secret_token": "other", "z": 2})
         self.assertEqual(a, b)
         self.assertNotIn("do-not-store", a.canonical_json)
+        with self.assertRaises(ValueError):
+            fingerprint(cast(Any, {1: "key"}))
+        with self.assertRaises(ValueError):
+            type(a)(True, a.digest, a.canonical_json)
+        with self.assertRaises(ValueError):
+            type(a)(1, "0" * 64, a.canonical_json)
 
     def test_teach_show_clear_and_safe_z_are_data_only(self) -> None:
         store = FakeStationStore()
+        lock = FakeRunLock()
         printer = FakePrinter(self.pose())
         clock = FakeClock(datetime(2026, 8, 31, tzinfo=timezone.utc))
         with self.assertRaises(ValueError):
@@ -67,6 +84,7 @@ class Phase02Tests(unittest.TestCase):
                 "r1",
                 "fake-pose",
                 None,
+                lock,
             )
         record = teach_station(
             store,
@@ -78,26 +96,69 @@ class Phase02Tests(unittest.TestCase):
             "r1",
             "fake-pose",
             Millimetres(5),
+            lock,
         )
         self.assertEqual(record.pose.frame, CoordinateFrame.MACHINE)
         before = tuple(store.calls)
         self.assertEqual(show_stations(store), (record,))
         self.assertEqual(tuple(store.calls[: len(before)]), before)
-        self.assertEqual(clear_station(store, StationType.CAMERA, "cam"), (record,))
         self.assertEqual(
-            clear_station(store, StationType.CAMERA, "cam", "CLEAR:camera:cam"),
+            clear_station(store, StationType.CAMERA, "cam", lock=lock), (record,)
+        )
+        self.assertEqual(
+            clear_station(store, StationType.CAMERA, "cam", "CLEAR:camera:cam", lock),
             (record,),
         )
+        store.records[("camera", "broken")] = object()
+        with self.assertRaises(TypeError):
+            show_stations(store, "broken")
 
     def test_lock_conflict_and_wrong_release_fail_closed(self) -> None:
         lock = FakeRunLock()
-        token = lock.acquire("run")
+        token = lock.acquire(RunOperation.RUN)
         with self.assertRaises(RuntimeError):
-            lock.acquire("teach")
+            lock.acquire(RunOperation.TEACH)
         with self.assertRaises(ValueError):
             lock.release(object())
         lock.release(token)
-        lock.release(lock.acquire("apply"))
+        lock.release(lock.acquire(RunOperation.APPLY))
+
+    def test_teach_conflict_releases_after_store_fault(self) -> None:
+        lock = FakeRunLock()
+        token = lock.acquire(RunOperation.RUN)
+        with self.assertRaises(RuntimeError):
+            teach_station(
+                FakeStationStore(),
+                FakePrinter(self.pose()),
+                FakeClock(datetime(2026, 8, 31, tzinfo=timezone.utc)),
+                "cam",
+                ProviderKind.CAMERA,
+                "fp",
+                "r1",
+                "fake",
+                Millimetres(5),
+                lock,
+            )
+        lock.release(token)
+
+        class FailingStore(FakeStationStore):
+            def put(self, namespace: str, name: str, value: object) -> None:
+                raise RuntimeError("primary store fault")
+
+        with self.assertRaisesRegex(RuntimeError, "primary store fault"):
+            teach_station(
+                FailingStore(),
+                FakePrinter(self.pose()),
+                FakeClock(datetime(2026, 8, 31, tzinfo=timezone.utc)),
+                "cam",
+                ProviderKind.CAMERA,
+                "fp",
+                "r1",
+                "fake",
+                Millimetres(5),
+                lock,
+            )
+        self.assertIsNone(lock.held)
 
     def test_atomic_store_rejects_corrupt_and_preserves_previous(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -113,6 +174,7 @@ class Phase02Tests(unittest.TestCase):
                 "r1",
                 "fake",
                 Millimetres(5),
+                FakeRunLock(),
             )
             path = root / "camera" / "cam.json"
             original = path.read_text()
@@ -121,6 +183,10 @@ class Phase02Tests(unittest.TestCase):
                 store.get("camera", "cam")
             path.write_text(original)
             self.assertEqual(store.get("camera", "cam"), record)
+            store.put("camera", "cam", record)
+            store.put("camera", "cam", record)
+            self.assertTrue((root / "camera" / "cam.json.bak1").exists())
+            self.assertTrue((root / "camera" / "cam.json.bak2").exists())
             for stage in ("before_temp", "after_flush", "before_replace", "backup"):
                 fault_store = JsonStationStore(root, fault_stage=stage)
                 with self.assertRaises((PersistenceError, OSError)):
@@ -129,6 +195,7 @@ class Phase02Tests(unittest.TestCase):
             path.write_text('{"schema_version": 2}')
             with self.assertRaises(PersistenceError):
                 store.get("camera", "cam")
+            self.assertEqual(store.recover("camera", "cam").name, "cam")
 
     @unittest.skipUnless(
         jsonschema is not None, "jsonschema is required in the pinned venv"
@@ -155,6 +222,7 @@ class Phase02Tests(unittest.TestCase):
             "r1",
             "fake",
             Millimetres(5),
+            FakeRunLock(),
         )
         self.assertEqual(writer.calls, [])
 

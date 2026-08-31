@@ -7,6 +7,8 @@ from typing import Protocol, runtime_checkable
 from xyz_klipper_tool.domain.models import ProviderKind, ToolId
 from xyz_klipper_tool.domain.units import Millimetres, PixelVector2
 
+from .ownership import RunOperation, RunToken
+
 
 @runtime_checkable
 class CameraProvider(Protocol):
@@ -118,11 +120,11 @@ class Clock(Protocol):
 class RunLock(Protocol):
     """Acquire/release typed ownership; conflicting operations fail closed."""
 
-    def acquire(self, owner: str) -> object:
+    def acquire(self, operation: RunOperation) -> RunToken:
         """Acquire ownership or reject deterministic conflict."""
         ...
 
-    def release(self, token: object) -> None:
+    def release(self, token: RunToken) -> None:
         """Release exact ownership or fail closed."""
         ...
 

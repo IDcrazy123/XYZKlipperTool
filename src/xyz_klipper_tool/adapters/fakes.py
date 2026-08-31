@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from xyz_klipper_tool.domain.models import ProviderKind, ToolId
 from xyz_klipper_tool.domain.units import Millimetres, PixelVector2
+from xyz_klipper_tool.ports.ownership import RunOperation, RunToken
 
 
 def _next(script: list[object], calls: list[str], operation: str) -> object:
@@ -183,28 +184,20 @@ class FakeOffsetWriter:
         raise AssertionError("Phase 02 must not apply offsets")
 
 
-@dataclass(frozen=True)
-class LockToken:
-    """Opaque deterministic local lock ownership token."""
-
-    owner: str
-    nonce: int
-
-
 @dataclass
 class FakeRunLock:
     """Single-owner deterministic lock fake with typed release validation."""
 
-    held: LockToken | None = None
+    held: RunToken | None = None
     next_nonce: int = 1
 
-    def acquire(self, owner: str) -> LockToken:
+    def acquire(self, operation: RunOperation) -> RunToken:
         """Acquire once or reject a conflicting owner."""
-        if type(owner) is not str or not owner.strip():
-            raise ValueError("owner must be non-empty")
+        if type(operation) is not RunOperation:
+            raise TypeError("operation must be RunOperation")
         if self.held is not None:
             raise RuntimeError("CONFLICT: run lock held")
-        token = LockToken(owner, self.next_nonce)
+        token = RunToken(operation, self.next_nonce)
         self.next_nonce += 1
         self.held = token
         return token

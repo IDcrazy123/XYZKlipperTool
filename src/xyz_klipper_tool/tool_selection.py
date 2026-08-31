@@ -22,7 +22,11 @@ def discover_tools(
     ):
         raise ValueError("active and detected tool state mismatch")
     if reference is None:
-        reference = found[0]
+        raise ValueError("reference tool must be explicitly configured")
+    if active is not None and (type(active) is not ToolId or active not in found):
+        raise ValueError("active tool is not discovered or is not typed")
+    if detected is not None and (type(detected) is not ToolId or detected not in found):
+        raise ValueError("detected tool is not discovered or is not typed")
     if type(reference) is not ToolId or reference not in found:
         raise ValueError("reference tool is missing")
     return (reference,) + tuple(
