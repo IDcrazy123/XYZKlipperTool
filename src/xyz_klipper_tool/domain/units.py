@@ -6,9 +6,9 @@ camera calibration; no historical machine coordinate is a default.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import Enum
-import math
 
 
 def _finite(value: float, name: str) -> float:
@@ -88,4 +88,6 @@ class PixelScale:
         return Vector2Mm(pixels.x_px * self.x_mm_per_px, pixels.y_px * self.y_mm_per_px)
 
     def to_pixels(self, millimetres: Vector2Mm) -> PixelVector2:
-        return PixelVector2(millimetres.x_mm / self.x_mm_per_px, millimetres.y_mm / self.y_mm_per_px)
+        return PixelVector2(
+            millimetres.x_mm / self.x_mm_per_px, millimetres.y_mm / self.y_mm_per_px
+        )

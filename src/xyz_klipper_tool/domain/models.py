@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
+
 from .units import Millimetres, Vector2Mm
 
 

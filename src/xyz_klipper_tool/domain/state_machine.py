@@ -30,7 +30,9 @@ _TRANSITIONS = {
     RunState.CREATED: {RunState.VALIDATING, RunState.CANCELLED, RunState.FAILED},
     RunState.VALIDATING: {RunState.RUNNING, RunState.CANCELLED, RunState.FAILED},
     RunState.RUNNING: {RunState.COMPLETED, RunState.CANCELLED, RunState.FAILED},
-    RunState.COMPLETED: set(), RunState.FAILED: set(), RunState.CANCELLED: set(),
+    RunState.COMPLETED: set(),
+    RunState.FAILED: set(),
+    RunState.CANCELLED: set(),
 }
 
 
@@ -45,7 +47,11 @@ class RunStateMachine:
     def transition(self, target: RunState) -> TransitionResult:
         previous = self._state
         if target not in _TRANSITIONS[previous]:
-            reason = RunReason.TERMINAL_STATE if not _TRANSITIONS[previous] else RunReason.INVALID_TRANSITION
+            reason = (
+                RunReason.TERMINAL_STATE
+                if not _TRANSITIONS[previous]
+                else RunReason.INVALID_TRANSITION
+            )
             return TransitionResult(False, previous, previous, reason)
         self._state = target
         return TransitionResult(True, previous, target)

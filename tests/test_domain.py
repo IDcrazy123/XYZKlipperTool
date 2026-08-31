@@ -1,10 +1,20 @@
 import unittest
 
-from xyz_klipper_tool.domain.models import (ClaimState, ReasonCode, RunId, SwitchMeasurementResult,
-                                             ToolVisitId, Verdict)
+from xyz_klipper_tool.domain.models import (
+    ClaimState,
+    ReasonCode,
+    RunId,
+    SwitchMeasurementResult,
+    ToolVisitId,
+    Verdict,
+)
 from xyz_klipper_tool.domain.state_machine import RunState, RunStateMachine
-from xyz_klipper_tool.domain.statistics import (AcceptanceStatus, Observation, OutlierPolicy, SampleStatus,
-                                                 summarize)
+from xyz_klipper_tool.domain.statistics import (
+    Observation,
+    OutlierPolicy,
+    SampleStatus,
+    summarize,
+)
 from xyz_klipper_tool.domain.units import PixelScale, PixelVector2, Vector2Mm
 
 
@@ -25,14 +35,21 @@ class DomainTests(unittest.TestCase):
         self.assertIsNone(one.sample_sd_mm)
 
     def test_invalid_never_enters_estimator_and_warning_is_counted(self):
-        result = summarize([Observation("a", 1.0), Observation("b", 100.0, SampleStatus.INVALID),
-                            Observation("c", 3.0, SampleStatus.WARNING)])
+        result = summarize(
+            [
+                Observation("a", 1.0),
+                Observation("b", 100.0, SampleStatus.INVALID),
+                Observation("c", 3.0, SampleStatus.WARNING),
+            ]
+        )
         self.assertEqual(result.filtered_values_mm, (1.0, 3.0))
         self.assertEqual((result.invalid_count, result.warning_count), (1, 1))
 
     def test_outlier_policy_keeps_raw_and_filters_explicitly(self):
-        result = summarize([Observation("a", 1.0), Observation("b", 1.1), Observation("c", 9.0)],
-                           OutlierPolicy("median_threshold", 0.2, True))
+        result = summarize(
+            [Observation("a", 1.0), Observation("b", 1.1), Observation("c", 9.0)],
+            OutlierPolicy("median_threshold", 0.2, True),
+        )
         self.assertEqual(result.total_count, 3)
         self.assertEqual(result.filtered_values_mm, (1.0, 1.1))
         self.assertEqual(len(result.raw_observations), 3)
@@ -53,8 +70,13 @@ class DomainTests(unittest.TestCase):
         self.assertEqual(result.reason_code.value, "INVALID_TRANSITION")
 
     def test_provider_result_is_explicit_and_hil(self):
-        result = SwitchMeasurementResult(RunId("r"), ToolVisitId("v"), Vector2Mm(1, 2), Verdict.WARNING,
-                                         ReasonCode.PROVIDER_CONTRACT_UNVERIFIED)
+        result = SwitchMeasurementResult(
+            RunId("r"),
+            ToolVisitId("v"),
+            Vector2Mm(1, 2),
+            Verdict.WARNING,
+            ReasonCode.PROVIDER_CONTRACT_UNVERIFIED,
+        )
         self.assertEqual(result.claim_state, ClaimState.REQUIRES_HIL)
 
 
