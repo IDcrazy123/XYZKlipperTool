@@ -1,0 +1,37 @@
+{
+  "phase": "01-domain",
+  "status": "CANDIDATE_FOR_SUPERVISOR_REVIEW",
+  "commit_under_test": "6313de1b1fcbb74d6247bb9c171f7d6e7e26b67f",
+  "base_commit": "c93cc95b54079058e7aab2961374d693a19b1ebe",
+  "branch": "phase/01-domain",
+  "utc_time": "2026-08-31T12:46:22.3574374Z",
+  "local_time": "2026-08-31T19:46:22.3558948+07:00",
+  "commands": [
+    {"command": "$env:PYTHONPATH='src'; python -m unittest discover -s tests -v", "exit_code": 0, "tests": 11},
+    {"command": "python scripts/check_markdown_pairs.py", "exit_code": 0},
+    {"command": "python scripts/check_requirements_traceability.py", "exit_code": 0},
+    {"command": "python scripts/check_source_ledger.py", "exit_code": 0},
+    {"command": "python scripts/check_license_artifact.py", "exit_code": 0},
+    {"command": "python scripts/check_master_prompt_parity.py", "exit_code": 0},
+    {"command": "python -c \"import json; json.load(open('schemas/switch-measurement-result.v1.schema.json', encoding='utf-8'))\"", "exit_code": 0},
+    {"command": "static import scan src/xyz_klipper_tool/domain", "exit_code": 0},
+    {"command": "secret scan src tests schemas", "exit_code": 0},
+    {"command": "git diff --check c93cc95b54079058e7aab2961374d693a19b1ebe HEAD", "exit_code": 0}
+  ],
+  "governance_negative_fixture_tests": "PASS: expected FAIL output for orphan/missing IDs/placeholders was detected in temporary fixtures",
+  "hash_links": {
+    "src/xyz_klipper_tool/domain/__init__.py": "sha256:2b967fd74dc7f91dde0d1bdbd3c59002cadf6d8bd2c828b50f564cc74c6cf141",
+    "src/xyz_klipper_tool/domain/models.py": "sha256:a9ea9eb1d6ab27b6014fee19d10629c9d90710f390a78ccbdc335860b76eae27",
+    "src/xyz_klipper_tool/domain/schema.py": "sha256:df98b6d6f08d4132d19fb80de33c875590d16c37076a287e07bd8e1e0ed08201",
+    "src/xyz_klipper_tool/domain/state_machine.py": "sha256:f9e13300a4c1f124d83ea60548ea33357656aeeaddc858b941e472bd3bbc002b",
+    "src/xyz_klipper_tool/domain/statistics.py": "sha256:e933d2e428c6ec9c98735f416d26733f5ade723601623d057eb1ccd1be3c820f",
+    "src/xyz_klipper_tool/domain/units.py": "sha256:f3f97f798fe46bdc10697ee33dd1163b278592685f3f15324921517d16a7a8c0",
+    "schemas/switch-measurement-result.v1.schema.json": "sha256:4502f0c215d266a4ab5752774c963863e6521ce720f87eb5d74b60977f9c155f",
+    "tests/test_domain.py": "sha256:6a0c3f94c1ca9d79802ce16bab426fd0e171005fe5a3ff7d612eb52f767393bd",
+    "tests/test_evidence_fixture.py": "sha256:43af6b6b655a2931c8b6b1cd40377c0800790d2726a22ce0a031cbd5fa4c1d05",
+    "tests/test_schema.py": "sha256:23f01ee41edd1e446379d33ec5fafd6bdc0627cd7251dc039a21054155b88007",
+    "tests/fixtures/ktamv-t3-evidence.json": "sha256:bb64c9618ab6871f4e9dea67fd7e9b606161c8e661f7f4ff67a3daf4d33e1150"
+  },
+  "hil": ["machine-specific station teaching", "provider physical compatibility", "travel/probe/tool/abort validation"],
+  "supervisor_decision": "PENDING"
+}

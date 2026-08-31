@@ -1,0 +1,7 @@
+{
+  "artifact": "phase-01-domain/results.json",
+  "sha256": "7833a9a6b6a05d67670976d7f0f00ef48514843a5536bebab4cb80bf0fc87f5c",
+  "raw_evidence_modified": false,
+  "contains_secrets": false,
+  "supervisor_decision": "PENDING"
+}
