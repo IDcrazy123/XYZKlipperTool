@@ -1,6 +1,6 @@
 {
   "artifact": "phase-01-domain/results.json",
-  "sha256": "67772505358dc7c322b14030edef7624d73738a95eeec1fb6f8553c89f6e4817",
+  "sha256": "38b71af1761f9346a7adce92e27d80718bed8f1deb650ed0d20b4348cc1c7afe",
   "raw_evidence_modified": false,
-  "supervisor_decision": "NEEDS_WORK"
+  "supervisor_decision": "PENDING_RE_REVIEW"
 }
