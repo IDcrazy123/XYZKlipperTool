@@ -2,7 +2,7 @@
   "phase": "02-ports-simulator",
   "status": "IMPLEMENTED_CANDIDATE_FOR_SUPERVISOR_REVIEW",
   "base_commit": "9417f69efbd57be0ca35241e65745f19c16ed15a",
-  "commit_under_test": "a6a3c9527e5870b10a53b5b9f6eb124d062fe7a7",
+  "commit_under_test": "ce99ca14b4df5e870a79364ef188884c0394dc65",
   "branch": "phase/02-ports-simulator",
   "utc_time": "2026-08-31T14:58:18Z",
   "commands": [
