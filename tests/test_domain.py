@@ -5,12 +5,19 @@ from typing import cast
 from xyz_klipper_tool.domain.models import (
     ApplyPlan,
     Axis,
+    CameraXYMeasurementResult,
+    FrameSampleId,
     FreshnessResult,
+    Hierarchy,
+    MeasurementContext,
+    OuterCycleId,
     ProviderKind,
     ReasonCode,
     RollbackEntry,
     RollbackPlan,
     RunId,
+    ToolId,
+    ToolVisitId,
     Verdict,
 )
 from xyz_klipper_tool.domain.state_machine import RunState, RunStateMachine
@@ -41,17 +48,21 @@ def obs(
     provider: ProviderKind = ProviderKind.SWITCH,
     axis: Axis = Axis.Z,
     status: SampleStatus = SampleStatus.VALID,
+    tool_id: str = "T3",
+    hierarchy: Hierarchy = Hierarchy.FRAME_SAMPLE,
 ) -> Observation:
     return Observation(
-        "run",
-        "cycle",
-        "visit",
-        sample,
+        RunId("run"),
+        ToolId(tool_id),
+        OuterCycleId("cycle"),
+        ToolVisitId("visit"),
+        FrameSampleId(sample),
         "station-1",
         "fingerprint-1",
         "calibration-1",
         provider,
         axis,
+        hierarchy,
         Millimetres(value),
         status,
     )
@@ -140,11 +151,55 @@ class DomainTests(unittest.TestCase):
             summarize(
                 [obs(1, "a"), obs(2, "b", provider=ProviderKind.CARTOGRAPHER_TOUCH)]
             )
+        with self.assertRaises(ValueError):
+            summarize([obs(1, "a"), obs(2, "b", tool_id="other")])
+        with self.assertRaises(ValueError):
+            summarize([obs(1, "a"), obs(2, "b", hierarchy=Hierarchy.OUTER_CYCLE)])
         result = summarize([obs(9, "a"), obs(10, "b")], limit_mm=5)
         self.assertEqual(
             (result.verdict, result.reason_code),
             (Verdict.INVALID, ReasonCode.LIMIT_EXCEEDED),
         )
+
+    def test_camera_result_requires_camera_context_and_coherent_frame_sign(
+        self,
+    ) -> None:
+        context = MeasurementContext(
+            RunId("r"),
+            OuterCycleId("c"),
+            ToolVisitId("v"),
+            FrameSampleId("s"),
+            "station",
+            "fingerprint",
+            "calibration",
+            ProviderKind.CAMERA,
+            Axis.X,
+        )
+        vector = Vector2Mm(
+            1, 2, CoordinateFrame.MACHINE, SignConvention.CORRECTION_TO_APPLY
+        )
+        CameraXYMeasurementResult(
+            context, vector, CoordinateFrame.MACHINE, SignConvention.CORRECTION_TO_APPLY
+        )
+        with self.assertRaises(ValueError):
+            CameraXYMeasurementResult(
+                context,
+                vector,
+                CoordinateFrame.TOOL,
+                SignConvention.CORRECTION_TO_APPLY,
+            )
+        with self.assertRaises(ValueError):
+            MeasurementContext(
+                RunId("r"),
+                OuterCycleId("c"),
+                ToolVisitId("v"),
+                FrameSampleId("s"),
+                "station",
+                "fingerprint",
+                "calibration",
+                ProviderKind.SWITCH,
+                Axis.X,
+            )
 
     def test_state_machine_success_terminal_and_fault(self) -> None:
         m = RunStateMachine()

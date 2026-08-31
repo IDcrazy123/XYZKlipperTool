@@ -18,5 +18,5 @@
 | TEST-014 | boundary import Phase 01 | scan import tĩnh của `src/xyz_klipper_tool/domain` | không import framework, filesystem, network hoặc service |
 | TEST-015 | artifact schema Phase 01 | parse JSON schema và test codec schema | artifact version 1 và round-trip/tương thích ngược đạt |
 | TEST-016 | contract schema Phase 01 | `set PYTHONPATH=src; python -m unittest tests.test_schema -v` | schema cả hai provider kiểm tra required/const/enum/finite và fault codec đạt |
-| TEST-017 | coverage Phase 01 | `python -m coverage run -m unittest discover -s tests; python -m coverage report -m` | 12 test đạt; ghi nhận báo cáo coverage |
+| TEST-017 | coverage Phase 01 | `python -m coverage run -m unittest discover -s tests; python -m coverage report -m` | 14 test đạt; tổng coverage 94% |
 | TEST-018 | type-check Phase 01 đã pin | venv cô lập; `python -m mypy`; `pyright` theo requirements đã pin | PASS: mypy và pyright không lỗi |

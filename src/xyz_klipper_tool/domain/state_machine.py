@@ -5,6 +5,8 @@ from enum import Enum
 
 
 class RunState(str, Enum):
+    """Finite run lifecycle states."""
+
     CREATED = "CREATED"
     VALIDATING = "VALIDATING"
     RUNNING = "RUNNING"
@@ -14,12 +16,16 @@ class RunState(str, Enum):
 
 
 class RunReason(str, Enum):
+    """Stable reason for rejected state transitions."""
+
     INVALID_TRANSITION = "INVALID_TRANSITION"
     TERMINAL_STATE = "TERMINAL_STATE"
 
 
 @dataclass(frozen=True)
 class TransitionResult:
+    """Pure transition outcome; rejected transitions preserve prior state."""
+
     accepted: bool
     previous: RunState
     current: RunState
@@ -44,6 +50,7 @@ class RunStateMachine:
 
     @property
     def state(self) -> RunState:
+        """Return the current state without I/O, blocking, or side effects."""
         return self._state
 
     def transition(self, target: RunState) -> TransitionResult:

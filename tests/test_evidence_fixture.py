@@ -3,7 +3,16 @@ import unittest
 from pathlib import Path
 from typing import cast
 
-from xyz_klipper_tool.domain.models import Axis, ProviderKind
+from xyz_klipper_tool.domain.models import (
+    Axis,
+    FrameSampleId,
+    Hierarchy,
+    OuterCycleId,
+    ProviderKind,
+    RunId,
+    ToolId,
+    ToolVisitId,
+)
 from xyz_klipper_tool.domain.statistics import Observation, summarize
 from xyz_klipper_tool.domain.units import Millimetres
 
@@ -18,15 +27,17 @@ class EvidenceFixtureTests(unittest.TestCase):
         result = summarize(
             [
                 Observation(
-                    "run",
-                    "cycle",
-                    "visit",
-                    f"t3-{i}",
+                    RunId("run"),
+                    ToolId("T3"),
+                    OuterCycleId("cycle"),
+                    ToolVisitId("visit"),
+                    FrameSampleId(f"t3-{i}"),
                     "station",
                     "fingerprint",
                     "calibration",
-                    ProviderKind.SWITCH,
-                    Axis.Z,
+                    ProviderKind.CAMERA,
+                    Axis.X,
+                    Hierarchy.FRAME_SAMPLE,
                     Millimetres(value),
                 )
                 for i, value in enumerate(fixture["x_mm_values"])

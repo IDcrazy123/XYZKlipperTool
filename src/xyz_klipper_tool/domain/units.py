@@ -56,6 +56,8 @@ class Celsius:
 
 
 class CoordinateFrame(str, Enum):
+    """Named coordinate frame; conversions never infer a frame."""
+
     CAMERA_IMAGE = "camera_image"
     MACHINE = "machine"
     TOOL = "tool"
@@ -63,6 +65,8 @@ class CoordinateFrame(str, Enum):
 
 
 class SignConvention(str, Enum):
+    """Named residual/correction sign; provider sign mapping is unproven."""
+
     REFERENCE_MINUS_MEASURED = "reference_minus_measured"
     CORRECTION_TO_APPLY = "correction_to_apply"
     PROVIDER_REPORTED = "provider_reported"
@@ -125,6 +129,7 @@ class PixelScale:
             object.__setattr__(self, name, value)
 
     def to_mm(self, pixels: PixelVector2) -> Vector2Mm:
+        """Convert CAMERA_IMAGE pixels to MACHINE millimetres without I/O."""
         if pixels.frame is not CoordinateFrame.CAMERA_IMAGE:
             raise ValueError("PixelScale requires CAMERA_IMAGE source frame")
         return Vector2Mm(
@@ -135,6 +140,7 @@ class PixelScale:
         )
 
     def to_pixels(self, millimetres: Vector2Mm) -> PixelVector2:
+        """Convert MACHINE millimetres to CAMERA_IMAGE pixels without I/O."""
         if millimetres.frame is not CoordinateFrame.MACHINE:
             raise ValueError("PixelScale requires MACHINE source frame")
         return PixelVector2(

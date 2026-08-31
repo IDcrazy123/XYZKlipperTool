@@ -6,22 +6,39 @@ from dataclasses import dataclass
 from enum import Enum
 from statistics import fmean, median, stdev
 
-from .models import Axis, ProviderKind, ReasonCode, Verdict
+from .models import (
+    Axis,
+    FrameSampleId,
+    Hierarchy,
+    OuterCycleId,
+    ProviderKind,
+    ReasonCode,
+    RunId,
+    ToolId,
+    ToolVisitId,
+    Verdict,
+)
 from .units import Millimetres
 
 
 class SampleStatus(str, Enum):
+    """Raw sample quality state; INVALID values never enter estimators."""
+
     VALID = "VALID"
     INVALID = "INVALID"
     WARNING = "WARNING"
 
 
 class AcceptanceStatus(str, Enum):
+    """Explicit accepted/rejected status for a derived rejection record."""
+
     ACCEPTED = "ACCEPTED"
     REJECTED = "REJECTED"
 
 
 class SampleSufficiency(str, Enum):
+    """Typed estimator sufficiency result for n=0/1 versus n>=2."""
+
     INSUFFICIENT_SAMPLES = "INSUFFICIENT_SAMPLES"
     SUFFICIENT = "SUFFICIENT"
 
@@ -30,37 +47,75 @@ class SampleSufficiency(str, Enum):
 class Observation:
     """One finite sample with complete run→cycle→visit→sample provenance."""
 
-    run_id: str
-    outer_cycle_id: str
-    tool_visit_id: str
-    sample_id: str
+    run_id: RunId
+    tool_id: ToolId
+    outer_cycle_id: OuterCycleId
+    tool_visit_id: ToolVisitId
+    sample_id: FrameSampleId
     station_revision: str
     configuration_fingerprint: str
     calibration_identity: str
     provider: ProviderKind
     axis: Axis
+    hierarchy: Hierarchy
     value_mm: Millimetres
     status: SampleStatus = SampleStatus.VALID
 
     def __post_init__(self) -> None:
         for name in (
-            "run_id",
-            "outer_cycle_id",
-            "tool_visit_id",
-            "sample_id",
             "station_revision",
             "configuration_fingerprint",
             "calibration_identity",
         ):
-            if (
-                not isinstance(getattr(self, name), str)
-                or not getattr(self, name).strip()
-            ):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{name} must be non-empty")
+        for name, expected in (
+            ("run_id", RunId),
+            ("tool_id", ToolId),
+            ("outer_cycle_id", OuterCycleId),
+            ("tool_visit_id", ToolVisitId),
+            ("sample_id", FrameSampleId),
+            ("value_mm", Millimetres),
+        ):
+            if not isinstance(getattr(self, name), expected):
+                raise ValueError(f"{name} must be typed")  # noqa: TRY004
         provider_object: object = self.provider
         axis_object: object = self.axis
         if type(provider_object) is not ProviderKind or type(axis_object) is not Axis:
             raise ValueError("provider and axis must be typed enums")
+
+
+@dataclass(frozen=True)
+class StatisticSeriesKey:
+    """Typed aggregation key; outer-cycle observations aggregate only within this key."""
+
+    run_id: RunId
+    tool_id: ToolId
+    provider: ProviderKind
+    axis: Axis
+    hierarchy: Hierarchy
+    station_revision: str
+    configuration_fingerprint: str
+    calibration_identity: str
+
+    def __post_init__(self) -> None:
+        for value, name in (
+            (self.station_revision, "station_revision"),
+            (self.configuration_fingerprint, "configuration_fingerprint"),
+            (self.calibration_identity, "calibration_identity"),
+        ):
+            value_object: object = value
+            if type(value_object) is not str or not value_object.strip():
+                raise ValueError(f"{name} must be non-empty")
+        if (
+            type(self.run_id) is not RunId
+            or type(self.tool_id) is not ToolId
+            or type(self.provider) is not ProviderKind
+            or type(self.axis) is not Axis
+            or type(self.hierarchy) is not Hierarchy
+        ):
+            raise ValueError("series key fields must be typed")
 
 
 @dataclass(frozen=True)
@@ -93,13 +148,17 @@ DEFAULT_OUTLIER_POLICY = OutlierPolicy()
 
 @dataclass(frozen=True)
 class Rejection:
-    sample_id: str
+    """Immutable derived rejection with accepted/rejected state and reason."""
+
+    sample_id: FrameSampleId
     status: AcceptanceStatus
     reason_code: ReasonCode
 
 
 @dataclass(frozen=True)
 class Summary:
+    """Complete estimator summary in millimetres; uncertainty uses documented MAD scale."""
+
     values_mm: tuple[float, ...]
     mean_mm: float | None
     median_mm: float | None
@@ -114,6 +173,8 @@ class Summary:
 
 @dataclass(frozen=True)
 class StatisticResult:
+    """Raw-preserving result with separate unfiltered/filtered summaries and verdict."""
+
     raw_observations: tuple[Observation, ...]
     unfiltered: Summary
     filtered: Summary
@@ -162,8 +223,24 @@ def summarize(
 ) -> StatisticResult:
     """Summarize one homogeneous series; mixed provider/axis fails closed."""
     raw = tuple(observations)
-    if raw and len({(item.provider, item.axis) for item in raw}) != 1:
-        raise ValueError("series cannot mix provider or axis")
+    if raw:
+        keys = {
+            (
+                item.run_id,
+                item.tool_id,
+                item.provider,
+                item.axis,
+                item.hierarchy,
+                item.station_revision,
+                item.configuration_fingerprint,
+                item.calibration_identity,
+            )
+            for item in raw
+        }
+        if len(keys) != 1:
+            raise ValueError(
+                "series cannot mix tool, provider, axis, hierarchy, or identity"
+            )
     valid = tuple(item for item in raw if item.status is not SampleStatus.INVALID)
     unfiltered_values = tuple(sorted(item.value_mm.value_mm for item in valid))
     rejections: list[Rejection] = []

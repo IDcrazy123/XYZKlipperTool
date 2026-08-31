@@ -9,6 +9,7 @@ from .models import (
     ProviderKind,
     ReasonCode,
     SwitchZMeasurementResult,
+    ToolId,
 )
 from .state_machine import RunState, RunStateMachine, TransitionResult
 from .statistics import (
@@ -17,6 +18,7 @@ from .statistics import (
     ReferencePair,
     SampleSufficiency,
     StatisticResult,
+    StatisticSeriesKey,
     summarize,
 )
 from .units import (
@@ -52,7 +54,9 @@ __all__ = [
     "Seconds",
     "SignConvention",
     "StatisticResult",
+    "StatisticSeriesKey",
     "SwitchZMeasurementResult",
+    "ToolId",
     "TransitionResult",
     "Vector2Mm",
     "summarize",

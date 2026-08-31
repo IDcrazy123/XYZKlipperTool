@@ -23,11 +23,11 @@ SCHEMA_VERSION = 1
 
 
 class SchemaVersionError(ValueError):
-    pass
+    """Raised when a payload has missing or unsupported schema version."""
 
 
 class SchemaPayloadError(ValueError):
-    pass
+    """Raised for malformed, missing, mistyped, or incoherent payload data."""
 
 
 def _read(payload: str) -> dict[str, Any]:
