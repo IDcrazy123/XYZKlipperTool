@@ -1,10 +1,10 @@
 {
   "phase": "01-domain-correction-pass",
   "status": "IMPLEMENTED_CANDIDATE_FOR_SUPERVISOR_REVIEW",
-  "commit_under_test": "1d9762a14433ede33129c95abb9671dc84dbf4a1",
+  "commit_under_test": "921e93e0b2e699bcf0524550feae7ef43f4f8a42",
   "base_commit": "c93cc95b54079058e7aab2961374d693a19b1ebe",
   "branch": "phase/01-domain",
-  "utc_time": "2026-08-31T13:25:00Z",
+  "utc_time": "2026-08-31T13:35:00Z",
   "commands": [
     {"command": "python -m coverage run -m unittest discover -s tests", "exit_code": 0, "tests": 14},
     {"command": "python -m coverage report -m", "exit_code": 0, "total_coverage_percent": 94},
@@ -22,16 +22,16 @@
     {"command": "python -m unittest discover -s tests", "exit_code": 0, "tests": 14, "output": "OK"}
   ],
   "hash_links": {
-    "src/xyz_klipper_tool/domain/models.py": "sha256:f70e81f63c8765829503e1739fbb037b5d91c42bbae18bb6104bfc0cc5ab1de3",
+    "src/xyz_klipper_tool/domain/models.py": "sha256:d69a96382a44a67bf545f5adc096ebc95430a35d40ef7ab10b190769c4d8b4d9",
     "src/xyz_klipper_tool/domain/schema.py": "sha256:bb4584fb6cdece34e5b940d8a39edb8fb9ccdedab575dee2f5841000df056425",
-    "src/xyz_klipper_tool/domain/statistics.py": "sha256:15df9dd0412106c3a6342975e740d0f6ae77117ed1ed3ffb3f2eebe71d4df8be",
+    "src/xyz_klipper_tool/domain/statistics.py": "sha256:78b04aba4f603c07f9c740d4edad690677703f5f6d9680d9c55e54a27ead40a0",
     "src/xyz_klipper_tool/domain/units.py": "sha256:b95fd7c257ceedf3f96996be1d2604fea4845438adc5c9b170e4adf1d8ce3338",
     "src/xyz_klipper_tool/domain/state_machine.py": "sha256:6b7d047eb5df921fe354ff77feffcde3a34df2e10dedc25b76314b3d91407a73",
     "schemas/cartographer-touch-result.v1.schema.json": "sha256:ad7b861650a51c23afb318792f6bee639dce9bb43a96c18a884c7ca9b0ec03ea",
     "schemas/switch-measurement-result.v1.schema.json": "sha256:bc3d3843ae5e044dfee5e34d5f013acf2c7c2a6f8ce64889a6c26cbd1d865808",
-    "tests/test_domain.py": "sha256:6416f123675837ac3d92d10024ab0b8c1552be6e132a94e449ff01039a1c2416",
+    "tests/test_domain.py": "sha256:0a3ec2a25bd16717fbfc93e121d6cd49210a526464e919fed08f8dcad072257a",
     "tests/test_schema.py": "sha256:475f63f8447506ebf631bfa64265678720d8061224a2feda78b0f6bb4cdc1f76",
-    "tests/test_evidence_fixture.py": "sha256:fbf728edf41c80811fd483fb95146caa87b6c47aee49586eb6d5eabee5e95200",
+    "tests/test_evidence_fixture.py": "sha256:957af20b09a38ea291109dbece8eab2318947da61b6e44f332feb7a38dea3a22",
     "tests/test_api_docs.py": "sha256:aab81a4c1ad96b4446733c277bd5f34053ac2f8d604b1d3fd509391cf8337799"
   },
   "schema_validator": "jsonschema==4.23.0 Draft202012Validator; positive and missing/type/enum/provider/axis/non-finite cases PASS",
