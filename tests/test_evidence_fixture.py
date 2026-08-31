@@ -30,7 +30,7 @@ class EvidenceFixtureTests(unittest.TestCase):
                     RunId("run"),
                     ToolId("T3"),
                     OuterCycleId(f"cycle-{i + 1}"),
-                    ToolVisitId("visit"),
+                    ToolVisitId(f"visit-{i + 1}"),
                     FrameSampleId(f"t3-{i}"),
                     "station",
                     "fingerprint",
