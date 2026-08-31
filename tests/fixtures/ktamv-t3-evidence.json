@@ -1,0 +1,7 @@
+{
+  "fixture_kind": "evidence_only",
+  "source": "evidence/imported/xy/ktamv-xy-independent-cycles-20260831.csv",
+  "source_sha256_manifest": "evidence/manifests/sha256-phase-00.txt",
+  "tool": "T3",
+  "x_mm_values": [0.029, 0.005, 0.004]
+}

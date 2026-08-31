@@ -14,3 +14,6 @@
 | TEST-006 | License/provenance | ledger and notices review | every upstream row pinned or follow-up recorded |
 | TEST-007 | Production-code boundary | file inventory/search | no `src/`, `klippy/`, or measurement implementation |
 | TEST-008 | Master prompt parity | `python scripts/check_master_prompt_parity.py` | 18 sections, 42 headings and all code/command tokens present |
+| TEST-013 | Phase 01 domain unit/property/fault | `set PYTHONPATH=src; python -m unittest discover -s tests -v` | all domain, statistics, provider, schema, evidence-fixture tests pass |
+| TEST-014 | Phase 01 import boundary | static import scan of `src/xyz_klipper_tool/domain` | no framework, filesystem, network, or service imports |
+| TEST-015 | Phase 01 schema artifact | schema JSON parse plus schema codec tests | version 1 artifact and round-trip/backward compatibility pass |

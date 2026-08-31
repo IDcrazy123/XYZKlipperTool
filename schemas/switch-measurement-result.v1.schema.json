@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xyz-klipper-tool/switch-measurement-result.v1",
+  "type": "object",
+  "required": ["schema_version", "run_id", "tool_visit_id", "x_mm", "y_mm", "verdict", "reason_code", "claim_state"],
+  "properties": {
+    "schema_version": {"const": 1}, "run_id": {"type": "string"}, "tool_visit_id": {"type": "string"},
+    "x_mm": {"type": "number"}, "y_mm": {"type": "number"},
+    "verdict": {"enum": ["PASS", "WARNING", "INVALID"]},
+    "reason_code": {"type": "string"}, "claim_state": {"type": "string"}
+  },
+  "additionalProperties": true
+}

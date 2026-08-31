@@ -14,3 +14,6 @@
 | TEST-006 | License/provenance | review ledger/notices | row upstream pin hoặc follow-up rõ |
 | TEST-007 | Ranh giới production code | inventory/search | không có `src/`, `klippy/`, mã đo |
 | TEST-008 | Parity master prompt | `python scripts/check_master_prompt_parity.py` | đủ 18 mục, 42 heading và mọi code/command token |
+| TEST-013 | unit/property/fault miền Phase 01 | `set PYTHONPATH=src; python -m unittest discover -s tests -v` | toàn bộ test miền, statistics, provider, schema, evidence-fixture đạt |
+| TEST-014 | boundary import Phase 01 | scan import tĩnh của `src/xyz_klipper_tool/domain` | không import framework, filesystem, network hoặc service |
+| TEST-015 | artifact schema Phase 01 | parse JSON schema và test codec schema | artifact version 1 và round-trip/tương thích ngược đạt |
