@@ -20,7 +20,15 @@ def main() -> int:
         assert check_main(["--root", str(root)]) == 1
         (root / "vietnamese-only.md").write_text("# English\n", encoding="utf-8")
         expect(root, [])
-    print("Markdown pair negative fixtures: PASS (missing VI and missing EN both fail)")
+        (root / "artifacts").mkdir()
+        (root / "artifacts" / "orphan.md").write_text("# Artifact\n", encoding="utf-8")
+        expect(root, [("artifacts/orphan.md", "missing Vietnamese sibling")])
+        (root / "artifacts" / "orphan.md").unlink()
+        (root / "evidence" / "imported").mkdir(parents=True)
+        (root / "evidence" / "imported" / "raw.md").write_text("# Raw upstream\n", encoding="utf-8")
+        expect(root, [])
+        (root / "evidence" / "imported" / "raw.md").unlink()
+    print("Markdown pair negative fixtures: PASS (missing VI, missing EN, and artifacts orphan fail; imported raw is exempt)")
     return 0
 
 if __name__ == "__main__":

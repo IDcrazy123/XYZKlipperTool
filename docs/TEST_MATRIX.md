@@ -3,7 +3,7 @@
 | ID | Check | Command/approach | Expected |
 |---|---|---|---|
 | TEST-001 | Markdown pairing | `python scripts/check_markdown_pairs.py` | bidirectional pass, stable path+reason failures |
-| TEST-009 | Markdown negative fixtures | `python scripts/test_markdown_pairs.py` | missing VI and missing EN both fail in temp root; no fixture remains in repository |
+| TEST-009 | Markdown negative fixtures and exemptions | `python scripts/test_markdown_pairs.py` | missing VI, missing EN, and artifacts orphan fail; raw evidence/imported Markdown is exempt; no fixture remains in repository |
 | TEST-010 | Requirements/traceability IDs | `python scripts/check_requirements_traceability.py` and `python scripts/test_requirements_traceability.py` | no missing, extra, duplicate, or bilingual ID mismatch; negative fixtures fail in temp root |
 | TEST-011 | Source ledger pin/license fields | `python scripts/check_source_ledger.py` and `python scripts/test_source_ledger.py` | every bilingual row has URL, access/content identity, claim, explicit license, and no forbidden placeholder |
 | TEST-012 | Canonical license artifact | `python scripts/check_license_artifact.py` | official GPL-3.0 heading/version, warranty/liability disclaimer, end marker, ending, and normalized SHA-256 pass |

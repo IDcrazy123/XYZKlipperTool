@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-EXCLUDED_PARTS = {".git", "artifacts"}
+EXCLUDED_PARTS = {".git"}
 
 def is_excluded(path: Path, root: Path) -> bool:
     """Return whether a path is exempt from first-party pairing checks."""

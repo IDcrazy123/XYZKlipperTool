@@ -3,7 +3,7 @@
 | ID | Kiểm tra | Lệnh/cách | Kỳ vọng |
 |---|---|---|---|
 | TEST-001 | Cặp Markdown | `python scripts/check_markdown_pairs.py` | kiểm tra hai chiều đạt, lỗi ổn định theo path+lý do |
-| TEST-009 | Fixture âm Markdown | `python scripts/test_markdown_pairs.py` | thiếu VI và thiếu EN đều fail trong root tạm; không còn fixture trong kho |
+| TEST-009 | Fixture âm và exemption Markdown | `python scripts/test_markdown_pairs.py` | thiếu VI, thiếu EN và orphan trong artifacts đều fail; Markdown raw evidence/imported được miễn; không còn fixture trong kho |
 | TEST-010 | ID requirements/traceability | `python scripts/check_requirements_traceability.py` và `python scripts/test_requirements_traceability.py` | không thiếu/thừa/trùng hoặc lệch ID song ngữ; fixture âm fail trong root tạm |
 | TEST-011 | Field pin/license source ledger | `python scripts/check_source_ledger.py` và `python scripts/test_source_ledger.py` | mỗi row song ngữ có URL, access/content identity, claim, license rõ và không placeholder cấm |
 | TEST-012 | License artifact chuẩn | `python scripts/check_license_artifact.py` | heading/version GPL-3.0, disclaimer bảo hành/trách nhiệm, marker cuối, ending và SHA-256 chuẩn hóa đạt |
