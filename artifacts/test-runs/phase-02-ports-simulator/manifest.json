@@ -1,7 +1,7 @@
 {
   "artifact": "phase-02-ports-simulator/results.json",
-  "sha256": "697bf793ad3612fe8f0df3f03b8f8891ffe5d985fb6296bee10d0c919f6c2edd",
+  "sha256": "ca024bd1f7f4a3990d68f5003f3ae7af54900731a87347853fe1ff70de6f27f8",
   "raw_evidence_modified": false,
   "supervisor_decision": "PENDING",
-  "commit_under_test": "ea0090cca92a00a8a43d28a948022b378bdad663"
+  "commit_under_test": "8d07be7136cc875a59fa1ea0cdb91f94f961e48e"
 }
