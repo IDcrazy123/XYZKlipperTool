@@ -6,7 +6,7 @@ from enum import Enum
 
 
 def _finite(value: float, name: str) -> float:
-    if not isinstance(value, (int, float)) or not math.isfinite(value):
+    if not math.isfinite(value):
         raise ValueError(f"{name} must be finite")
     return float(value)
 
@@ -17,7 +17,7 @@ class Millimetres:
 
     value_mm: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "value_mm", _finite(self.value_mm, "value_mm"))
 
 
@@ -27,7 +27,7 @@ class Pixels:
 
     value_px: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "value_px", _finite(self.value_px, "value_px"))
 
 
@@ -37,7 +37,7 @@ class Seconds:
 
     value_s: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "value_s", _finite(self.value_s, "value_s"))
 
 
@@ -47,7 +47,7 @@ class Celsius:
 
     value_c: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "value_c", _finite(self.value_c, "value_c"))
 
 
@@ -73,7 +73,7 @@ class Vector2Mm:
     frame: CoordinateFrame
     sign: SignConvention
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "x_mm", _finite(self.x_mm, "x_mm"))
         object.__setattr__(self, "y_mm", _finite(self.y_mm, "y_mm"))
 
@@ -87,7 +87,7 @@ class PixelVector2:
     frame: CoordinateFrame
     sign: SignConvention
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "x_px", _finite(self.x_px, "x_px"))
         object.__setattr__(self, "y_px", _finite(self.y_px, "y_px"))
 
@@ -99,7 +99,7 @@ class PixelScale:
     x_mm_per_px: float
     y_mm_per_px: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         for name in ("x_mm_per_px", "y_mm_per_px"):
             value = _finite(getattr(self, name), name)
             if value <= 0:

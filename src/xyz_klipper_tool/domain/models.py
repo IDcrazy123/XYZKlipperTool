@@ -7,7 +7,7 @@ from .units import CoordinateFrame, Millimetres, SignConvention, Vector2Mm
 
 
 def _id(value: str, name: str) -> str:
-    if not isinstance(value, str) or not value.strip():
+    if not value.strip():
         raise ValueError(f"{name} must be non-empty")
     return value
 
@@ -16,7 +16,7 @@ def _id(value: str, name: str) -> str:
 class RunId:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "value", _id(self.value, "run_id"))
 
 
@@ -24,7 +24,7 @@ class RunId:
 class OuterCycleId:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "value", _id(self.value, "outer_cycle_id"))
 
 
@@ -32,7 +32,7 @@ class OuterCycleId:
 class ToolVisitId:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "value", _id(self.value, "tool_visit_id"))
 
 
@@ -40,7 +40,7 @@ class ToolVisitId:
 class FrameSampleId:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "value", _id(self.value, "sample_id"))
 
 
@@ -98,7 +98,7 @@ class MeasurementContext:
     axis: Axis
     hierarchy: Hierarchy = Hierarchy.FRAME_SAMPLE
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         for name in (
             "station_revision",
             "configuration_fingerprint",
@@ -117,7 +117,7 @@ class SwitchZMeasurementResult:
     reason_code: ReasonCode
     claim_state: ClaimState = ClaimState.REQUIRES_HIL
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if (
             self.context.provider is not ProviderKind.SWITCH
             or self.context.axis is not Axis.Z
@@ -135,7 +135,7 @@ class CartographerTouchMeasurementResult:
     reason_code: ReasonCode
     claim_state: ClaimState = ClaimState.REQUIRES_HIL
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if (
             self.context.provider is not ProviderKind.CARTOGRAPHER_TOUCH
             or self.context.axis is not Axis.Z
@@ -150,7 +150,7 @@ class CameraXYMeasurementResult:
     frame: CoordinateFrame
     sign: SignConvention
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.context.axis not in (Axis.X, Axis.Y):
             raise ValueError("camera result must be X or Y")
 
@@ -173,7 +173,7 @@ class ApplyPlan:
     configuration_fingerprint: str
     preview_only: bool = True
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.preview_only:
             raise ValueError("apply plan is preview-only in pure domain")
 

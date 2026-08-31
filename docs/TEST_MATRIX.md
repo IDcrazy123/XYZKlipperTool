@@ -19,4 +19,4 @@
 | TEST-015 | Phase 01 schema artifact | schema JSON parse plus schema codec tests | version 1 artifact and round-trip/backward compatibility pass |
 | TEST-016 | Phase 01 schema contract | `set PYTHONPATH=src; python -m unittest tests.test_schema -v` | both provider schemas enforce required/const/enum/finite contract and codec faults pass |
 | TEST-017 | Phase 01 coverage | `python -m coverage run -m unittest discover -s tests; python -m coverage report -m` | 10 tests pass; coverage report recorded |
-| TEST-018 | Phase 01 pinned type checks | `mypy --version; pyright --version` then configured checks | NEEDS_WORK until pinned dependencies are installed and checks run |
+| TEST-018 | Phase 01 pinned type checks | isolated venv; `python -m mypy`; `pyright` using pinned requirements | PASS: mypy and pyright clean |

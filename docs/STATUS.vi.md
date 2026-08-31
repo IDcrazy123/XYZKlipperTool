@@ -12,7 +12,7 @@
 | Phase | Trạng thái | Bằng chứng |
 |---|---|---|
 | 00 Quy tắc, nguồn, license, bằng chứng | `IMPLEMENTED` | Artifact governance song ngữ, manifest SHA-256 23 file, nhập 21 JSON Z, kiểm tra offline đạt |
-| 01 Domain model, đơn vị, dấu, thống kê | `NEEDS_WORK` | Test correction đạt; host chưa có mypy/pyright đã pin; hành vi vật lý vẫn `REQUIRES_HIL` |
+| 01 Domain model, đơn vị, dấu, thống kê | `IMPLEMENTED` | Test correction và type-check pin trong venv cô lập đạt; chờ supervisor re-review; hành vi vật lý vẫn `REQUIRES_HIL` |
 | 02 Adapter và simulator | `PLANNED` | Chưa bắt đầu |
 | 03 Camera và pipeline thị giác | `PLANNED` | Chưa bắt đầu |
 | 04 Điều phối X/Y theo chu kỳ độc lập | `PLANNED` | Chưa bắt đầu |

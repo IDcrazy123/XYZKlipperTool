@@ -42,7 +42,7 @@ class Observation:
     value_mm: Millimetres
     status: SampleStatus = SampleStatus.VALID
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         for name in (
             "run_id",
             "outer_cycle_id",
@@ -75,7 +75,7 @@ class OutlierPolicy:
     threshold_mm: float | None = None
     automatic_rejection: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.automatic_rejection and (
             self.threshold_mm is None
             or not math.isfinite(self.threshold_mm)
@@ -162,13 +162,14 @@ def summarize(
         raise ValueError("series cannot mix provider or axis")
     valid = tuple(item for item in raw if item.status is not SampleStatus.INVALID)
     unfiltered_values = tuple(sorted(item.value_mm.value_mm for item in valid))
-    rejections = []
-    filtered = []
+    rejections: list[Rejection] = []
+    filtered: list[float] = []
     centre = median(unfiltered_values) if unfiltered_values else None
     for item in valid:
         reject = (
             policy.automatic_rejection
             and centre is not None
+            and policy.threshold_mm is not None
             and abs(item.value_mm.value_mm - centre) > policy.threshold_mm
         )
         if reject:

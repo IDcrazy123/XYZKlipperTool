@@ -19,7 +19,7 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-PERSIST-001 | Master prompt; ASSUMPTION | persistence policy | planned: atomic write/power-loss |
 | REQ-SCHEMA-001 | Master prompt; ASSUMPTION | `domain/schema.py`; cặp JSON Schema v1 | actual: test contract, round-trip, malformed/version/enum/non-finite fault trong `tests/test_schema.py` |
 | REQ-EVID-001 | Import Phase 00; EVID-Z-INVALID-001 | provenance policy; manifest | actual: hash 23/23 và JSON 21/21 |
-| REQ-APPLY-001 | EVID-Z-001; Master prompt | ApplyPlan/RollbackPlan không side effect trong `domain/models.py` | actual: chỉ tạo model; writer để phase sau |
+| REQ-APPLY-001 | EVID-Z-001; Master prompt | ApplyPlan/RollbackPlan không side effect trong `domain/models.py` | actual: invariant preview-only/rollback trong `tests/test_domain.py`; writer để phase sau |
 | REQ-FRESH-001 | Master prompt; ASSUMPTION | FreshnessExpectation/FreshnessResult trong `domain/models.py` | actual: model reason stale có kiểu; adapter validation để phase sau |
 | REQ-SEC-001 | Master prompt; ASSUMPTION | threat model; security policy | actual: secret scan; planned: SSRF/bounds |
 | REQ-RESOURCE-001 | Master prompt; ASSUMPTION | resource-limit policy | planned: limit payload/job/history |

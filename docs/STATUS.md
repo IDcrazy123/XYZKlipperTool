@@ -12,7 +12,7 @@
 | Phase | State | Evidence |
 |---|---|---|
 | 00 Governance, sources, license, evidence | `IMPLEMENTED` | Paired governance artifacts, 23-file SHA-256 manifest, 21 Z JSON imports, offline checks passed |
-| 01 Domain model, units, signs, statistics | `NEEDS_WORK` | Correction tests pass; pinned mypy/pyright unavailable on host; physical behavior remains `REQUIRES_HIL` |
+| 01 Domain model, units, signs, statistics | `IMPLEMENTED` | Correction tests and isolated pinned type-checks pass; supervisor re-review pending; physical behavior remains `REQUIRES_HIL` |
 | 02 Adapters and simulator | `PLANNED` | Not started |
 | 03 Camera and vision pipeline | `PLANNED` | Not started |
 | 04 Independent-cycle X/Y orchestration | `PLANNED` | Not started |

@@ -1,7 +1,7 @@
 """Strict in-memory v1 codecs; no filesystem or network side effects."""
 
 import json
-from typing import Any
+from typing import Any, cast
 
 from .models import (
     Axis,
@@ -32,11 +32,12 @@ class SchemaPayloadError(ValueError):
 
 def _read(payload: str) -> dict[str, Any]:
     try:
-        data = json.loads(payload)
+        raw: Any = json.loads(payload)
     except (TypeError, json.JSONDecodeError) as exc:
         raise SchemaPayloadError("malformed JSON") from exc
-    if not isinstance(data, dict):
+    if not isinstance(raw, dict):
         raise SchemaPayloadError("payload must be an object")
+    data = cast(dict[str, Any], raw)
     if data.get("schema_version") != SCHEMA_VERSION:
         raise SchemaVersionError("unsupported or missing schema_version")
     return data

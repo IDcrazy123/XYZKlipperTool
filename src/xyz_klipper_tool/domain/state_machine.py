@@ -26,7 +26,7 @@ class TransitionResult:
     reason_code: RunReason | None = None
 
 
-_TRANSITIONS = {
+_TRANSITIONS: dict[RunState, set[RunState]] = {
     RunState.CREATED: {RunState.VALIDATING, RunState.CANCELLED, RunState.FAILED},
     RunState.VALIDATING: {RunState.RUNNING, RunState.CANCELLED, RunState.FAILED},
     RunState.RUNNING: {RunState.COMPLETED, RunState.CANCELLED, RunState.FAILED},

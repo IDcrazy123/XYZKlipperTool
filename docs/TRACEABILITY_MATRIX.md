@@ -19,7 +19,7 @@ Every requirement below occurs exactly once.
 | REQ-PERSIST-001 | Master prompt; ASSUMPTION | persistence policy | planned: atomic write/power-loss tests |
 | REQ-SCHEMA-001 | Master prompt; ASSUMPTION | `domain/schema.py`; paired v1 JSON Schemas | actual: `tests/test_schema.py` contract, round-trip, malformed/version/enum/non-finite faults |
 | REQ-EVID-001 | Phase 00 import; EVID-Z-INVALID-001 | provenance policy; evidence manifest | actual: 23/23 hash and 21/21 JSON checks |
-| REQ-APPLY-001 | EVID-Z-001; Master prompt | `domain/models.py` side-effect-free ApplyPlan/RollbackPlan | actual: model construction only; writer remains out of scope |
+| REQ-APPLY-001 | EVID-Z-001; Master prompt | `domain/models.py` side-effect-free ApplyPlan/RollbackPlan | actual: `tests/test_domain.py` preview-only/rollback invariants; writer remains out of scope |
 | REQ-FRESH-001 | Master prompt; ASSUMPTION | `domain/models.py` FreshnessExpectation/FreshnessResult | actual: typed stale reason model; adapter validation remains later phase |
 | REQ-SEC-001 | Master prompt; ASSUMPTION | threat model; security policy | actual: secret scan; planned: SSRF/bounds tests |
 | REQ-RESOURCE-001 | Master prompt; ASSUMPTION | resource-limit policy | planned: payload/job/history limit tests |

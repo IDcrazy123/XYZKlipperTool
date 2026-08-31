@@ -1,13 +1,13 @@
 {
   "phase": "01-domain-correction-pass",
   "status": "NEEDS_WORK",
-  "commit_under_test": "PENDING_CLOSURE_COMMIT",
+  "commit_under_test": "30ca6363d38845075a6a77d439a9c26124c05d20",
   "base_commit": "c93cc95b54079058e7aab2961374d693a19b1ebe",
   "branch": "phase/01-domain",
   "utc_time": "2026-08-31T13:00:00Z",
   "commands": [
-    {"command": "python -m coverage run -m unittest discover -s tests", "exit_code": 0, "tests": 10},
-    {"command": "python -m coverage report -m", "exit_code": 0, "total_coverage_percent": 95},
+    {"command": "python -m coverage run -m unittest discover -s tests", "exit_code": 0, "tests": 11},
+    {"command": "python -m coverage report -m", "exit_code": 0, "total_coverage_percent": 96},
     {"command": "ruff check src tests", "exit_code": 0},
     {"command": "ruff format --check src tests", "exit_code": 0},
     {"command": "python scripts/check_markdown_pairs.py", "exit_code": 0},
@@ -18,6 +18,16 @@
     {"command": "mypy --version", "exit_code": "NOT_INSTALLED"},
     {"command": "pyright --version", "exit_code": "NOT_INSTALLED"}
   ],
+  "hash_links": {
+    "src/xyz_klipper_tool/domain/models.py": "sha256:870f8d28b7d37a0d68bed22cf6a8d68c3948d3cb2b718f790c9a04d2e0eda2da",
+    "src/xyz_klipper_tool/domain/schema.py": "sha256:2ddd7a7d3a8f724affb8795a7cb50c5220582663de69530e1e06b5a2c41983ba",
+    "src/xyz_klipper_tool/domain/statistics.py": "sha256:75d1b3f21474b2f310785ab9cdcbf00a98a5a5a3ac972639eb1c66b323c3fdb5",
+    "src/xyz_klipper_tool/domain/units.py": "sha256:ecc06ecadbc98fccbb5a80245666fd251a4b2191b4a2a8ea6cf18c103f7149ef",
+    "schemas/cartographer-touch-result.v1.schema.json": "sha256:ad7b861650a51c23afb318792f6bee639dce9bb43a96c18a884c7ca9b0ec03ea",
+    "schemas/switch-measurement-result.v1.schema.json": "sha256:bc3d3843ae5e044dfee5e34d5f013acf2c7c2a6f8ce64889a6c26cbd1d865808",
+    "tests/test_domain.py": "sha256:16df1d852f0c7d661d22aafdbb9cad6133670b3b1e81d19c190550d9a294013a",
+    "tests/test_schema.py": "sha256:21cf99cbabdc9d1b6cd5c045e5fbddbca9015638fe4ed8b8fea9f97f00fb612c"
+  },
   "supervisor_decision": "NEEDS_WORK",
   "hil": ["all physical printer behavior remains REQUIRES_HIL"],
   "raw_evidence_modified": false,
