@@ -2,7 +2,8 @@
 
 | ID | Check | Command/approach | Expected |
 |---|---|---|---|
-| TEST-001 | Markdown pairing | `python scripts/check_markdown_pairs.py` | pass, no orphan |
+| TEST-001 | Markdown pairing | `python scripts/check_markdown_pairs.py` | bidirectional pass, stable path+reason failures |
+| TEST-009 | Markdown negative fixtures | `python scripts/test_markdown_pairs.py` | missing VI and missing EN both fail in temp root; no fixture remains in repository |
 | TEST-002 | Evidence hashes | `Get-FileHash` vs manifest | all match |
 | TEST-003 | Raw immutability | compare source/destination hashes | all match |
 | TEST-004 | Secret scan | `rg -n -i` credential patterns | no findings in imported evidence |
