@@ -17,4 +17,5 @@ class RunToken:
     """Opaque owner token; only the issuing lock may release it."""
 
     operation: RunOperation
+    issuer: int
     nonce: int

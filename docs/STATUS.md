@@ -13,7 +13,7 @@
 |---|---|---|
 | 00 Governance, sources, license, evidence | `IMPLEMENTED` | Paired governance artifacts, 23-file SHA-256 manifest, 21 Z JSON imports, offline checks passed |
 | 01 Domain model, units, signs, statistics | `PASS` | Supervisor-approved commit `9d58fecb6cc19342c1bcd9dd62eafb8bf03c1a0d`; 16/16 pinned tests, 95% coverage, all listed offline gates pass; physical behavior remains `REQUIRES_HIL` |
-| 02 Adapters and simulator | `IMPLEMENTED` | Offline candidate; 23 tests and bounded persistence/fake contracts pass; supervisor review pending |
+| 02 Adapters and simulator | `IMPLEMENTED` | Offline candidate; 24 tests and bounded persistence/fake contracts pass; supervisor review pending |
 | 03 Camera and vision pipeline | `PLANNED` | Not started |
 | 04 Independent-cycle X/Y orchestration | `PLANNED` | Not started |
 | 05 Physical-switch Z provider | `PLANNED` | Not started |

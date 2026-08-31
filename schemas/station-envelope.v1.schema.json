@@ -18,16 +18,21 @@
           "type": "object",
           "required": ["x_mm", "y_mm", "z_mm", "frame"],
           "properties": {"x_mm": {"type": "number"}, "y_mm": {"type": "number"}, "z_mm": {"type": "number"}, "frame": {"const": "machine"}},
-          "additionalProperties": true
+          "additionalProperties": false
         },
         "safe_z_mm": {"type": "number"},
         "revision": {"type": "string", "minLength": 1},
-        "taught_at_utc": {"type": "string", "format": "date-time"},
+        "taught_at_utc": {"type": "string", "format": "date-time", "pattern": "Z$"},
         "configuration_fingerprint": {"type": "string", "minLength": 1},
         "provenance": {"type": "string", "minLength": 1}
       },
-      "additionalProperties": true
+      "additionalProperties": false,
+      "allOf": [
+        {"if": {"properties": {"station_type": {"const": "camera"}}}, "then": {"properties": {"provider": {"const": "camera"}}}},
+        {"if": {"properties": {"station_type": {"const": "switch_z"}}}, "then": {"properties": {"provider": {"const": "switch"}}}},
+        {"if": {"properties": {"station_type": {"const": "cartographer_touch_z"}}}, "then": {"properties": {"provider": {"const": "cartographer_touch"}}}}
+      ]
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

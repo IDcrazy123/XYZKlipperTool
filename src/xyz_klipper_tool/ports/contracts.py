@@ -1,13 +1,44 @@
 """Typed, side-effect-explicit ports; implementations live in adapters."""
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Protocol, runtime_checkable
+from enum import Enum
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from xyz_klipper_tool.domain.models import ProviderKind, ToolId
-from xyz_klipper_tool.domain.units import Millimetres, PixelVector2
+from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres, PixelVector2
 
 from .ownership import RunOperation, RunToken
+
+if TYPE_CHECKING:
+    from xyz_klipper_tool.stations.models import StationRecord
+
+
+class PrinterState(str, Enum):
+    """Typed read-only simulator state; no state value authorizes physical action."""
+
+    READY = "ready"
+    PRINTING = "printing"
+    PAUSED = "paused"
+    SHUTDOWN = "shutdown"
+
+
+@dataclass(frozen=True)
+class CurrentPose:
+    """Explicit machine pose with millimetre units; it is input data, not movement."""
+
+    x_mm: Millimetres
+    y_mm: Millimetres
+    z_mm: Millimetres
+    frame: CoordinateFrame = CoordinateFrame.MACHINE
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.frame) is not CoordinateFrame
+            or self.frame is not CoordinateFrame.MACHINE
+        ):
+            raise ValueError("current pose must use MACHINE frame")
 
 
 @runtime_checkable
@@ -63,11 +94,11 @@ class ZProvider(Protocol):
 class StationStore(Protocol):
     """Store station records; adapters must define atomic/failure behavior."""
 
-    def get(self, namespace: str, name: str) -> object | None:
+    def get(self, namespace: str, name: str) -> "StationRecord | None":
         """Read one provider namespace record."""
         ...
 
-    def put(self, namespace: str, name: str, value: object) -> None:
+    def put(self, namespace: str, name: str, value: "StationRecord") -> None:
         """Persist one record according to adapter atomicity guarantees."""
         ...
 
@@ -133,7 +164,7 @@ class RunLock(Protocol):
 class PrinterStateProvider(Protocol):
     """Read-only simulator boundary for readiness and safe state assertions."""
 
-    def state(self) -> str:
+    def state(self) -> PrinterState:
         """Return read-only printer state."""
         ...
 
@@ -142,6 +173,6 @@ class PrinterStateProvider(Protocol):
 class CurrentPoseProvider(Protocol):
     """Return explicit current pose input; no movement or inferred coordinate occurs."""
 
-    def current_pose(self) -> object:
+    def current_pose(self) -> CurrentPose:
         """Return explicit pose input without motion or inference."""
         ...

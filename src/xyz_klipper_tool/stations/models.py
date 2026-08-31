@@ -1,11 +1,12 @@
 """Typed station data; coordinates are accepted only as explicit current-pose input."""
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 from enum import Enum
 
 from xyz_klipper_tool.domain.models import ProviderKind
-from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres
+from xyz_klipper_tool.domain.units import Millimetres
+from xyz_klipper_tool.ports import CurrentPose
 
 
 def validate_text(value: str, name: str) -> str:
@@ -13,23 +14,6 @@ def validate_text(value: str, name: str) -> str:
     if type(value) is not str or not value.strip():
         raise ValueError(f"{name} must be non-empty")
     return value
-
-
-@dataclass(frozen=True)
-class CurrentPose:
-    """Explicit machine pose supplied by a port; construction has no motion side effect."""
-
-    x_mm: Millimetres
-    y_mm: Millimetres
-    z_mm: Millimetres
-    frame: CoordinateFrame = CoordinateFrame.MACHINE
-
-    def __post_init__(self) -> None:
-        if (
-            type(self.frame) is not CoordinateFrame
-            or self.frame is not CoordinateFrame.MACHINE
-        ):
-            raise ValueError("current pose must use MACHINE frame")
 
 
 class StationType(str, Enum):
@@ -71,7 +55,8 @@ class StationRecord:
         }[self.station_type]
         if self.provider is not expected:
             raise ValueError("station namespace and provider mismatch")
-        if self.taught_at_utc.tzinfo is None or self.taught_at_utc.utcoffset() is None:
+        if (
+            self.taught_at_utc.tzinfo is None
+            or self.taught_at_utc.utcoffset() != timedelta(0)
+        ):
             raise ValueError("taught_at_utc must be timezone-aware")
-        if self.taught_at_utc.astimezone(timezone.utc) != self.taught_at_utc:
-            raise ValueError("taught_at_utc must be UTC")

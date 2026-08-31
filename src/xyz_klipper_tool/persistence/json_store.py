@@ -5,17 +5,23 @@ import json
 import os
 import shutil
 import tempfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, cast
 
 from xyz_klipper_tool.domain.models import ProviderKind
 from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres
-from xyz_klipper_tool.stations.models import CurrentPose, StationRecord, StationType
+from xyz_klipper_tool.ports import CurrentPose
+from xyz_klipper_tool.stations.models import StationRecord, StationType
 
 
 class PersistenceError(ValueError):
     """Stable fail-closed persistence error for malformed, stale, or partial state."""
+
+    def __init__(self, message: str, *, committed: bool = False) -> None:
+        """Report a persistence failure and whether replacement already committed."""
+        super().__init__(message)
+        self.committed = committed
 
 
 def _safe(value: str, name: str) -> str:
@@ -42,7 +48,9 @@ def _encode(record: StationRecord) -> dict[str, Any]:
         },
         "safe_z_mm": record.safe_z_mm.value_mm,
         "revision": record.revision,
-        "taught_at_utc": record.taught_at_utc.isoformat(),
+        "taught_at_utc": record.taught_at_utc.astimezone(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         "configuration_fingerprint": record.configuration_fingerprint,
         "provenance": record.provenance,
     }
@@ -77,7 +85,7 @@ def _decode(data: object, namespace: str, name: str) -> StationRecord:
         timestamp = datetime.fromisoformat(
             _strict_text(raw["taught_at_utc"], "taught_at_utc")
         )
-        if timestamp.tzinfo is None or timestamp.astimezone(timezone.utc) != timestamp:
+        if timestamp.tzinfo is None or timestamp.utcoffset() != timedelta(0):
             raise PersistenceError("taught_at_utc must be UTC")
         return StationRecord(
             record_name,
@@ -100,7 +108,12 @@ def _decode(data: object, namespace: str, name: str) -> StationRecord:
 
 
 class JsonStationStore:
-    """Atomic bounded JSON store; only a caller-provided directory is touched and no network occurs."""
+    """Atomic bounded JSON store with best-effort directory durability.
+
+    Only the caller-provided directory is touched and no network occurs. File
+    flush/fsync precedes replace; directory fsync is platform-dependent and is
+    intentionally best-effort rather than presented as a universal guarantee.
+    """
 
     def __init__(
         self, root: Path, max_backups: int = 3, fault_stage: str | None = None
@@ -159,6 +172,8 @@ class JsonStationStore:
         """Atomically persist a validated station, retaining bounded backups and rejecting fault stages."""
         if not isinstance(value, StationRecord):
             raise PersistenceError("station record required")
+        if namespace != value.station_type.value or name != value.name:
+            raise PersistenceError("station path and record identity mismatch")
         path = self._path(namespace, name)
         path.parent.mkdir(parents=True, exist_ok=True)
         payload = _encode(value)
@@ -180,27 +195,46 @@ class JsonStationStore:
                 handle.write(
                     json.dumps(envelope, sort_keys=True, separators=(",", ":"))
                 )
+                if self.fault_stage == "after_write":
+                    raise OSError("injected after_write")
                 handle.flush()
-                if self.fault_stage in ("after_flush", "before_replace"):
+                if self.fault_stage == "after_flush":
                     raise OSError(f"injected {self.fault_stage}")
                 os.fsync(handle.fileno())
+                if self.fault_stage == "after_fsync":
+                    raise OSError("injected after_fsync")
             if path.exists() and self.max_backups:
                 if self.fault_stage == "backup":
                     raise OSError("injected backup")
                 for index in range(self.max_backups - 1, 0, -1):
                     older = path.with_name(f"{path.name}.bak{index}")
                     newer = path.with_name(f"{path.name}.bak{index + 1}")
+                    if self.fault_stage == f"backup_rotation_{index}":
+                        raise OSError(f"injected backup_rotation_{index}")
                     if older.exists():
                         os.replace(older, newer)
+                if self.fault_stage == "backup_rotation_1":
+                    raise OSError("injected backup_rotation_1")
                 shutil.copy2(path, path.with_name(f"{path.name}.bak1"))
+            if self.fault_stage == "before_replace":
+                raise OSError("injected before_replace")
             if self.fault_stage == "after_replace":
                 os.replace(temp_path, path)
-                raise OSError("injected after_replace")
+                raise PersistenceError(
+                    "post-commit reconciliation required", committed=True
+                )
             os.replace(temp_path, path)
         except OSError as exc:
             raise PersistenceError(str(exc)) from exc
         finally:
             temp_path.unlink(missing_ok=True)
+
+    def reconcile(self, namespace: str, name: str) -> StationRecord:
+        """Explicitly read the committed current record after a post-replace fault."""
+        value = self.get(namespace, name)
+        if value is None:
+            raise PersistenceError("post-commit state is missing")
+        return value
 
     def remove(self, namespace: str, name: str) -> None:
         """Remove one station file; caller controls destructive confirmation."""

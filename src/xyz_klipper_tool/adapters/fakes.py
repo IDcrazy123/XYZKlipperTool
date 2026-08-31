@@ -6,7 +6,9 @@ from datetime import datetime, timezone
 
 from xyz_klipper_tool.domain.models import ProviderKind, ToolId
 from xyz_klipper_tool.domain.units import Millimetres, PixelVector2
+from xyz_klipper_tool.ports import CurrentPose, PrinterState
 from xyz_klipper_tool.ports.ownership import RunOperation, RunToken
+from xyz_klipper_tool.stations.models import StationRecord
 
 
 def _next(script: list[object], calls: list[str], operation: str) -> object:
@@ -94,16 +96,16 @@ class FakeToolchanger:
 class FakePrinter:
     """Read-only printer state and explicit current-pose fake."""
 
-    pose: object
-    printer_state: str = "ready"
+    pose: CurrentPose
+    printer_state: PrinterState = PrinterState.READY
     calls: list[str] = field(default_factory=list)
 
-    def current_pose(self) -> object:
+    def current_pose(self) -> CurrentPose:
         """Return the scripted current pose without moving the printer."""
         self.calls.append("current_pose")
         return self.pose
 
-    def state(self) -> str:
+    def state(self) -> PrinterState:
         """Return the scripted printer state."""
         self.calls.append("state")
         return self.printer_state
@@ -126,15 +128,18 @@ class FakeClock:
 class FakeStationStore:
     """In-memory station store with deterministic calls and no filesystem."""
 
-    records: dict[tuple[str, str], object] = field(default_factory=dict)
+    records: dict[tuple[str, str], StationRecord | object] = field(default_factory=dict)
     calls: list[str] = field(default_factory=list)
 
-    def get(self, namespace: str, name: str) -> object | None:
+    def get(self, namespace: str, name: str) -> StationRecord | None:
         """Read one namespaced record."""
         self.calls.append(f"get:{namespace}:{name}")
-        return self.records.get((namespace, name))
+        value = self.records.get((namespace, name))
+        if value is not None and not isinstance(value, StationRecord):
+            raise TypeError("corrupt station value")
+        return value
 
-    def put(self, namespace: str, name: str, value: object) -> None:
+    def put(self, namespace: str, name: str, value: StationRecord) -> None:
         """Write one namespaced record in memory."""
         self.calls.append(f"put:{namespace}:{name}")
         self.records[(namespace, name)] = value
@@ -191,19 +196,29 @@ class FakeRunLock:
     held: RunToken | None = None
     next_nonce: int = 1
 
+    @property
+    def issuer_id(self) -> int:
+        """Return this lock instance identity used to reject foreign tokens."""
+        return id(self)
+
     def acquire(self, operation: RunOperation) -> RunToken:
         """Acquire once or reject a conflicting owner."""
         if type(operation) is not RunOperation:
             raise TypeError("operation must be RunOperation")
         if self.held is not None:
             raise RuntimeError("CONFLICT: run lock held")
-        token = RunToken(operation, self.next_nonce)
+        token = RunToken(operation, self.issuer_id, self.next_nonce)
         self.next_nonce += 1
         self.held = token
         return token
 
     def release(self, token: object) -> None:
         """Release only the currently held exact token."""
-        if token != self.held:
+        if (
+            type(token) is not RunToken
+            or self.held is None
+            or token.issuer != self.issuer_id
+            or token != self.held
+        ):
             raise ValueError("lock token does not own lock")
         self.held = None

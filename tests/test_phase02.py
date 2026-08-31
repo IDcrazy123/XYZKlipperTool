@@ -120,8 +120,15 @@ class Phase02Tests(unittest.TestCase):
             lock.acquire(RunOperation.TEACH)
         with self.assertRaises(ValueError):
             lock.release(object())
+        with self.assertRaises(ValueError):
+            lock.release(cast(Any, None))
+        with self.assertRaises(ValueError):
+            FakeRunLock().release(token)
         lock.release(token)
-        lock.release(lock.acquire(RunOperation.APPLY))
+        with self.assertRaises(ValueError):
+            lock.release(cast(Any, None))
+        apply_token = lock.acquire(RunOperation.APPLY)
+        lock.release(apply_token)
 
     def test_teach_conflict_releases_after_store_fault(self) -> None:
         lock = FakeRunLock()
@@ -187,11 +194,25 @@ class Phase02Tests(unittest.TestCase):
             store.put("camera", "cam", record)
             self.assertTrue((root / "camera" / "cam.json.bak1").exists())
             self.assertTrue((root / "camera" / "cam.json.bak2").exists())
-            for stage in ("before_temp", "after_flush", "before_replace", "backup"):
+            for stage in (
+                "before_temp",
+                "after_write",
+                "after_flush",
+                "after_fsync",
+                "before_replace",
+                "backup",
+            ):
                 fault_store = JsonStationStore(root, fault_stage=stage)
                 with self.assertRaises((PersistenceError, OSError)):
                     fault_store.put("camera", "cam", record)
                 self.assertEqual(store.get("camera", "cam"), record)
+            post_commit = JsonStationStore(root, fault_stage="after_replace")
+            with self.assertRaises(PersistenceError) as error:
+                post_commit.put("camera", "cam", record)
+            self.assertTrue(error.exception.committed)
+            self.assertEqual(post_commit.reconcile("camera", "cam"), record)
+            with self.assertRaises(PersistenceError):
+                store.put("switch_z", "cam", record)
             path.write_text('{"schema_version": 2}')
             with self.assertRaises(PersistenceError):
                 store.get("camera", "cam")
@@ -205,8 +226,41 @@ class Phase02Tests(unittest.TestCase):
             Path("schemas/station-envelope.v1.schema.json").read_text(encoding="utf-8")
         )
         validator_module: Any = jsonschema
-        validator = validator_module.Draft202012Validator(schema)
+        validator = validator_module.Draft202012Validator(
+            schema, format_checker=validator_module.FormatChecker()
+        )
         self.assertTrue(validator.check_schema(schema) is None)
+        with tempfile.TemporaryDirectory() as directory:
+            store = JsonStationStore(Path(directory))
+            _record = teach_station(
+                store,
+                FakePrinter(self.pose()),
+                FakeClock(datetime(2026, 8, 31, tzinfo=timezone.utc)),
+                "cam",
+                ProviderKind.CAMERA,
+                "fp",
+                "r1",
+                "fake",
+                Millimetres(5),
+                FakeRunLock(),
+            )
+            valid = __import__("json").loads(
+                (Path(directory) / "camera" / "cam.json").read_text()
+            )
+            self.assertFalse(list(validator.iter_errors(valid)))
+            for fault in (
+                {**valid, "extra": 1},
+                {**valid, "schema_version": "1"},
+                {**valid, "record": {**valid["record"], "provider": "switch"}},
+                {
+                    **valid,
+                    "record": {
+                        **valid["record"],
+                        "taught_at_utc": "2026-08-31T00:00:00+07:00",
+                    },
+                },
+            ):
+                self.assertTrue(list(validator.iter_errors(fault)))
         self.assertTrue(list(validator.iter_errors({"schema_version": 2})))
 
     def test_teach_never_calls_offset_writer(self) -> None:
