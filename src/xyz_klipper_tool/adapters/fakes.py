@@ -3,10 +3,11 @@
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Any, ClassVar, cast
 
 from xyz_klipper_tool.domain.models import ProviderKind, ToolId
 from xyz_klipper_tool.domain.units import Millimetres, PixelVector2
-from xyz_klipper_tool.ports import CurrentPose, PrinterState
+from xyz_klipper_tool.ports import MAX_CAMERA_FRAME_BYTES, CurrentPose, PrinterState
 from xyz_klipper_tool.ports.ownership import RunOperation, RunToken
 from xyz_klipper_tool.stations.models import StationRecord
 
@@ -33,6 +34,8 @@ class FakeCamera:
         value = _next(self.frames, self.calls, "capture")
         if not isinstance(value, bytes):
             raise TypeError("fake frame must be bytes")
+        if len(value) > MAX_CAMERA_FRAME_BYTES:
+            raise ValueError("fake frame exceeds bounded camera contract")
         return value
 
 
@@ -100,6 +103,14 @@ class FakePrinter:
     printer_state: PrinterState = PrinterState.READY
     calls: list[str] = field(default_factory=list)
 
+    def __post_init__(self) -> None:
+        """Reject untyped pose or printer state at fake construction time."""
+        if (
+            type(self.pose) is not CurrentPose
+            or type(self.printer_state) is not PrinterState
+        ):
+            raise TypeError("pose and printer_state must use typed contracts")
+
     def current_pose(self) -> CurrentPose:
         """Return the scripted current pose without moving the printer."""
         self.calls.append("current_pose")
@@ -134,13 +145,22 @@ class FakeStationStore:
     def get(self, namespace: str, name: str) -> StationRecord | None:
         """Read one namespaced record."""
         self.calls.append(f"get:{namespace}:{name}")
-        value = self.records.get((namespace, name))
+        value: object = self.records.get((namespace, name))
         if value is not None and not isinstance(value, StationRecord):
             raise TypeError("corrupt station value")
         return value
 
     def put(self, namespace: str, name: str, value: StationRecord) -> None:
         """Write one namespaced record in memory."""
+        candidate: object = cast(Any, value)
+        if (
+            type(namespace) is not str
+            or type(name) is not str
+            or not isinstance(candidate, StationRecord)
+            or namespace != candidate.station_type.value
+            or name != candidate.name
+        ):
+            raise ValueError("station namespace, name, and record identity mismatch")
         self.calls.append(f"put:{namespace}:{name}")
         self.records[(namespace, name)] = value
 
@@ -195,11 +215,18 @@ class FakeRunLock:
 
     held: RunToken | None = None
     next_nonce: int = 1
+    _issuer_sequence: ClassVar[int] = 1
+    _issuer: int = field(init=False)
+
+    def __post_init__(self) -> None:
+        """Assign a monotonic explicit issuer identity, never an object address."""
+        self._issuer = FakeRunLock._issuer_sequence
+        FakeRunLock._issuer_sequence += 1
 
     @property
     def issuer_id(self) -> int:
         """Return this lock instance identity used to reject foreign tokens."""
-        return id(self)
+        return self._issuer
 
     def acquire(self, operation: RunOperation) -> RunToken:
         """Acquire once or reject a conflicting owner."""

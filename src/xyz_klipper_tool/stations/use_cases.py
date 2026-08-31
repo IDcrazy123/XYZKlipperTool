@@ -47,6 +47,7 @@ def teach_station(
         validate_text(name, "name")
         if safe_z_mm is None:
             raise ValueError(f"{ReasonCode.UNSAFE_APPROACH.value}: SAFE_Z is required")
+        _check_fingerprint(configuration_fingerprint, configuration_fingerprint)
         raw_pose: object = cast(object, pose_provider.current_pose())
         if not isinstance(raw_pose, PortCurrentPose):
             raise TypeError("current pose input must be CurrentPose")
@@ -84,9 +85,7 @@ def _check_fingerprint(expected: str | None, current: str | None) -> None:
         raise ValueError("expected configuration fingerprint must be non-empty")
     if current is not None and (type(current) is not str or not current.strip()):
         raise ValueError("current configuration fingerprint must be non-empty")
-    if (expected is None) != (current is None) or (
-        expected is not None and expected != current
-    ):
+    if expected is None or current is None or expected != current:
         raise ValueError(
             f"{ReasonCode.STALE_STATE.value}: configuration fingerprint mismatch"
         )
@@ -102,24 +101,29 @@ def show_stations(
     _check_fingerprint(
         expected_configuration_fingerprint, current_configuration_fingerprint
     )
+    assert current_configuration_fingerprint is not None
+
+    def _validate_record(value: object) -> StationRecord:
+        if not isinstance(value, StationRecord):
+            raise TypeError("corrupt station value")
+        if value.configuration_fingerprint != current_configuration_fingerprint:
+            raise ValueError(f"{ReasonCode.STALE_STATE.value}: station is stale")
+        return value
+
     if name is not None:
         validate_text(name, "name")
         result: list[object] = []
         for namespace in StationType:
             item: object = cast(object, store.get(namespace.value, name))
             if item is not None:
-                if not isinstance(item, StationRecord):
-                    raise TypeError("corrupt station value")
-                result.append(item)
+                result.append(_validate_record(item))
         return tuple(result)
     result = []
     for namespace in StationType:
         for station_name in sorted(store.list(namespace.value)):
             item2: object = cast(object, store.get(namespace.value, station_name))
             if item2 is not None:
-                if not isinstance(item2, StationRecord):
-                    raise ValueError("corrupt station value")
-                result.append(item2)
+                result.append(_validate_record(item2))
     return tuple(result)
 
 
@@ -148,6 +152,8 @@ def clear_station(
             result: tuple[object, ...] = ()
         elif not isinstance(existing, StationRecord):
             raise TypeError("corrupt station value")
+        elif existing.configuration_fingerprint != current_configuration_fingerprint:
+            raise ValueError(f"{ReasonCode.STALE_STATE.value}: station is stale")
         elif confirm is None:
             result = (existing,)
         elif confirm != f"CLEAR:{station_type.value}:{name}":

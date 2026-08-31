@@ -3,13 +3,17 @@
 from xyz_klipper_tool.domain.models import ToolId
 from xyz_klipper_tool.ports import ToolchangerAdapter
 
+MAX_TOOLS = 64
+
 
 def discover_tools(
-    adapter: ToolchangerAdapter, reference: ToolId | None = None, max_tools: int = 64
+    adapter: ToolchangerAdapter,
+    reference: ToolId | None = None,
+    max_tools: int = MAX_TOOLS,
 ) -> tuple[ToolId, ...]:
     """Return deterministic dynamic tools; reject duplicates, ambiguity, mismatch, and bounds."""
-    if type(max_tools) is not int or max_tools <= 0:
-        raise ValueError("max_tools must be positive")
+    if type(max_tools) is not int or not 1 <= max_tools <= MAX_TOOLS:
+        raise ValueError(f"max_tools must be between 1 and {MAX_TOOLS}")
     found = tuple(adapter.discover_tools())
     if not found or len(found) > max_tools:
         raise ValueError("tool discovery is empty or exceeds bound")

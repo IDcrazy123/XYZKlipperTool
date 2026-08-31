@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from xyz_klipper_tool.adapters import (
+    FakeCamera,
     FakeClock,
     FakeOffsetWriter,
     FakePrinter,
@@ -55,6 +56,14 @@ class Phase02Tests(unittest.TestCase):
             )
         with self.assertRaises(ValueError):
             discover_tools(FakeToolchanger([ToolId("T1")]), ToolId("T1"), 0)
+        with self.assertRaises(ValueError):
+            discover_tools(FakeToolchanger([ToolId("T1")]), ToolId("T1"), 10**100)
+
+    def test_fake_boundaries_reject_untyped_and_oversize_values(self) -> None:
+        with self.assertRaises(TypeError):
+            FakePrinter(cast(Any, object()), cast(Any, "ready"))
+        with self.assertRaises(ValueError):
+            FakeCamera([b"x" * (8 * 1024 * 1024 + 1)]).capture()
 
     def test_fingerprint_is_stable_and_redacts_secrets(self) -> None:
         a = fingerprint({"z": 2, "secret_token": "do-not-store", "a": [1, True]})
@@ -100,18 +109,58 @@ class Phase02Tests(unittest.TestCase):
         )
         self.assertEqual(record.pose.frame, CoordinateFrame.MACHINE)
         before = tuple(store.calls)
-        self.assertEqual(show_stations(store), (record,))
+        self.assertEqual(show_stations(store, "cam", "fp", "fp"), (record,))
         self.assertEqual(tuple(store.calls[: len(before)]), before)
         self.assertEqual(
-            clear_station(store, StationType.CAMERA, "cam", lock=lock), (record,)
+            clear_station(
+                store,
+                StationType.CAMERA,
+                "cam",
+                lock=lock,
+                expected_configuration_fingerprint="fp",
+                current_configuration_fingerprint="fp",
+            ),
+            (record,),
         )
         self.assertEqual(
-            clear_station(store, StationType.CAMERA, "cam", "CLEAR:camera:cam", lock),
+            clear_station(
+                store, StationType.CAMERA, "cam", "CLEAR:camera:cam", lock, "fp", "fp"
+            ),
             (record,),
         )
         store.records[("camera", "broken")] = object()
         with self.assertRaises(TypeError):
-            show_stations(store, "broken")
+            show_stations(store, "broken", "fp", "fp")
+
+    def test_station_fingerprint_is_checked_before_show_and_clear(self) -> None:
+        store = FakeStationStore()
+        record = teach_station(
+            store,
+            FakePrinter(self.pose()),
+            FakeClock(datetime(2026, 8, 31, tzinfo=timezone.utc)),
+            "cam",
+            ProviderKind.CAMERA,
+            "old",
+            "r1",
+            "fake",
+            Millimetres(5),
+            FakeRunLock(),
+        )
+        with self.assertRaises(ValueError):
+            show_stations(store, current_configuration_fingerprint="new")
+        with self.assertRaises(ValueError):
+            clear_station(
+                store,
+                StationType.CAMERA,
+                "cam",
+                "CLEAR:camera:cam",
+                FakeRunLock(),
+                "new",
+                "new",
+            )
+        self.assertEqual(store.get("camera", "cam"), record)
+        with self.assertRaises(ValueError):
+            show_stations(store)
 
     def test_lock_conflict_and_wrong_release_fail_closed(self) -> None:
         lock = FakeRunLock()
@@ -201,6 +250,8 @@ class Phase02Tests(unittest.TestCase):
                 "after_fsync",
                 "before_replace",
                 "backup",
+                "backup_rotation_2",
+                "backup_rotation_1",
             ):
                 fault_store = JsonStationStore(root, fault_stage=stage)
                 with self.assertRaises((PersistenceError, OSError)):

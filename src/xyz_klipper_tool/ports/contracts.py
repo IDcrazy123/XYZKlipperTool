@@ -14,6 +14,8 @@ from .ownership import RunOperation, RunToken
 if TYPE_CHECKING:
     from xyz_klipper_tool.stations.models import StationRecord
 
+MAX_CAMERA_FRAME_BYTES = 8 * 1024 * 1024
+
 
 class PrinterState(str, Enum):
     """Typed read-only simulator state; no state value authorizes physical action."""
@@ -46,7 +48,7 @@ class CameraProvider(Protocol):
     """Capture one bounded frame; no port contract authorizes machine motion."""
 
     def capture(self) -> bytes:
-        """Return one bounded frame; implementations document blocking/failure behavior."""
+        """Return one frame no larger than ``MAX_CAMERA_FRAME_BYTES``; no motion occurs."""
         ...
 
 

@@ -1,6 +1,7 @@
 """Hexagonal boundary contracts for deterministic Phase 02 adapters."""
 
 from .contracts import (
+    MAX_CAMERA_FRAME_BYTES,
     CameraProvider,
     Clock,
     CurrentPose,
@@ -19,6 +20,7 @@ from .contracts import (
 from .ownership import RunOperation, RunToken
 
 __all__ = [
+    "MAX_CAMERA_FRAME_BYTES",
     "CameraProvider",
     "Clock",
     "CurrentPose",
