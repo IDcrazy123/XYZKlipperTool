@@ -27,4 +27,3 @@ Tài liệu tiếng Anh: [README.md](README.md).
 - Nhánh mặc định: `main`
 
 Kho ToolVision cũ chỉ là nguồn bằng chứng và tài liệu đối chiếu. Không được triển khai XYZ Klipper Tool bằng cách đổi tên, tiếp tục nhánh, hoặc chắp vá mã nguồn ToolVision.
-

@@ -84,4 +84,3 @@ Use GPT-5.6 Luna with medium reasoning for phase work unless a written decision 
 ## Completion standard
 
 A phase is complete only when its deliverables exist, acceptance tests pass, evidence and documentation are paired, status is truthful, and the commit is pushed. `PLANNED` is not completion. Physical capabilities may remain `REQUIRES_HIL`, but all offline work and a safe operator protocol must be complete first.
-

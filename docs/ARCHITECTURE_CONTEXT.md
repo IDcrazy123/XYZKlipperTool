@@ -5,7 +5,7 @@ Klippy extension --(bounded non-blocking contract)--> host service
       |                                                   |
 printer state/tool discovery                         camera/CV/evidence/report
       |                                                   |
-  ports: ToolchangerAdapter, ZProvider, StationStore, EvidenceStore, Offset* 
+  ports: ToolchangerAdapter, ZProvider, StationStore, EvidenceStore, Offset*
                          \--> pure domain models and verdicts
 ```
 

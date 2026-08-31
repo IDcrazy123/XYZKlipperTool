@@ -23,4 +23,3 @@ Status: `OBSERVED` during repository bootstrap on 2026-08-31. Phase 00 must re-o
 3. Record URL, access timestamp, version/commit, exact supported claim, conflict notes, and license.
 4. When docs and observed behavior disagree, preserve both, reproduce on a simulator or approved HIL run, and block implementation until the contract is resolved.
 5. No source may justify a machine-specific default coordinate. Stations are taught by command.
-

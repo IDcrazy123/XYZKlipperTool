@@ -27,4 +27,3 @@ Vietnamese documentation: [README.vi.md](README.vi.md).
 - Default branch: `main`
 
 The legacy ToolVision repository is evidence and comparison material only. XYZ Klipper Tool must not be implemented as a rename, branch continuation, or source-level patch of ToolVision.
-

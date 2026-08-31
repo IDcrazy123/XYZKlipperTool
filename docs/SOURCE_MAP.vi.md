@@ -23,4 +23,3 @@ Trạng thái: `OBSERVED` khi bootstrap kho ngày 2026-08-31. Phase 00 phải m�
 3. Ghi URL, thời điểm truy cập, phiên bản/commit, kết luận nguồn hỗ trợ, điểm xung đột và license.
 4. Nếu tài liệu khác hành vi quan sát, giữ cả hai, tái hiện bằng simulator hoặc HIL đã duyệt, và chặn triển khai đến khi giải quyết contract.
 5. Không nguồn nào được dùng để hợp thức hóa tọa độ mặc định theo một máy. Vị trí phải được dạy bằng lệnh.
-

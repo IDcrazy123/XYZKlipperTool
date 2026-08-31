@@ -526,4 +526,3 @@ If blocked, continue all independent offline work first. A genuine blocker repor
 Execute **Phase 00 only**.
 
 Do not write measurement production code. Build the governance, source, license, requirements, evidence-import, risk, traceability, test-matrix, architecture-context, threat-model, progress, and bilingual-parity foundations. Import and checksum the complete relevant evidence set without modifying raw files. Verify that all first-party Markdown has an English/Vietnamese pair. Commit and push `phase/00-governance`, then stop for supervisor review.
-

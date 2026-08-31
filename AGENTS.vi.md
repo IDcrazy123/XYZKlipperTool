@@ -84,4 +84,3 @@ Dùng GPT-5.6 Luna với reasoning medium cho công việc từng phase, trừ k
 ## Tiêu chuẩn hoàn thành
 
 Một phase chỉ hoàn thành khi đủ deliverable, acceptance test đạt, bằng chứng và tài liệu có cặp song ngữ, trạng thái trung thực, commit đã push. `PLANNED` không phải hoàn thành. Tính năng vật lý có thể còn `REQUIRES_HIL`, nhưng toàn bộ việc offline và quy trình vận hành an toàn phải hoàn tất trước.
-
