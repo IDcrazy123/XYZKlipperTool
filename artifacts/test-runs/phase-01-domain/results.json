@@ -30,7 +30,7 @@
     "schemas/cartographer-touch-result.v1.schema.json": "sha256:ad7b861650a51c23afb318792f6bee639dce9bb43a96c18a884c7ca9b0ec03ea",
     "schemas/switch-measurement-result.v1.schema.json": "sha256:bc3d3843ae5e044dfee5e34d5f013acf2c7c2a6f8ce64889a6c26cbd1d865808",
     "tests/test_domain.py": "sha256:6416f123675837ac3d92d10024ab0b8c1552be6e132a94e449ff01039a1c2416",
-    "tests/test_schema.py": "sha256:475f63f8447506ebf631f8447506ebf63165678720d8061224a2feda78b0f6bb4cdc1f76",
+    "tests/test_schema.py": "sha256:475f63f8447506ebf631bfa64265678720d8061224a2feda78b0f6bb4cdc1f76",
     "tests/test_evidence_fixture.py": "sha256:fbf728edf41c80811fd483fb95146caa87b6c47aee49586eb6d5eabee5e95200",
     "tests/test_api_docs.py": "sha256:aab81a4c1ad96b4446733c277bd5f34053ac2f8d604b1d3fd509391cf8337799"
   },
