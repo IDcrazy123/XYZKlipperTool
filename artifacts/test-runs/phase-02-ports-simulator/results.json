@@ -1,6 +1,6 @@
 {
   "phase": "02-ports-simulator",
-  "status": "IMPLEMENTED_CANDIDATE_FOR_SUPERVISOR_REVIEW",
+  "status": "SUPERVISOR_APPROVED",
   "base_commit": "9417f69efbd57be0ca35241e65745f19c16ed15a",
   "commit_under_test": "ce99ca14b4df5e870a79364ef188884c0394dc65",
   "branch": "phase/02-ports-simulator",
@@ -41,7 +41,7 @@
     "tests/test_api_docs.py": "sha256:71e7d77a99470d4a924b70b5be914931b18d034a8c1c7b5bbf256d7b03aa0865"
   },
   "schema_validator": "jsonschema==4.23.0 Draft202012Validator; station envelope negative contract PASS",
-  "supervisor_decision": "PENDING",
+  "supervisor_decision": "PASS",
   "hil": ["physical compatibility, travel safety, and all real adapters remain REQUIRES_HIL"],
   "raw_evidence_modified": false,
   "contains_secrets": false
