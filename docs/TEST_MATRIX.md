@@ -18,5 +18,5 @@
 | TEST-014 | Phase 01 import boundary | static import scan of `src/xyz_klipper_tool/domain` | no framework, filesystem, network, or service imports |
 | TEST-015 | Phase 01 schema artifact | schema JSON parse plus schema codec tests | version 1 artifact and round-trip/backward compatibility pass |
 | TEST-016 | Phase 01 schema contract | `set PYTHONPATH=src; python -m unittest tests.test_schema -v` | both provider schemas enforce required/const/enum/finite contract and codec faults pass |
-| TEST-017 | Phase 01 coverage | `python -m coverage run -m unittest discover -s tests; python -m coverage report -m` | 14 tests pass; TOTAL coverage 94% |
+| TEST-017 | Phase 01 coverage | `python -m coverage run -m unittest discover -s tests; python -m coverage report -m` | 16 tests pass; TOTAL coverage 95% |
 | TEST-018 | Phase 01 pinned type checks | isolated venv; `python -m mypy`; `pyright` using pinned requirements | PASS: mypy and pyright clean |

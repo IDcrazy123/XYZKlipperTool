@@ -143,8 +143,11 @@ class MeasurementContext:
             _id(getattr(self, name), name)
         provider_object: object = self.provider
         axis_object: object = self.axis
+        hierarchy_object: object = self.hierarchy
         if type(provider_object) is not ProviderKind or type(axis_object) is not Axis:
             raise ValueError("provider and axis must be typed enums")
+        if type(hierarchy_object) is not Hierarchy:
+            raise ValueError("hierarchy must be a typed enum")
         if self.provider is ProviderKind.CAMERA and self.axis not in (Axis.X, Axis.Y):
             raise ValueError("camera context must use X or Y")
         if (

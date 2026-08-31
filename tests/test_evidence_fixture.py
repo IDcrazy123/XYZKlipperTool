@@ -29,7 +29,7 @@ class EvidenceFixtureTests(unittest.TestCase):
                 Observation(
                     RunId("run"),
                     ToolId("T3"),
-                    OuterCycleId("cycle"),
+                    OuterCycleId(f"cycle-{i + 1}"),
                     ToolVisitId("visit"),
                     FrameSampleId(f"t3-{i}"),
                     "station",
@@ -37,7 +37,7 @@ class EvidenceFixtureTests(unittest.TestCase):
                     "calibration",
                     ProviderKind.CAMERA,
                     Axis.X,
-                    Hierarchy.FRAME_SAMPLE,
+                    Hierarchy.OUTER_CYCLE,
                     Millimetres(value),
                 )
                 for i, value in enumerate(fixture["x_mm_values"])

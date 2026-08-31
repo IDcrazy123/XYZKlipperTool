@@ -27,6 +27,7 @@ from xyz_klipper_tool.domain.statistics import (
     ReferencePair,
     SampleStatus,
     SampleSufficiency,
+    StatisticSeriesKey,
     summarize,
 )
 from xyz_klipper_tool.domain.units import (
@@ -160,6 +161,66 @@ class DomainTests(unittest.TestCase):
             (result.verdict, result.reason_code),
             (Verdict.INVALID, ReasonCode.LIMIT_EXCEEDED),
         )
+
+    def test_outer_cycle_series_key_allows_cycle_aggregation_and_validates_types(
+        self,
+    ) -> None:
+        observations = [
+            obs(1, "a", hierarchy=Hierarchy.OUTER_CYCLE),
+            obs(2, "b", hierarchy=Hierarchy.OUTER_CYCLE),
+        ]
+        key = StatisticSeriesKey(
+            RunId("run"),
+            ToolId("T3"),
+            ProviderKind.SWITCH,
+            Axis.Z,
+            Hierarchy.OUTER_CYCLE,
+            "station-1",
+            "fingerprint-1",
+            "calibration-1",
+        )
+        self.assertEqual(
+            key,
+            StatisticSeriesKey(
+                observations[0].run_id,
+                observations[0].tool_id,
+                observations[0].provider,
+                observations[0].axis,
+                observations[0].hierarchy,
+                observations[0].station_revision,
+                observations[0].configuration_fingerprint,
+                observations[0].calibration_identity,
+            ),
+        )
+        self.assertEqual(summarize(observations).filtered.values_mm, (1.0, 2.0))
+        with self.assertRaises(ValueError):
+            StatisticSeriesKey(
+                RunId("run"),
+                ToolId("T3"),
+                ProviderKind.SWITCH,
+                Axis.Z,
+                cast(Hierarchy, "outer_cycle"),
+                "station-1",
+                "fingerprint-1",
+                "calibration-1",
+            )
+
+    def test_context_observation_reject_untyped_hierarchy_and_status(self) -> None:
+        with self.assertRaises(ValueError):
+            MeasurementContext(
+                RunId("r"),
+                OuterCycleId("c"),
+                ToolVisitId("v"),
+                FrameSampleId("s"),
+                "station",
+                "fingerprint",
+                "calibration",
+                ProviderKind.SWITCH,
+                Axis.Z,
+                cast(Hierarchy, "frame_sample"),
+            )
+        with self.assertRaises(ValueError):
+            obs(1, "s", status=cast(SampleStatus, "WARNING"))
 
     def test_camera_result_requires_camera_context_and_coherent_frame_sign(
         self,

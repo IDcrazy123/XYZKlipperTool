@@ -82,8 +82,14 @@ class Observation:
                 raise ValueError(f"{name} must be typed")  # noqa: TRY004
         provider_object: object = self.provider
         axis_object: object = self.axis
+        hierarchy_object: object = self.hierarchy
+        status_object: object = self.status
         if type(provider_object) is not ProviderKind or type(axis_object) is not Axis:
             raise ValueError("provider and axis must be typed enums")
+        if type(hierarchy_object) is not Hierarchy:
+            raise ValueError("hierarchy must be a typed enum")
+        if type(status_object) is not SampleStatus:
+            raise ValueError("status must be a typed enum")
 
 
 @dataclass(frozen=True)
@@ -224,8 +230,19 @@ def summarize(
     """Summarize one homogeneous series; mixed provider/axis fails closed."""
     raw = tuple(observations)
     if raw:
-        keys = {
-            (
+        first = raw[0]
+        series_key = StatisticSeriesKey(
+            first.run_id,
+            first.tool_id,
+            first.provider,
+            first.axis,
+            first.hierarchy,
+            first.station_revision,
+            first.configuration_fingerprint,
+            first.calibration_identity,
+        )
+        for item in raw[1:]:
+            item_key = StatisticSeriesKey(
                 item.run_id,
                 item.tool_id,
                 item.provider,
@@ -235,12 +252,10 @@ def summarize(
                 item.configuration_fingerprint,
                 item.calibration_identity,
             )
-            for item in raw
-        }
-        if len(keys) != 1:
-            raise ValueError(
-                "series cannot mix tool, provider, axis, hierarchy, or identity"
-            )
+            if item_key != series_key:
+                raise ValueError(
+                    "series cannot mix run, tool, provider, axis, hierarchy, or identity"
+                )
     valid = tuple(item for item in raw if item.status is not SampleStatus.INVALID)
     unfiltered_values = tuple(sorted(item.value_mm.value_mm for item in valid))
     rejections: list[Rejection] = []
