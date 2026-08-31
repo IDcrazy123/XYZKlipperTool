@@ -1,0 +1,28 @@
+{
+  "phase": "02-ports-simulator",
+  "status": "IMPLEMENTED_CANDIDATE_FOR_SUPERVISOR_REVIEW",
+  "base_commit": "9417f69efbd57be0ca35241e65745f19c16ed15a",
+  "commit_under_test": "ea0090cca92a00a8a43d28a948022b378bdad663",
+  "branch": "phase/02-ports-simulator",
+  "utc_time": "2026-08-31T15:30:00Z",
+  "commands": [
+    {"command": "C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m coverage run -m unittest discover -s tests", "exit_code": 0, "tests": 23},
+    {"command": "python -m coverage report -m", "exit_code": 0, "total_coverage_percent": 90},
+    {"command": "C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m mypy src/xyz_klipper_tool tests", "exit_code": 0, "output": "Success: no issues found in 23 source files"},
+    {"command": "C:\\Users\\batca\\AppData\\Local\\Temp\\xyz-klipper-tool-phase01-venv-20260831\\Scripts\\python.exe -m pyright src/xyz_klipper_tool tests", "exit_code": 0, "output": "0 errors, 0 warnings, 0 informations"},
+    {"command": "python -m ruff check src tests", "exit_code": 0, "output": "All checks passed!"},
+    {"command": "python -m ruff format --check src tests", "exit_code": 0, "output": "23 files already formatted"},
+    {"command": "python scripts/check_markdown_pairs.py", "exit_code": 0, "output": "Markdown pair check: PASS"},
+    {"command": "python scripts/check_requirements_traceability.py", "exit_code": 0, "output": "Requirements traceability check: PASS (29 unique IDs, exact bilingual and matrix match)"},
+    {"command": "python scripts/check_source_ledger.py", "exit_code": 0, "output": "Source ledger check: PASS (11 bilingual pinned source rows)"},
+    {"command": "python scripts/check_license_artifact.py", "exit_code": 0, "output": "License artifact check: PASS"},
+    {"command": "python scripts/check_master_prompt_parity.py", "exit_code": 0, "output": "MASTER PROMPT PARITY: PASS (18 sections, 42 headings, all code/command tokens present)"},
+    {"command": "git diff --check", "exit_code": 0, "output": "PASS"},
+    {"command": "import-boundary, schema, link, secret, hash, and raw-evidence review", "exit_code": 0, "output": "PASS; raw evidence unchanged"}
+  ],
+  "schema_validator": "jsonschema==4.23.0 Draft202012Validator; station envelope negative contract PASS",
+  "supervisor_decision": "PENDING",
+  "hil": ["physical compatibility, travel safety, and all real adapters remain REQUIRES_HIL"],
+  "raw_evidence_modified": false,
+  "contains_secrets": false
+}
