@@ -1,19 +1,19 @@
 # Source ledger
 
-Access date for all rows: 2026-08-31. No upstream implementation is copied.
+Access date for every row: 2026-08-31. All versionless web pages are pinned to the owning repository content identity shown below. No upstream implementation is copied.
 
-| ID | URL | Pinned version | Claim supported | License | Ambiguity/follow-up |
+| ID | URL | Pinned version/content identity | Claim supported | License | Ambiguity/follow-up |
 |---|---|---|---|---|---|
-| SRC-001 | https://www.klipper3d.org/G-Codes.html | current docs; compatibility commit TBD | G-Code/query/probe command surface | Klipper project GPL-3.0; docs terms to verify | Pin supported release before Phase 09 |
-| SRC-002 | https://www.klipper3d.org/Code_Overview.html | current docs; compatibility commit TBD | reactor, extras, object/event architecture | Klipper project GPL-3.0 | Verify APIs against pinned commit |
-| SRC-003 | https://github.com/Klipper3d/klipper | `f0892d82b0f1c1228454f09eb508eddde2250f4b` | source behavior | GPL-3.0 | Compatibility fixture required |
-| SRC-004 | https://moonraker.readthedocs.io/en/latest/external_api/introduction/ | current docs | local HTTP/JSON-RPC/WebSocket concepts | Moonraker license to verify before code reuse | Pin supported version |
-| SRC-005 | https://github.com/TypQxQ/kTAMV | `72421f2d54da0de8701c4f84449c6e6b7d060301` | behavioral comparison only | GPL-3.0 | No code copying |
-| SRC-006 | https://github.com/TypQxQ/KTC | `b880e37a960c4746a370b7f6ac76a6a829430387` | candidate adapter behavior | GPL-3.0 | Contract tests before adapter |
-| SRC-007 | https://github.com/viesturz/klipper-toolchanger | `94756dfde9b729fd69f9b8780067821c5c99a528` | alternate adapter semantics | GPL-3.0 | Verify sign semantics |
-| SRC-008 | https://docs.cartographer3d.com/cartographer-probe/installation-and-setup/software-configuration/touch-calibration | current page | Touch flow and safety warnings | Documentation license/terms not pinned | Re-open and snapshot before HIL |
-| SRC-009 | https://docs.opencv.org/4.12.0/d4/d70/tutorial_hough_circle.html | 4.12.0 docs | candidate circle detector | Apache-2.0 project; no code copied | Benchmark on labeled corpus |
-| SRC-010 | https://docs.opencv.org/4.12.0/d4/d94/tutorial_camera_calibration.html | 4.12.0 docs | calibration concepts | Apache-2.0 project; no code copied | Define model/metrics |
-| SRC-011 | https://developers.openai.com/api/docs/models/gpt-5.6-luna | current page | requested phase-agent setting | OpenAI terms | Operational instruction only |
+| SRC-001 | https://www.klipper3d.org/G-Codes.html | owning repo `Klipper3d/klipper` commit `f0892d82b0f1c1228454f09eb508eddde2250f4b`; page accessed 2026-08-31 | G-Code/query/probe command surface | GPL-3.0 (owning repository) | Docs rendering is not a hardware compatibility claim; pin v1 support before Phase 09 |
+| SRC-002 | https://www.klipper3d.org/Code_Overview.html | owning repo `Klipper3d/klipper` commit `f0892d82b0f1c1228454f09eb508eddde2250f4b`; page accessed 2026-08-31 | reactor, extras, object/event architecture | GPL-3.0 (owning repository) | Verify APIs against this commit before adapter implementation |
+| SRC-003 | https://github.com/Klipper3d/klipper | commit `f0892d82b0f1c1228454f09eb508eddde2250f4b` (HEAD) | source behavior | GPL-3.0 | Compatibility fixture required; no HIL compatibility inferred |
+| SRC-004 | https://moonraker.readthedocs.io/en/latest/external_api/introduction/ | owning repo `Arksine/moonraker` commit `985c1d0bbeb90bc057d34a232c9dc3b05e0c6c8d` (HEAD); page accessed 2026-08-31 | local HTTP/JSON-RPC/WebSocket concepts | GPL-3.0 (owning repository) | Docs/content identity pinned; supported client version remains a later contract decision |
+| SRC-005 | https://github.com/TypQxQ/kTAMV | commit `72421f2d54da0de8701c4f84449c6e6b7d060301` (HEAD) | behavioral comparison only | GPL-3.0 | No code copying; evidence is separately imported |
+| SRC-006 | https://github.com/TypQxQ/KTC | commit `b880e37a960c4746a370b7f6ac76a6a829430387` (HEAD) | candidate adapter behavior | GPL-3.0 | Contract tests required before adapter; no HIL claim |
+| SRC-007 | https://github.com/viesturz/klipper-toolchanger | commit `94756dfde9b729fd69f9b8780067821c5c99a528` (HEAD) | alternate adapter semantics | GPL-3.0 | Verify sign semantics with fixtures |
+| SRC-008 | https://docs.cartographer3d.com/cartographer-probe/installation-and-setup/software-configuration/touch-calibration | owning repo `Cartographer3D/docs` commit `b0519c0f35ee3d77d7c4b7c16f414ad2e68f559a` (HEAD); page accessed 2026-08-31 | Touch flow and safety warnings | GPL-3.0 (owning repository) | Docs identity pinned; firmware/model/output and HIL behavior require later validation |
+| SRC-009 | https://docs.opencv.org/4.12.0/d4/d70/tutorial_hough_circle.html | OpenCV tag `4.12.0`, dereferenced commit `49486f61fb25722cbcf586b7f4320921d46fb38e`; page accessed 2026-08-31 | candidate circle detector | Apache-2.0 | Candidate only; benchmark on labeled corpus |
+| SRC-010 | https://docs.opencv.org/4.12.0/d4/d94/tutorial_camera_calibration.html | OpenCV tag `4.12.0`, dereferenced commit `49486f61fb25722cbcf586b7f4320921d46fb38e`; page accessed 2026-08-31 | calibration concepts | Apache-2.0 | Define actual model/metrics; no physical accuracy claim |
+| SRC-011 | https://developers.openai.com/api/docs/models/gpt-5.6-luna | page accessed 2026-08-31; content identity is the current model documentation page | requested phase-agent setting | OpenAI terms | Operational instruction only; not a product dependency |
 
-Primary source access was observed, not a claim of hardware compatibility. Source URLs, versions and unresolved items must be updated before dependent implementation.
+Primary sources were opened and read on 2026-08-31. These records establish provenance and supported claims only; they do not establish hardware compatibility or authorize physical execution.
