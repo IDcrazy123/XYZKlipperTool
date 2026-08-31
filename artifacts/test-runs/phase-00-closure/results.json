@@ -1,0 +1,28 @@
+{
+  "run_id": "phase-00-closure",
+  "phase": "00",
+  "claim_state": "CANDIDATE_FOR_SUPERVISOR_REVIEW",
+  "commit_under_test": "a0caa86cd540eda89b56b8050bbe6491ae989b72",
+  "branch": "phase/00-governance",
+  "started_utc": "2026-08-31T12:26:57.9826044Z",
+  "started_local": "2026-08-31T19:26:57.9826044+07:00",
+  "commands": [
+    {"command": "python scripts/check_markdown_pairs.py", "exit_code": 0, "result": "Markdown pair check: PASS"},
+    {"command": "python scripts/check_master_prompt_parity.py", "exit_code": 0, "result": "MASTER PROMPT PARITY: PASS (18 sections, 42 headings, all code/command tokens present)"},
+    {"command": "python scripts/check_requirements_traceability.py", "exit_code": 0, "result": "Requirements traceability check: PASS (24 unique IDs, exact bilingual and matrix match)"},
+    {"command": "python scripts/check_source_ledger.py", "exit_code": 0, "result": "Source ledger check: PASS (11 bilingual pinned source rows)"},
+    {"command": "python scripts/check_license_artifact.py", "exit_code": 0, "result": "License artifact check: PASS (official GPL-3.0 text, normalized SHA-256, warranty and ending verified)"},
+    {"command": "python scripts/test_markdown_pairs.py", "exit_code": 0, "result": "Markdown pair negative fixtures: PASS (missing VI, missing EN, and artifacts orphan fail; imported raw is exempt)"},
+    {"command": "python scripts/test_requirements_traceability.py", "exit_code": 0, "result": "Requirements traceability negative fixtures: PASS (missing/extra and duplicate IDs detected)"},
+    {"command": "python scripts/test_source_ledger.py", "exit_code": 0, "result": "Source ledger negative fixtures: PASS (placeholder fields fail in temp root)"},
+    {"command": "PowerShell manifest verification against evidence/manifests/sha256-phase-00.txt", "exit_code": 0, "result": "Manifest verification: PASS (23 files)"},
+    {"command": "PowerShell secret scan with rg credential patterns on evidence/", "exit_code": 0, "result": "Secret scan: PASS"},
+    {"command": "PowerShell production boundary scan for src/ and klippy/", "exit_code": 0, "result": "Production boundary: PASS (no src/ or klippy/)"},
+    {"command": "Python local Markdown link audit", "exit_code": 0, "result": "Local Markdown link scan: PASS"},
+    {"command": "git diff --check", "exit_code": 0, "result": "PASS"}
+  ],
+  "counts": {"markdown_pair_checks": 1, "negative_fixture_suites": 3, "requirements": 24, "source_rows": 11, "evidence_files": 23, "z_json_files": 21},
+  "hash_links": ["evidence/manifests/sha256-phase-00.txt", "LICENSE"],
+  "safety": {"physical_actions": false, "apply_actions": false, "supervisor_pass": false, "hil_required": true},
+  "notes": "Offline candidate results only; this artifact does not record supervisor approval or physical safety evidence."
+}
