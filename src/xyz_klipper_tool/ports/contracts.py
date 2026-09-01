@@ -51,7 +51,7 @@ class CurrentPose:
 
 
 @runtime_checkable
-class CameraProvider(Protocol):
+class CameraProvider(Protocol):  # pragma: no cover - protocol declaration
     """Capture one bounded frame; no port contract authorizes machine motion."""
 
     def capture(self, request: CaptureRequest) -> CaptureResult:
@@ -60,7 +60,7 @@ class CameraProvider(Protocol):
 
 
 @runtime_checkable
-class VisionDetector(Protocol):
+class VisionDetector(Protocol):  # pragma: no cover - protocol declaration
     """Detect a finite camera measurement without blocking or persistence."""
 
     def detect(self, frame: bytes) -> PixelVector2:
@@ -69,7 +69,7 @@ class VisionDetector(Protocol):
 
 
 @runtime_checkable
-class ToolchangerAdapter(Protocol):
+class ToolchangerAdapter(Protocol):  # pragma: no cover - protocol declaration
     """Read dynamic tool identity/state; it does not authorize tool changes."""
 
     def discover_tools(self) -> Sequence[ToolId]:
@@ -86,7 +86,7 @@ class ToolchangerAdapter(Protocol):
 
 
 @runtime_checkable
-class ZProvider(Protocol):
+class ZProvider(Protocol):  # pragma: no cover - protocol declaration
     """Read a provider-specific Z value; physical compatibility remains HIL."""
 
     @property
@@ -100,7 +100,7 @@ class ZProvider(Protocol):
 
 
 @runtime_checkable
-class StationStore(Protocol):
+class StationStore(Protocol):  # pragma: no cover - protocol declaration
     """Store station records; adapters must define atomic/failure behavior."""
 
     def get(self, namespace: str, name: str) -> "StationRecord | None":
@@ -121,7 +121,7 @@ class StationStore(Protocol):
 
 
 @runtime_checkable
-class EvidenceStore(Protocol):
+class EvidenceStore(Protocol):  # pragma: no cover - protocol declaration
     """Persist evidence metadata without mutating completed raw evidence."""
 
     def append(self, record: Mapping[str, object]) -> None:
@@ -130,7 +130,7 @@ class EvidenceStore(Protocol):
 
 
 @runtime_checkable
-class OffsetReader(Protocol):
+class OffsetReader(Protocol):  # pragma: no cover - protocol declaration
     """Read offsets only; no apply or printer side effect is implied."""
 
     def read(self) -> Mapping[ToolId, Millimetres]:
@@ -139,7 +139,7 @@ class OffsetReader(Protocol):
 
 
 @runtime_checkable
-class OffsetWriter(Protocol):
+class OffsetWriter(Protocol):  # pragma: no cover - protocol declaration
     """Apply is outside Phase 02; fakes must record calls and never write hardware."""
 
     def write(self, offsets: Mapping[ToolId, Millimetres]) -> None:
@@ -148,7 +148,7 @@ class OffsetWriter(Protocol):
 
 
 @runtime_checkable
-class Clock(Protocol):
+class Clock(Protocol):  # pragma: no cover - protocol declaration
     """Supply deterministic timestamps without sleeping or blocking."""
 
     def now_utc(self) -> datetime:
@@ -157,7 +157,7 @@ class Clock(Protocol):
 
 
 @runtime_checkable
-class RunLock(Protocol):
+class RunLock(Protocol):  # pragma: no cover - protocol declaration
     """Acquire/release typed ownership; conflicting operations fail closed."""
 
     def acquire(self, operation: RunOperation) -> RunToken:
@@ -170,7 +170,7 @@ class RunLock(Protocol):
 
 
 @runtime_checkable
-class PrinterStateProvider(Protocol):
+class PrinterStateProvider(Protocol):  # pragma: no cover - protocol declaration
     """Read-only simulator boundary for readiness and safe state assertions."""
 
     def state(self) -> PrinterState:
@@ -179,7 +179,7 @@ class PrinterStateProvider(Protocol):
 
 
 @runtime_checkable
-class CurrentPoseProvider(Protocol):
+class CurrentPoseProvider(Protocol):  # pragma: no cover - protocol declaration
     """Return explicit current pose input; no movement or inferred coordinate occurs."""
 
     def current_pose(self) -> CurrentPose:

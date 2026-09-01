@@ -67,7 +67,7 @@ class Phase02Tests(unittest.TestCase):
             FakePrinter(cast(Any, object()), cast(Any, "ready"))
         with self.assertRaises(ValueError):
             FakeCamera([b"x" * (8 * 1024 * 1024 + 1)]).capture(
-                CaptureRequest("device:/dev/video0", Seconds(1))
+                CaptureRequest("device:/dev/video0", Seconds(1), "sample", "camera")
             )
 
     def test_station_record_rejects_untyped_fields_before_attribute_access(

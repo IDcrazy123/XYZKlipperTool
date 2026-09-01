@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Protocol
 
-from xyz_klipper_tool.domain.units import Millimetres
+from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres
 
 
 @dataclass(frozen=True)
@@ -26,8 +26,20 @@ class Transform2D:
     mm_per_px_y: float
     relative_x_mm: Millimetres
     relative_y_mm: Millimetres
+    input_frame: CoordinateFrame
+    output_frame: CoordinateFrame
 
     def __post_init__(self) -> None:
+        if (
+            type(self.input_frame) is not CoordinateFrame
+            or type(self.output_frame) is not CoordinateFrame
+        ):
+            raise ValueError("transform frames must be typed CoordinateFrame values")
+        if (
+            self.input_frame is not CoordinateFrame.CAMERA_IMAGE
+            or self.output_frame is not CoordinateFrame.TOOL
+        ):
+            raise ValueError("transform must be CAMERA_IMAGE to TOOL relative frame")
         if not all(
             math.isfinite(float(x)) and float(x) > 0
             for x in (self.mm_per_px_x, self.mm_per_px_y)
@@ -163,6 +175,8 @@ class JsonCalibrationStore:
                     transform["mm_per_px_y"],
                     Millimetres(transform["relative_x_mm"]),
                     Millimetres(transform["relative_y_mm"]),
+                    CoordinateFrame(transform["input_frame"]),
+                    CoordinateFrame(transform["output_frame"]),
                 ),
                 payload["residual_px"],
                 Millimetres(payload["uncertainty_mm"]),
@@ -192,6 +206,8 @@ def calibration_payload(calibration: Calibration) -> dict[str, Any]:
             "mm_per_px_y": calibration.transform.mm_per_px_y,
             "relative_x_mm": calibration.transform.relative_x_mm.value_mm,
             "relative_y_mm": calibration.transform.relative_y_mm.value_mm,
+            "input_frame": calibration.transform.input_frame.value,
+            "output_frame": calibration.transform.output_frame.value,
         },
         "residual_px": calibration.residual_px,
         "uncertainty_mm": calibration.uncertainty_mm.value_mm,

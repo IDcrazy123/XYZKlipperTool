@@ -28,6 +28,8 @@ class DetectionContext:
     now_utc: datetime
     max_frame_age_s: Seconds
     frame_sample_id: str
+    calibration_created_at_utc: datetime
+    max_calibration_age_s: Seconds
     exposure_metadata: str | None = None
 
     def __post_init__(self) -> None:
@@ -56,6 +58,17 @@ class DetectionContext:
             or self.max_frame_age_s.value_s < 0
         ):
             raise ValueError("max frame age must be bounded Seconds")
+        if (
+            type(self.max_calibration_age_s) is not Seconds
+            or self.max_calibration_age_s.value_s < 0
+        ):
+            raise ValueError("max calibration age must be bounded Seconds")
+        if type(
+            self.calibration_created_at_utc
+        ) is not datetime or self.calibration_created_at_utc.utcoffset() != timedelta(
+            0
+        ):
+            raise ValueError("calibration_created_at_utc must be UTC")
         if (
             self.exposure_metadata is not None
             and type(self.exposure_metadata) is not str
@@ -200,7 +213,7 @@ class Detection:
         return len(self.overlay_artifact)
 
 
-class Detector(Protocol):
+class Detector(Protocol):  # pragma: no cover - protocol declaration
     """Non-I/O image detector; failure is fail-closed and never physical."""
 
     def detect(
@@ -214,7 +227,7 @@ class Detector(Protocol):
         ...
 
 
-class ImageDecoder(Protocol):
+class ImageDecoder(Protocol):  # pragma: no cover - protocol declaration
     """Injected bounded decoder contract used to measure decode time."""
 
     def decode(
@@ -359,6 +372,12 @@ def _preflight(
         > context.max_frame_age_s.value_s
     ):
         return _invalid(calibration, frame, ReasonCode.STALE_FRAME, context)
+    if (
+        context.now_utc < context.calibration_created_at_utc
+        or (context.now_utc - context.calibration_created_at_utc).total_seconds()
+        > context.max_calibration_age_s.value_s
+    ):
+        return _invalid(calibration, frame, ReasonCode.CALIBRATION_MISMATCH, context)
     return None
 
 
@@ -529,6 +548,8 @@ def benchmark_detectors(
                 calibration.created_at_utc,
                 limits.max_frame_age_s,
                 f"synthetic-{index}",
+                calibration.created_at_utc,
+                limits.max_frame_age_s,
             )
             outputs.append(detector.detect(frame, calibration, limits, context))
         result[name] = {

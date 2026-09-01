@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 from urllib.parse import urlparse
 
@@ -50,17 +50,22 @@ class CaptureLimits:
             or not 0 < self.max_decode_time_s.value_s <= 30
         ):
             raise ValueError("invalid decode-time limit")
+        if (
+            type(self.max_frame_age_s) is not Seconds
+            or not 0 <= self.max_frame_age_s.value_s <= 300
+        ):
+            raise ValueError("invalid frame-age limit")
 
 
-class CameraTransport(Protocol):
+class CameraTransport(Protocol):  # pragma: no cover - protocol declaration
     """Injected transport boundary; no live camera or network is implied."""
 
-    def capture(self, timeout_s: Seconds) -> bytes:
-        """Return encoded bytes or raise a typed transport fault."""
+    def capture(self, target: str, timeout_s: Seconds) -> bytes:
+        """Capture normalized target with finite timeout or raise transport fault."""
         ...
 
 
-class CameraClock(Protocol):
+class CameraClock(Protocol):  # pragma: no cover - protocol declaration
     """Injected clock for deterministic elapsed-time checks."""
 
     def now_utc(self) -> datetime:
@@ -76,26 +81,37 @@ class CaptureResult:
     reason: ReasonCode
     attempts: int
     total_bytes: int
-    frame_sample_id: str = ""
-    camera_fingerprint: str = ""
-    captured_at_utc: datetime | None = None
+    frame_sample_id: str
+    camera_fingerprint: str
+    captured_at_utc: datetime
     exposure_metadata: str | None = None
 
     def __post_init__(self) -> None:
+        if type(self.reason) is not ReasonCode:
+            raise ValueError("capture reason must be typed")
+        if self.encoded is not None and type(self.encoded) is not bytes:
+            raise ValueError("encoded capture must be bytes")
         if type(self.attempts) is not int or self.attempts < 1:
             raise ValueError("attempts must be positive")
         if type(self.total_bytes) is not int or self.total_bytes < 0:
             raise ValueError("total_bytes must be nonnegative")
         if (
             type(self.frame_sample_id) is not str
+            or not self.frame_sample_id.strip()
             or type(self.camera_fingerprint) is not str
+            or not self.camera_fingerprint.strip()
         ):
             raise ValueError("capture identities must be text")
-        if self.captured_at_utc is not None and (
-            type(self.captured_at_utc) is not datetime
-            or self.captured_at_utc.utcoffset() != timedelta(0)
-        ):
+        if type(
+            self.captured_at_utc
+        ) is not datetime or self.captured_at_utc.utcoffset() != timedelta(0):
             raise ValueError("captured_at_utc must be UTC")
+        if (self.reason is ReasonCode.NONE) != (
+            self.encoded is not None and bool(self.encoded)
+        ):
+            raise ValueError("capture success/result coherence failure")
+        if self.encoded is not None and len(self.encoded) > 8 * 1024 * 1024:
+            raise ValueError("capture bytes exceed bound")
         if self.exposure_metadata is not None and (
             type(self.exposure_metadata) is not str
             or len(self.exposure_metadata) > 1024
@@ -114,10 +130,11 @@ class BoundedCameraProvider:
     def capture(self, request: CaptureRequest) -> CaptureResult:
         """Pass a finite timeout per attempt and classify bounded transport faults."""
         total = 0
+        started = datetime.min.replace(tzinfo=timezone.utc)
         for attempt in range(1, self.limits.max_retries + 2):
             started = self.clock.now_utc()
             try:
-                encoded = self.transport.capture(request.timeout_s)
+                encoded = self.transport.capture(request.target, request.timeout_s)
             except TimeoutError:
                 if attempt > self.limits.max_retries:
                     return CaptureResult(
@@ -127,7 +144,7 @@ class BoundedCameraProvider:
                         total,
                         request.frame_sample_id,
                         request.camera_fingerprint,
-                        request.captured_at_utc,
+                        started,
                         request.exposure_metadata,
                     )
                 continue
@@ -139,21 +156,20 @@ class BoundedCameraProvider:
                     total,
                     request.frame_sample_id,
                     request.camera_fingerprint,
-                    request.captured_at_utc,
+                    started,
                     request.exposure_metadata,
                 )
             total += len(encoded)
-            if (
-                self.clock.now_utc() - started
-            ).total_seconds() > self.limits.max_decode_time_s.value_s:
+            finished = self.clock.now_utc()
+            if (finished - started).total_seconds() > request.timeout_s.value_s:
                 return CaptureResult(
                     None,
-                    ReasonCode.DECODE_TIMEOUT,
+                    ReasonCode.CAPTURE_TIMEOUT,
                     attempt,
                     total,
                     request.frame_sample_id,
                     request.camera_fingerprint,
-                    request.captured_at_utc,
+                    started,
                     request.exposure_metadata,
                 )
             if not encoded:
@@ -164,7 +180,7 @@ class BoundedCameraProvider:
                     total,
                     request.frame_sample_id,
                     request.camera_fingerprint,
-                    request.captured_at_utc,
+                    started,
                     request.exposure_metadata,
                 )
             if total > self.limits.max_encoded_bytes:
@@ -175,7 +191,7 @@ class BoundedCameraProvider:
                     total,
                     request.frame_sample_id,
                     request.camera_fingerprint,
-                    request.captured_at_utc,
+                    started,
                     request.exposure_metadata,
                 )
             return CaptureResult(
@@ -185,7 +201,7 @@ class BoundedCameraProvider:
                 total,
                 request.frame_sample_id,
                 request.camera_fingerprint,
-                request.captured_at_utc,
+                started,
                 request.exposure_metadata,
             )
         return CaptureResult(
@@ -195,7 +211,7 @@ class BoundedCameraProvider:
             total,
             request.frame_sample_id,
             request.camera_fingerprint,
-            request.captured_at_utc,
+            started,
             request.exposure_metadata,
         )
 
@@ -206,13 +222,13 @@ class CaptureRequest:
 
     target: str
     timeout_s: Seconds
-    frame_sample_id: str = "sample"
-    camera_fingerprint: str = "camera"
-    captured_at_utc: datetime | None = None
+    frame_sample_id: str
+    camera_fingerprint: str
     exposure_metadata: str | None = None
 
     def __post_init__(self) -> None:
-        validate_camera_url(self.target)
+        normalized = validate_camera_url(self.target)
+        object.__setattr__(self, "target", normalized)
         if type(self.timeout_s) is not Seconds or not 0 < self.timeout_s.value_s <= 30:
             raise ValueError("timeout must be bounded Seconds")
         if type(self.frame_sample_id) is not str or not self.frame_sample_id.strip():
@@ -222,11 +238,6 @@ class CaptureRequest:
             or not self.camera_fingerprint.strip()
         ):
             raise ValueError("camera fingerprint is required")
-        if self.captured_at_utc is not None and (
-            type(self.captured_at_utc) is not datetime
-            or self.captured_at_utc.utcoffset() != timedelta(0)
-        ):
-            raise ValueError("captured_at_utc must be UTC")
         if self.exposure_metadata is not None and (
             type(self.exposure_metadata) is not str
             or len(self.exposure_metadata) > 1024
@@ -242,9 +253,9 @@ class CameraFrame:
     width_px: int
     height_px: int
     age_s: Seconds
-    frame_sample_id: str = "sample"
-    camera_fingerprint: str = "camera"
-    captured_at_utc: datetime | None = None
+    frame_sample_id: str
+    camera_fingerprint: str
+    captured_at_utc: datetime
     exposure_metadata: str | None = None
 
     def __post_init__(self) -> None:
@@ -255,10 +266,9 @@ class CameraFrame:
             or not self.camera_fingerprint.strip()
         ):
             raise ValueError("camera fingerprint is required")
-        if self.captured_at_utc is not None and (
-            type(self.captured_at_utc) is not datetime
-            or self.captured_at_utc.utcoffset() != timedelta(0)
-        ):
+        if type(
+            self.captured_at_utc
+        ) is not datetime or self.captured_at_utc.utcoffset() != timedelta(0):
             raise ValueError("captured_at_utc must be UTC")
         if self.exposure_metadata is not None and (
             type(self.exposure_metadata) is not str

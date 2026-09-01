@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from xyz_klipper_tool.domain.models import ReasonCode, Verdict
-from xyz_klipper_tool.domain.units import Millimetres, Seconds
+from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres, Seconds
 from xyz_klipper_tool.vision import (
     BlobDetector,
     Calibration,
@@ -34,7 +34,14 @@ class Phase03Tests(unittest.TestCase):
             1,
             "cam",
             "fingerprint",
-            Transform2D(0.1, 0.1, Millimetres(1), Millimetres(2)),
+            Transform2D(
+                0.1,
+                0.1,
+                Millimetres(1),
+                Millimetres(2),
+                CoordinateFrame.CAMERA_IMAGE,
+                CoordinateFrame.TOOL,
+            ),
             0.2,
             Millimetres(0.01),
             "a" * 64,
@@ -49,7 +56,7 @@ class Phase03Tests(unittest.TestCase):
             Seconds(0.1),
             "sample-1",
             cal.camera_fingerprint if cal is not None else "camera",
-            datetime(2026, 9, 1, tzinfo=timezone.utc) if cal is not None else None,
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
         )
 
     def context(self, cal: Calibration, age: float = 0.1) -> DetectionContext:
@@ -61,12 +68,14 @@ class Phase03Tests(unittest.TestCase):
             captured + timedelta(seconds=age),
             Seconds(2),
             "sample-1",
+            captured,
+            Seconds(3600),
             "1/60s",
         )
 
     def test_capture_bounds_and_local_allowlist(self) -> None:
-        CaptureRequest("http://127.0.0.1/camera", Seconds(1))
-        CaptureRequest("device:/dev/video0", Seconds(1))
+        CaptureRequest("http://127.0.0.1/camera", Seconds(1), "sample", "camera")
+        CaptureRequest("device:/dev/video0", Seconds(1), "sample", "camera")
         with self.assertRaises(ValueError):
             validate_camera_url("http://example.com/camera")
         with self.assertRaises(ValueError):
@@ -109,7 +118,15 @@ class Phase03Tests(unittest.TestCase):
             .reason,
             ReasonCode.AMBIGUOUS_CANDIDATE,
         )
-        empty = CameraFrame(b"", 1, 1, Seconds(0.1), "sample-1", cal.camera_fingerprint)
+        empty = CameraFrame(
+            b"",
+            1,
+            1,
+            Seconds(0.1),
+            "sample-1",
+            cal.camera_fingerprint,
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
+        )
         self.assertEqual(
             BlobDetector().detect(empty, cal, limits, self.context(cal)).reason,
             ReasonCode.MISSING_INPUT,
@@ -121,6 +138,7 @@ class Phase03Tests(unittest.TestCase):
             Seconds(3),
             "sample-1",
             cal.camera_fingerprint,
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
         )
         self.assertEqual(
             CircleCandidateDetector()
@@ -144,6 +162,8 @@ class Phase03Tests(unittest.TestCase):
             datetime(2026, 9, 1, tzinfo=timezone.utc),
             Seconds(2),
             "s",
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
+            Seconds(3600),
         )
         self.assertEqual(
             BlobDetector().detect(blank, cal, limits, bad).reason,
@@ -156,6 +176,8 @@ class Phase03Tests(unittest.TestCase):
             datetime(2026, 9, 1, tzinfo=timezone.utc),
             Seconds(2),
             "s",
+            datetime(2026, 8, 1, tzinfo=timezone.utc),
+            Seconds(2),
         )
         self.assertEqual(
             BlobDetector().detect(blank, cal, limits, old).reason,
@@ -172,7 +194,7 @@ class Phase03Tests(unittest.TestCase):
             def __init__(self) -> None:
                 self.calls = 0
 
-            def capture(self, timeout_s: Seconds) -> bytes:
+            def capture(self, target: str, timeout_s: Seconds) -> bytes:
                 self.calls += 1
                 if self.calls == 1:
                     raise TimeoutError()
@@ -198,9 +220,11 @@ class Phase03Tests(unittest.TestCase):
             Clock(),
             CaptureLimits(max_retries=1, max_decode_time_s=Seconds(2)),
         )
-        result = provider.capture(CaptureRequest("device:/dev/video0", Seconds(1)))
+        result = provider.capture(
+            CaptureRequest("device:/dev/video0", Seconds(1), "sample", "camera")
+        )
         self.assertEqual(
-            (result.reason, result.attempts), (ReasonCode.DECODE_TIMEOUT, 2)
+            (result.reason, result.attempts), (ReasonCode.CAPTURE_TIMEOUT, 2)
         )
 
     def test_detection_invariants_and_injected_decode_timeout(self) -> None:
@@ -291,6 +315,7 @@ class Phase03Tests(unittest.TestCase):
         self.assertEqual(result.reason, ReasonCode.DECODE_TIMEOUT)
 
     def test_capture_contract_fault_matrix_and_benchmark(self) -> None:
+        captured = datetime(2026, 9, 1, tzinfo=timezone.utc)
         for kwargs in (
             {"max_encoded_bytes": 0},
             {"max_width_px": 0},
@@ -309,16 +334,14 @@ class Phase03Tests(unittest.TestCase):
                 Seconds(1),
                 "s",
                 "fp",
-                datetime(2026, 9, 1, tzinfo=timezone(timedelta(hours=1))),
+                cast(Any, datetime(2026, 9, 1, tzinfo=timezone(timedelta(hours=1)))),
             )
         with self.assertRaises(ValueError):
-            CaptureRequest(
-                "device:/dev/video0", Seconds(1), "s", "fp", None, "x" * 1025
-            )
+            CaptureRequest("device:/dev/video0", Seconds(1), "s", "fp", "x" * 1025)
         with self.assertRaises(ValueError):
-            CaptureResult(None, ReasonCode.NONE, 0, 0)
+            CaptureResult(None, ReasonCode.NONE, 0, 0, "s", "fp", captured)
         with self.assertRaises(ValueError):
-            CaptureResult(None, ReasonCode.NONE, 1, -1)
+            CaptureResult(None, ReasonCode.NONE, 1, -1, "s", "fp", captured)
         with self.assertRaises(ValueError):
             CaptureResult(
                 None,
@@ -330,11 +353,36 @@ class Phase03Tests(unittest.TestCase):
                 datetime(2026, 9, 1, tzinfo=timezone(timedelta(hours=1))),
             )
         with self.assertRaises(ValueError):
-            CameraFrame(b"x", 10, 10, Seconds(0.1), "s", "camera", None, "x" * 1025)
+            CameraFrame(
+                b"x",
+                10,
+                10,
+                Seconds(0.1),
+                "s",
+                "camera",
+                datetime(2026, 9, 1, tzinfo=timezone.utc),
+                "x" * 1025,
+            )
         with self.assertRaises(ValueError):
-            CameraFrame(b"x", 0, 1, Seconds(0.1)).validate(CaptureLimits())
+            CameraFrame(
+                b"x",
+                0,
+                1,
+                Seconds(0.1),
+                "s",
+                "camera",
+                datetime(2026, 9, 1, tzinfo=timezone.utc),
+            ).validate(CaptureLimits())
         with self.assertRaises(ValueError):
-            CameraFrame(b"x", 10, 10, Seconds(-1)).validate(CaptureLimits())
+            CameraFrame(
+                b"x",
+                10,
+                10,
+                Seconds(-1),
+                "s",
+                "camera",
+                datetime(2026, 9, 1, tzinfo=timezone.utc),
+            ).validate(CaptureLimits())
         cal = self.calibration()
         self.assertEqual(
             benchmark_detectors(
@@ -348,18 +396,36 @@ class Phase03Tests(unittest.TestCase):
     def test_metadata_and_detection_negative_matrix(self) -> None:
         captured = datetime(2026, 9, 1, tzinfo=timezone.utc)
         bad_contexts = (
-            ("", "fp", captured, captured, Seconds(1), "s"),
-            ("c", "", captured, captured, Seconds(1), "s"),
-            ("c", "fp", captured.replace(tzinfo=None), captured, Seconds(1), "s"),
-            ("c", "fp", captured, captured.replace(tzinfo=None), Seconds(1), "s"),
-            ("c", "fp", captured, captured, Seconds(-1), "s"),
-            ("c", "fp", captured, captured, Seconds(1), ""),
+            ("", "fp", captured, captured, Seconds(1), "s", captured, Seconds(1)),
+            ("c", "", captured, captured, Seconds(1), "s", captured, Seconds(1)),
+            (
+                "c",
+                "fp",
+                captured.replace(tzinfo=None),
+                captured,
+                Seconds(1),
+                "s",
+                captured,
+                Seconds(1),
+            ),
+            (
+                "c",
+                "fp",
+                captured,
+                captured.replace(tzinfo=None),
+                Seconds(1),
+                "s",
+                captured,
+                Seconds(1),
+            ),
+            ("c", "fp", captured, captured, Seconds(-1), "s", captured, Seconds(1)),
+            ("c", "fp", captured, captured, Seconds(1), "", captured, Seconds(1)),
         )
         for values in bad_contexts:
             with self.assertRaises(ValueError):
                 DetectionContext(*cast(Any, values))
         with self.assertRaises(ValueError):
-            CameraFrame(b"x", 1, 1, Seconds(0.1), "", "camera")
+            CameraFrame(b"x", 1, 1, Seconds(0.1), "", "camera", captured)
         with self.assertRaises(ValueError):
             CameraFrame(b"x", 1, 1, Seconds(0.1), "s", "", captured)
         for kwargs in (
@@ -391,7 +457,15 @@ class Phase03Tests(unittest.TestCase):
                 Detection(**base)
         with self.assertRaises(ValueError):
             DetectionContext(
-                "c", "fp", captured, captured, Seconds(1), "s", cast(Any, 1)
+                "c",
+                "fp",
+                captured,
+                captured,
+                Seconds(1),
+                "s",
+                captured,
+                Seconds(1),
+                cast(Any, 1),
             )
         with self.assertRaises(ValueError):
             Detection(
@@ -506,7 +580,13 @@ class Phase03Tests(unittest.TestCase):
         cal = self.calibration()
         context = self.context(cal)
         corrupt = CameraFrame(
-            b"not-pgm", 1, 1, Seconds(0.1), "sample-1", cal.camera_fingerprint
+            b"not-pgm",
+            1,
+            1,
+            Seconds(0.1),
+            "sample-1",
+            cal.camera_fingerprint,
+            context.captured_at_utc,
         )
         self.assertEqual(
             BlobDetector().detect(corrupt, cal, CaptureLimits(), context).reason,
@@ -527,14 +607,14 @@ class Phase03Tests(unittest.TestCase):
             def __init__(self, value: object) -> None:
                 self.value = value
 
-            def capture(self, timeout_s: Seconds) -> bytes:
+            def capture(self, target: str, timeout_s: Seconds) -> bytes:
                 if isinstance(self.value, BaseException):
                     raise self.value
                 return self.value  # type: ignore[return-value]
 
         from xyz_klipper_tool.vision.capture import BoundedCameraProvider
 
-        request = CaptureRequest("device:/dev/video0", Seconds(1))
+        request = CaptureRequest("device:/dev/video0", Seconds(1), "sample", "camera")
         self.assertEqual(
             BoundedCameraProvider(Transport(ValueError()), Clock(), CaptureLimits())
             .capture(request)
