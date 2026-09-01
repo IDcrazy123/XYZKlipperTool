@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import random
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -193,12 +194,15 @@ def deterministic_split(
 
 def evaluate_benchmark(
     holdout: tuple[CorpusEntry, ...],
-    runners: dict[str, Callable[[CorpusEntry], tuple[int, float | None, str]]],
+    runners: dict[
+        str, Callable[[CorpusEntry], tuple[int, tuple[float, float] | None, str]]
+    ],
 ) -> dict[str, dict[str, object]]:
     """Evaluate injected runners on labeled holdout entries only.
 
-    Each runner returns predicted candidate count, optional center error in
-    pixels, and a reason string. This publishes offline metrics only; it never
+    Each runner returns predicted candidate count, optional predicted center in
+    pixels, and a reason string. Center error is computed here from ground truth;
+    runner-supplied error values are never trusted. This publishes offline metrics only; it never
     creates or claims real camera evidence.
     """
     if not holdout:
@@ -206,20 +210,48 @@ def evaluate_benchmark(
     output: dict[str, dict[str, object]] = {}
     for name, runner in sorted(runners.items()):
         rows = [runner(entry) for entry in holdout]
-        correct = sum(
-            row[0] == entry.expected_candidate_count and entry.failure_class is None
+        tp = sum(
+            row[0] > 0 and entry.expected_candidate_count > 0
             for row, entry in zip(rows, holdout)
         )
-        errors = [row[1] for row in rows if row[1] is not None]
+        fp = sum(
+            row[0] > 0 and entry.expected_candidate_count == 0
+            for row, entry in zip(rows, holdout)
+        )
+        fn = sum(
+            row[0] == 0 and entry.expected_candidate_count > 0
+            for row, entry in zip(rows, holdout)
+        )
+        tn = sum(
+            row[0] == 0 and entry.expected_candidate_count == 0
+            for row, entry in zip(rows, holdout)
+        )
+        errors = [
+            math.hypot(
+                row[1][0] - entry.expected_center_px[0],
+                row[1][1] - entry.expected_center_px[1],
+            )
+            for row, entry in zip(rows, holdout)
+            if row[1] is not None and entry.expected_center_px is not None
+        ]
+        positive_denominator = tp + fp
+        recall_denominator = tp + fn
         output[name] = {
             "dataset_label": "SYNTHETIC"
             if all(entry.provenance == "SYNTHETIC" for entry in holdout)
             else "REAL_SANITIZED",
             "samples": len(rows),
-            "true_positive": correct,
-            "precision": correct / len(rows),
-            "recall": correct / len(rows),
+            "true_positive": tp,
+            "false_positive": fp,
+            "false_negative": fn,
+            "true_negative": tn,
+            "precision": tp / positive_denominator if positive_denominator else 0.0,
+            "recall": tp / recall_denominator if recall_denominator else 0.0,
             "center_error_px_mean": sum(errors) / max(1, len(errors)),
+            "center_error_px_median": sorted(errors)[len(errors) // 2]
+            if errors
+            else 0.0,
+            "center_error_px_max": max(errors, default=0.0),
             "failure_classes": sorted({row[2] for row in rows if row[2]}),
         }
     return output

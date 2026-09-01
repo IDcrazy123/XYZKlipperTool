@@ -191,6 +191,9 @@ class JsonCalibrationStore:
             raise ValueError("calibration path escapes store root")
         if not path.exists():
             return None
+        return self._read_path(path, calibration_id)
+
+    def _read_path(self, path: Path, calibration_id: str) -> Calibration:
         if path.stat().st_size > self.max_file_bytes:
             raise ValueError("calibration state exceeds bound")
         try:
@@ -237,17 +240,32 @@ class JsonCalibrationStore:
             raise ValueError("corrupt calibration state") from exc
 
     def recover(self, calibration_id: str, backup_index: int = 1) -> Calibration:
-        """Explicitly validate and return a named backup; never silently falls back."""
+        """Validate a named backup before atomic replacement; preserve backup on failure."""
+        if type(calibration_id) is not str or not calibration_id.strip():
+            raise ValueError("calibration_id required")
         if type(backup_index) is not int or not 1 <= backup_index <= self.max_backups:
             raise ValueError("invalid backup index")
-        path = self.root.resolve() / f"{calibration_id}.json.bak{backup_index}"
-        if not path.exists():
+        root = self.root.resolve()
+        path = (root / f"{calibration_id}.json.bak{backup_index}").resolve()
+        current = (root / f"{calibration_id}.json").resolve()
+        if path.parent != root or current.parent != root:
+            raise ValueError("calibration path escapes store root")
+        if not path.exists() or path.stat().st_size > self.max_file_bytes:
             raise ValueError("requested calibration backup is absent")
-        original = self.root.resolve() / f"{calibration_id}.json"
-        os.replace(path, original)
-        recovered = self.get(calibration_id)
-        if recovered is None:
-            raise ValueError("backup recovery failed")
+        recovered = self._read_path(path, calibration_id)
+        fd, temp_name = tempfile.mkstemp(
+            dir=self.root, prefix=".recovery-", suffix=".tmp"
+        )
+        try:
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(path.read_bytes())
+                handle.flush()
+                os.fsync(handle.fileno())
+            self._stage("before_recovery_replace")
+            os.replace(temp_name, current)
+            self._stage("after_recovery_replace")
+        finally:
+            Path(temp_name).unlink(missing_ok=True)
         return recovered
 
 

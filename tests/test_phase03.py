@@ -822,6 +822,23 @@ class Phase03Tests(unittest.TestCase):
                 self.assertEqual(store.get("cal-1"), original)
                 self.assertIn(fault_stage, seen)
 
+    def test_recovery_validates_backup_before_non_destructive_replace(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = JsonCalibrationStore(root, max_backups=1)
+            calibration = self.calibration()
+            store.put(calibration)
+            store.put(calibration)
+            backup = root / "cal-1.json.bak1"
+            current_before = (root / "cal-1.json").read_bytes()
+            backup.write_text('{"schema_version":1}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                store.recover("cal-1", 1)
+            self.assertEqual((root / "cal-1.json").read_bytes(), current_before)
+            self.assertEqual(backup.read_text(encoding="utf-8"), '{"schema_version":1}')
+            with self.assertRaises(ValueError):
+                store.recover("../escaped", 1)
+
     def test_calibration_and_inventory_bounds_faults(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -905,13 +922,25 @@ class Phase03Tests(unittest.TestCase):
         report = evaluate_benchmark(
             entries,
             {
-                "blob": lambda entry: (entry.expected_candidate_count, 0.5, ""),
-                "circle": lambda entry: (entry.expected_candidate_count, 0.25, ""),
+                "blob": lambda entry: (
+                    entry.expected_candidate_count,
+                    entry.expected_center_px,
+                    "",
+                ),
+                "circle": lambda entry: (
+                    entry.expected_candidate_count,
+                    entry.expected_center_px,
+                    "",
+                ),
             },
         )
         self.assertEqual(set(report), {"blob", "circle"})
         self.assertEqual(report["blob"]["dataset_label"], "SYNTHETIC")
         self.assertEqual(report["blob"]["samples"], 2)
+        self.assertEqual(report["blob"]["true_positive"], 1)
+        self.assertEqual(report["blob"]["true_negative"], 1)
+        self.assertEqual(report["blob"]["precision"], 1.0)
+        self.assertEqual(report["blob"]["recall"], 1.0)
 
     @unittest.skipUnless(_jsonschema is not None, "install pinned dev validator")
     def test_phase03_schemas_are_draft202012_contracts(self) -> None:
@@ -943,6 +972,9 @@ class Phase03Tests(unittest.TestCase):
                     "label": "target",
                     "sha256": "a" * 64,
                     "provenance": "SYNTHETIC",
+                    "expected_candidate_count": 0,
+                    "expected_center_px": None,
+                    "failure_class": "ZERO_CANDIDATE",
                     "byte_size": 1,
                 }
             ],
@@ -951,9 +983,14 @@ class Phase03Tests(unittest.TestCase):
             "dataset_label": "SYNTHETIC",
             "samples": 1,
             "true_positive": 1,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 0,
             "precision": 1.0,
             "recall": 1.0,
             "center_error_px_mean": 0.0,
+            "center_error_px_median": 0.0,
+            "center_error_px_max": 0.0,
             "failure_classes": [],
         }
         cases: tuple[tuple[dict[str, Any], dict[str, Any]], ...] = (
@@ -977,6 +1014,69 @@ class Phase03Tests(unittest.TestCase):
                 )
             )
         )
+
+    @unittest.skipUnless(_jsonschema is not None, "install pinned dev validator")
+    def test_inventory_json_matches_manifest_schema(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            frame = root / "session" / "frame.pgm"
+            frame.parent.mkdir()
+            frame.write_bytes(b"P2\n1 1\n1\n0\n")
+            encoded = json.loads(inventory_json(build_inventory(root, [frame])))
+        schema = json.loads(
+            (
+                Path(__file__).parents[1] / "schemas" / "corpus-manifest.v1.schema.json"
+            ).read_text()
+        )
+        validator = _jsonschema.Draft202012Validator(schema)
+        self.assertEqual(list(validator.iter_errors(encoded)), [])
+
+    @unittest.skipUnless(_jsonschema is not None, "install pinned dev validator")
+    def test_committed_synthetic_fixture_and_benchmark_artifact_validate(self) -> None:
+        root = Path(__file__).parents[1]
+        manifest = json.loads(
+            (root / "artifacts/synthetic/phase-03-corpus.json").read_text()
+        )
+        entries = tuple(
+            CorpusEntry(
+                item["entry_id"],
+                Path(item["path"]),
+                item["session_id"],
+                item["label"],
+                item["sha256"],
+                item["provenance"],
+                item["expected_candidate_count"],
+                tuple(item["expected_center_px"])
+                if item["expected_center_px"] is not None
+                else None,
+                item["failure_class"],
+                item["byte_size"],
+            )
+            for item in manifest["entries"]
+        )
+        verify_inventory(root / "artifacts/synthetic/phase-03-corpus", entries)
+        manifest_schema = json.loads(
+            (root / "schemas/corpus-manifest.v1.schema.json").read_text()
+        )
+        self.assertEqual(
+            list(
+                _jsonschema.Draft202012Validator(manifest_schema).iter_errors(manifest)
+            ),
+            [],
+        )
+        benchmark = json.loads(
+            (root / "artifacts/synthetic/phase-03-benchmark-report.json").read_text()
+        )
+        report_schema = json.loads(
+            (root / "schemas/benchmark-report.v1.schema.json").read_text()
+        )
+        for report in benchmark["reports"].values():
+            self.assertEqual(
+                list(
+                    _jsonschema.Draft202012Validator(report_schema).iter_errors(report)
+                ),
+                [],
+            )
 
 
 if __name__ == "__main__":

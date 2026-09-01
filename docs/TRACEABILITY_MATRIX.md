@@ -37,6 +37,6 @@ Every requirement below occurs exactly once.
 | REQ-CALIB-001 | Master prompt; SRC-010 | `vision/calibration.py` versioned checksummed store | actual: round-trip/corruption tests |
 | REQ-DETECT-001 | Master prompt; SRC-009 | `vision/detectors.py` plugin and diagnostics model | actual: candidate/zero/ambiguous tests |
 | REQ-CORPUS-002 | Master prompt; ASSUMPTION | `vision/corpus.py` immutable inventory/session split | actual: leakage test; real-corpus gate NEEDS_WORK |
-| REQ-CALIB-002 | Master prompt; ASSUMPTION | `vision/calibration.py`; calibration envelope schema | actual: checksum, bounds and pre-replace fault tests |
+| REQ-CALIB-002 | Master prompt; ASSUMPTION | `vision/calibration.py`; calibration envelope schema | actual: checksum, bounds, rotation, corrupt/traversal recovery and pre-replace fault tests |
 | REQ-CORPUS-003 | Master prompt; ASSUMPTION | `vision/corpus.py` inventory/verifier | actual: relative path, hash and mismatch tests |
-| REQ-BENCH-001 | Master prompt; ASSUMPTION | `vision/corpus.py` evaluate_benchmark | actual: synthetic labeled metric test; real corpus NEEDS_WORK |
+| REQ-BENCH-001 | Master prompt; ASSUMPTION | `vision/corpus.py` evaluate_benchmark; synthetic benchmark artifact/schema | actual: both candidate reports, TP/FP/FN/TN and derived center-error tests; real corpus NEEDS_WORK |
