@@ -2,9 +2,9 @@
   "phase": "03-camera-cv",
   "status": "SUPERVISOR_REVIEW_PENDING",
   "base_commit": "f0283a3c756d728c6b66a2775d02ed24d4d97cd5",
-  "commit_under_test": "1f4fa87e6e3eb2f9e7c47f5a031bf8b9d07a5a5e",
+  "commit_under_test": "ba05108c870bb493a2ce80769c9e25b9d0c49088",
   "branch": "phase/03-camera-cv",
-  "utc_time": "2026-09-01T00:44:55Z",
+  "utc_time": "2026-09-01T00:51:32Z",
   "commands": [
     {"command": "pinned venv; $env:PYTHONPATH='src'; python -m unittest discover -s tests", "exit_code": 0, "tests": 37, "passed": 37, "skipped": 0, "output": "OK"},
     {"command": "pinned venv; $env:PYTHONPATH='src'; python -m coverage erase; python -m coverage run -m unittest discover -s tests; python -m coverage report -m --include='src/*'", "exit_code": 0, "tests": 37, "passed": 37, "skipped": 0, "coverage_percent": 90, "output": "TOTAL 1581 statements, 90%"},
@@ -18,15 +18,15 @@
   ],
   "hash_links": {
     "src/xyz_klipper_tool/domain/models.py": "sha256:d005cd378d111482f64f3286a5eb61c5b4d0cbf729aec0c0c630cfa34f3cd690",
-    "src/xyz_klipper_tool/adapters/fakes.py": "sha256:b954b30fbef2124bfc1ad56a6de81f951f8e8fd9231a751551c54078bd4588bb",
+    "src/xyz_klipper_tool/adapters/fakes.py": "sha256:6e4fd2378f720770a070b0599bbfc87bfaf79bc7f2a97ee1d39dbdb3290f587d",
     "src/xyz_klipper_tool/ports/contracts.py": "sha256:d245ad1e0eb0f7345f2685337dc1290b82f8e9e504c15db6ed4b7306ecdd2aa5",
     "src/xyz_klipper_tool/vision/__init__.py": "sha256:17b48a36bcb95d08c72d48f50d050896db15d9bb93ab64c15ce98149a1ceaeaf",
-    "src/xyz_klipper_tool/vision/capture.py": "sha256:0862a64b66d472bf51d6f485606867503f364d6412e100dceb9e289c5ca2023c",
+    "src/xyz_klipper_tool/vision/capture.py": "sha256:278989e71919efdb15049e041f48eedc06bcfef53a0eeb8d06d745c153291ff4",
     "src/xyz_klipper_tool/vision/calibration.py": "sha256:240ddafcafd660521b7abe27f0125d55564bec340daca146fc5be199fd2bd353",
-    "src/xyz_klipper_tool/vision/detectors.py": "sha256:fa91512a0c9ad135e4d6437d12a71d4c8119cf89049f48bda9701e9a8741b1a2",
+    "src/xyz_klipper_tool/vision/detectors.py": "sha256:44189b9cde4983569123e0852319f43a1f3b802ff0536aae4001ffd297e72513",
     "src/xyz_klipper_tool/vision/corpus.py": "sha256:58d2846ec94264e2e6f9a035c54b1dcd1919d337849b7ead1218ca8617351ae7",
     "tests/test_phase02.py": "sha256:e8eac66be7e47c96877a18e7c6f90e3bf075c2445ea836db127c69aab3c5045f",
-    "tests/test_phase03.py": "sha256:81baba4a70a4f7b2f76efaea64bdcfa35b5c7c9839e4cf039ae0c131c2dff80a"
+    "tests/test_phase03.py": "sha256:b5314dba8b58c8768e133b8d4c68caae16a4812f69039a127e30b50a0451e14f"
   },
   "real_corpus_holdout": "NEEDS_WORK",
   "physical_camera_compatibility": "REQUIRES_HIL",

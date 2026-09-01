@@ -1,7 +1,7 @@
 {
   "artifact": "phase-03-camera-cv/results.json",
-  "sha256": "d396ca5b628d8e538bbed8712674ce313d9d2901c2f89374d99f01681287420b",
-  "commit_under_test": "1f4fa87e6e3eb2f9e7c47f5a031bf8b9d07a5a5e",
+  "sha256": "208bd7d0e125fbabe7198cd3b4f8f9a0e96ec81925a06af0c5f2aac9241e385f",
+  "commit_under_test": "ba05108c870bb493a2ce80769c9e25b9d0c49088",
   "supervisor_decision": "PENDING",
   "raw_evidence_modified": false
 }
