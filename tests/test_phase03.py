@@ -839,6 +839,26 @@ class Phase03Tests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 store.recover("../escaped", 1)
 
+    def test_recovery_post_replace_fault_is_reported_as_committed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            stages: list[str] = []
+
+            def fault(stage: str) -> None:
+                stages.append(stage)
+                if stage == "after_recovery_replace":
+                    raise RuntimeError(stage)
+
+            store = JsonCalibrationStore(root, max_backups=1, fault=fault)
+            calibration = self.calibration()
+            store.put(calibration)
+            store.put(calibration)
+            recovered = store.recover("cal-1", 1)
+            self.assertEqual(recovered, calibration)
+            self.assertEqual(store.get("cal-1"), calibration)
+            self.assertTrue((root / "cal-1.json.bak1").exists())
+            self.assertIn("after_recovery_replace", stages)
+
     def test_calibration_and_inventory_bounds_faults(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

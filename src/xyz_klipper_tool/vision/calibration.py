@@ -263,7 +263,12 @@ class JsonCalibrationStore:
                 os.fsync(handle.fileno())
             self._stage("before_recovery_replace")
             os.replace(temp_name, current)
-            self._stage("after_recovery_replace")
+            try:
+                self._stage("after_recovery_replace")
+            except RuntimeError:
+                # INVARIANT: replace is the commit point; post-commit hooks cannot
+                # turn a committed recovery into a reported failed recovery.
+                return recovered
         finally:
             Path(temp_name).unlink(missing_ok=True)
         return recovered
