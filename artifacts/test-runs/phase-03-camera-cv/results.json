@@ -1,0 +1,33 @@
+{
+  "phase": "03-camera-cv",
+  "status": "SUPERVISOR_REVIEW_PENDING",
+  "base_commit": "f0283a3c756d728c6b66a2775d02ed24d4d97cd5",
+  "commit_under_test": "6a15bc5bef6ed33b5b5a07d030d295e4afec352d",
+  "branch": "phase/03-camera-cv",
+  "utc_time": "2026-09-01T00:04:44Z",
+  "commands": [
+    {"command": "$env:PYTHONPATH='src'; python -m unittest discover -s tests", "exit_code": 0, "tests": 31},
+    {"command": "$env:PYTHONPATH='src'; python -m coverage run -m unittest discover -s tests; python -m coverage report -m", "exit_code": 0, "coverage_percent": 90},
+    {"command": "$env:PYTHONPATH='src'; python -m mypy src/xyz_klipper_tool tests", "exit_code": 0, "output": "Success: no issues found in 30 source files"},
+    {"command": "$env:PYTHONPATH='src'; python -m pyright src/xyz_klipper_tool tests", "exit_code": 0, "output": "0 errors, 0 warnings, 0 informations"},
+    {"command": "python -m ruff check src tests; python -m ruff format --check src tests", "exit_code": 0, "output": "All checks passed; 30 files already formatted"},
+    {"command": "python scripts/check_markdown_pairs.py; python scripts/check_requirements_traceability.py; python scripts/check_source_ledger.py; python scripts/check_license_artifact.py; python scripts/check_master_prompt_parity.py", "exit_code": 0, "output": "all governance/parity/license checks PASS"},
+    {"command": "python -c \"import json; json.load(open('artifacts/test-runs/phase-03-camera-cv/results.json')); print('artifact JSON: PASS')\"", "exit_code": 0, "output": "artifact JSON: PASS"},
+    {"command": "read-only evidence audit of experiments, tool-vision-history, and evidence/imported", "exit_code": 0, "output": "No sanitized real camera frames found; no legacy source read/copied"},
+    {"command": "git diff --check; raw evidence hash comparison", "exit_code": 0, "output": "PASS; raw evidence unchanged"}
+  ],
+  "hash_links": {
+    "src/xyz_klipper_tool/domain/models.py": "sha256:45bee3085af63632cbe0d7393fb7402fa71faa518a8957ecc5136cca24c2083b",
+    "src/xyz_klipper_tool/vision/__init__.py": "sha256:e2a0bd39dd972ac6f52fa1aec869da64e60ef7920a3ba95e86f20d26b2c5458d",
+    "src/xyz_klipper_tool/vision/capture.py": "sha256:28a91e3045fc5debd4e3533ace63363edbb02735fa655c096526c150905932ab",
+    "src/xyz_klipper_tool/vision/calibration.py": "sha256:00c283b8fb8c14a14bf81aa6f0315677798e45cf45c4377aec7b65607cf94340",
+    "src/xyz_klipper_tool/vision/detectors.py": "sha256:3ee263f1ba37c98f80c29c2684f9abd7a005cea7e749ce3ba730d35991feaf42",
+    "src/xyz_klipper_tool/vision/corpus.py": "sha256:58d2846ec94264e2e6f9a035c54b1dcd1919d337849b7ead1218ca8617351ae7",
+    "tests/test_phase03.py": "sha256:2ef732768035a173cdbd2fb184e858fca6043e414a06e7169c989b2bd521e4b8"
+  },
+  "real_corpus_holdout": "NEEDS_WORK",
+  "physical_camera_compatibility": "REQUIRES_HIL",
+  "supervisor_decision": "PENDING",
+  "raw_evidence_modified": false,
+  "contains_secrets": false
+}
