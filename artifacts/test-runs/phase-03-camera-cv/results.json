@@ -2,17 +2,18 @@
   "phase": "03-camera-cv",
   "status": "NEEDS_WORK",
   "base_commit": "f0283a3c756d728c6b66a2775d02ed24d4d97cd5",
-  "commit_under_test": "e2027b25c69867abd4e8ac849903651e2fdb36bd",
+  "commit_under_test": "ae8411c94ecd66eb6f05d317cb58c8ea658d20d1",
   "branch": "phase/03-camera-cv",
-  "utc_time": "2026-09-01T01:25:11Z",
+  "utc_time": "2026-09-01T01:34:29Z",
   "commands": [
-    {"command": "pinned venv; $env:PYTHONPATH='src'; python -m unittest discover -s tests", "exit_code": 0, "tests": 47, "passed": 47, "skipped": 0, "output": "Ran 47 tests in 0.171s; OK"},
+    {"command": "pinned venv; $env:PYTHONPATH='src'; python -m unittest discover -s tests", "exit_code": 0, "tests": 47, "passed": 47, "skipped": 0, "output": "Ran 47 tests in 0.169s; OK"},
     {"command": "pinned venv; $env:PYTHONPATH='src'; python -m coverage erase; python -m coverage run -m unittest discover -s tests; python -m coverage report -m --include='src/*'", "exit_code": 0, "tests": 47, "passed": 47, "coverage_percent": 90, "output": "TOTAL 1729 171 90%"},
     {"command": "pinned venv outside repository; PYTHONPATH=src; python -m mypy src/xyz_klipper_tool tests", "exit_code": 0, "output": "Success: no issues found in 30 source files"},
     {"command": "pinned venv outside repository; PYTHONPATH=src; python -m pyright src/xyz_klipper_tool tests", "exit_code": 0, "output": "0 errors, 0 warnings, 0 informations"},
     {"command": "python -m ruff check src tests; python -m ruff format --check src tests", "exit_code": 0, "output": "All checks passed; 30 files already formatted"},
     {"command": "python scripts/check_markdown_pairs.py; python scripts/check_requirements_traceability.py; python scripts/check_source_ledger.py; python scripts/check_license_artifact.py; python scripts/check_master_prompt_parity.py", "exit_code": 0, "output": "all governance/parity/license checks PASS"},
     {"command": "pinned venv; PYTHONPATH=src; validate committed synthetic PGM inventory and benchmark JSON with Draft 2020-12 jsonschema", "exit_code": 0, "output": "fixture/schema/benchmark: PASS"},
+    {"command": "pinned venv; PYTHONPATH=src; deterministic_split(seed=17, holdout_ratio=0.5, development_ratio=0.25) and run BlobDetector/CircleCandidateDetector on committed HOLDOUT", "exit_code": 0, "output": "HOLDOUT session-c/session-a; artifact recomputation exact: PASS"},
     {"command": "secret scan; local Markdown link scan; domain import-boundary scan", "exit_code": 0, "output": "secret/link/import-boundary checks PASS"},
     {"command": "raw evidence hash comparison against Phase 00 manifest", "exit_code": 0, "output": "raw evidence unchanged: PASS"},
     {"command": "git diff --check", "exit_code": 0, "output": "PASS"}
@@ -27,7 +28,7 @@
     "src/xyz_klipper_tool/vision/detectors.py": "sha256:44189b9cde4983569123e0852319f43a1f3b802ff0536aae4001ffd297e72513",
     "src/xyz_klipper_tool/vision/corpus.py": "sha256:5e8950ea308c74c7c03168d94de732b0a434c01fbb73e0961cb6bf63f0367cb6",
     "tests/test_phase02.py": "sha256:e8eac66be7e47c96877a18e7c6f90e3bf075c2445ea836db127c69aab3c5045f",
-    "tests/test_phase03.py": "sha256:302d096f557e3bb31d24ed1c03d60e6bec75ecb175230cfa05a519839b4f474a"
+    "tests/test_phase03.py": "sha256:537b5db7f3cbfa176e869b985ff4bb64f54cb29cc4e38562abc53c9bfb36dd6a"
   },
   "real_corpus_holdout": "NEEDS_WORK",
   "platform_directory_durability": "OPEN",
