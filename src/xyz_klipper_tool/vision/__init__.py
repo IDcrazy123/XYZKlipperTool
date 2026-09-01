@@ -6,7 +6,13 @@ from .calibration import (
     JsonCalibrationStore,
     Transform2D,
 )
-from .capture import CameraFrame, CaptureLimits, CaptureRequest, validate_camera_url
+from .capture import (
+    CameraFrame,
+    CaptureLimits,
+    CaptureRequest,
+    FrameValidationError,
+    validate_camera_url,
+)
 from .corpus import CorpusEntry, CorpusSplit, deterministic_split
 from .detectors import (
     BlobDetector,
@@ -28,6 +34,7 @@ __all__ = [
     "CorpusSplit",
     "Detection",
     "Detector",
+    "FrameValidationError",
     "JsonCalibrationStore",
     "Transform2D",
     "benchmark_detectors",

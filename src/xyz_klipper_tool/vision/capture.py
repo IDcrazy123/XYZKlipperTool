@@ -7,6 +7,14 @@ from xyz_klipper_tool.domain.models import ReasonCode
 from xyz_klipper_tool.domain.units import Seconds
 
 
+class FrameValidationError(ValueError):
+    """Typed frame rejection carrying a stable reason code."""
+
+    def __init__(self, reason: ReasonCode, message: str) -> None:
+        super().__init__(message)
+        self.reason = reason
+
+
 @dataclass(frozen=True)
 class CaptureLimits:
     """Finite capture limits for encoded bytes, dimensions, pixels, retries, and age."""
@@ -55,42 +63,59 @@ class CameraFrame:
 
     def validate(self, limits: CaptureLimits) -> None:
         """Validate encoded bytes, dimensions, pixels, and age against finite limits."""
-        if (
-            type(self.encoded) is not bytes
-            or len(self.encoded) > limits.max_encoded_bytes
-        ):
-            raise ValueError(f"{ReasonCode.OVERSIZED_INPUT.value}: encoded frame")
+        if type(self.encoded) is not bytes or not self.encoded:
+            raise FrameValidationError(
+                ReasonCode.MISSING_INPUT, "encoded frame missing"
+            )
+        if len(self.encoded) > limits.max_encoded_bytes:
+            raise FrameValidationError(
+                ReasonCode.OVERSIZED_INPUT, "encoded frame rejected"
+            )
         if (
             type(self.width_px) is not int
             or type(self.height_px) is not int
             or self.width_px < 1
             or self.height_px < 1
         ):
-            raise ValueError("invalid frame dimensions")
+            raise FrameValidationError(
+                ReasonCode.CORRUPT_INPUT, "invalid frame dimensions"
+            )
         if (
             self.width_px > limits.max_width_px
             or self.height_px > limits.max_height_px
             or self.width_px * self.height_px > 64_000_000
         ):
-            raise ValueError(f"{ReasonCode.OVERSIZED_INPUT.value}: frame dimensions")
+            raise FrameValidationError(
+                ReasonCode.OVERSIZED_INPUT, "frame dimensions exceed bounds"
+            )
         if (
             type(self.age_s) is not Seconds
             or not 0 <= self.age_s.value_s <= limits.max_frame_age_s.value_s
         ):
-            raise ValueError("stale or invalid frame age")
+            raise FrameValidationError(ReasonCode.STALE_FRAME, "stale frame age")
 
 
 def validate_camera_url(target: str) -> str:
     """Accept only local device paths or loopback HTTP(S); reject credentials and traversal."""
-    if type(target) is not str or not target or ".." in target or "@" in target:
+    from urllib.parse import unquote
+
+    if type(target) is not str or not target:
         raise ValueError(f"{ReasonCode.CORRUPT_INPUT.value}: camera target")
-    parsed = urlparse(target)
-    if parsed.scheme in ("", "device") and target.startswith(("/", "device:")):
-        return target
+    normalized = target
+    for _ in range(3):
+        decoded = unquote(normalized)
+        if decoded == normalized:
+            break
+        normalized = decoded
+    if ".." in normalized or "@" in normalized or "#" in normalized:
+        raise ValueError(f"{ReasonCode.CORRUPT_INPUT.value}: camera target")
+    parsed = urlparse(normalized)
+    if parsed.scheme in ("", "device") and normalized.startswith(("/", "device:")):
+        return normalized
     if (
         parsed.scheme in ("http", "https")
         and parsed.hostname in ("127.0.0.1", "localhost", "::1")
         and parsed.username is None
     ):
-        return target
+        return normalized
     raise ValueError("camera target is not local/allowlisted")

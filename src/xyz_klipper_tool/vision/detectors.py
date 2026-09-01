@@ -7,7 +7,7 @@ from xyz_klipper_tool.domain.models import ReasonCode, Verdict
 from xyz_klipper_tool.domain.units import Pixels
 
 from .calibration import Calibration
-from .capture import CameraFrame, CaptureLimits
+from .capture import CameraFrame, CaptureLimits, FrameValidationError
 
 
 @dataclass(frozen=True)
@@ -117,16 +117,10 @@ class BlobDetector:
         """Find one bright connected component; no marker bytes or I/O are used."""
         try:
             width, height, payload = _decode_pgm(frame, limits)
-        except ValueError as exc:
-            return _invalid(
-                calibration,
-                frame,
-                ReasonCode.STALE_FRAME
-                if "age" in str(exc)
-                else ReasonCode.OVERSIZED_INPUT
-                if "limit" in str(exc)
-                else ReasonCode.CORRUPT_INPUT,
-            )
+        except FrameValidationError as exc:
+            return _invalid(calibration, frame, exc.reason)
+        except ValueError:
+            return _invalid(calibration, frame, ReasonCode.CORRUPT_INPUT)
         candidates = _components(width, height, payload)
         shapes = tuple("component" for _ in candidates)
         if len(candidates) != 1:
@@ -164,6 +158,8 @@ class CircleCandidateDetector:
         """Score circular candidates from pixels; benchmark evidence is still required."""
         try:
             width, height, payload = _decode_pgm(frame, limits)
+        except FrameValidationError as exc:
+            return _invalid(calibration, frame, exc.reason)
         except ValueError:
             return _invalid(calibration, frame, ReasonCode.CORRUPT_INPUT)
         candidates = [

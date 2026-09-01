@@ -49,6 +49,10 @@ class Phase03Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_camera_url("device:../camera")
         with self.assertRaises(ValueError):
+            validate_camera_url("device:%2e%2e/camera")
+        with self.assertRaises(ValueError):
+            validate_camera_url("http://127.0.0.1/%2e%2e/private")
+        with self.assertRaises(ValueError):
             self.frame(b"x" * (8 * 1024 * 1024 + 1)).validate(CaptureLimits())
 
     def test_detector_candidates_and_diagnostics(self) -> None:
@@ -73,6 +77,15 @@ class Phase03Tests(unittest.TestCase):
             .reason,
             ReasonCode.AMBIGUOUS_CANDIDATE,
         )
+        empty = CameraFrame(b"", 1, 1, Seconds(0.1))
+        self.assertEqual(
+            BlobDetector().detect(empty, cal, limits).reason, ReasonCode.MISSING_INPUT
+        )
+        stale = CameraFrame(b"P5\n10 10\n255\n" + bytes(100), 10, 10, Seconds(3))
+        self.assertEqual(
+            CircleCandidateDetector().detect(stale, cal, limits).reason,
+            ReasonCode.STALE_FRAME,
+        )
 
     def test_calibration_round_trip_and_corruption(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -86,6 +99,20 @@ class Phase03Tests(unittest.TestCase):
             path.write_text(json.dumps(data))
             with self.assertRaises(ValueError):
                 store.get("cal-1")
+            with self.assertRaises(ValueError):
+                store.put(
+                    self.calibration().__class__(
+                        "../escaped",
+                        1,
+                        "cam",
+                        "fp",
+                        self.calibration().transform,
+                        0.2,
+                        Millimetres(0.01),
+                        "a" * 64,
+                        datetime(2026, 9, 1, tzinfo=timezone.utc),
+                    )
+                )
 
     def test_corpus_split_has_no_session_leakage(self) -> None:
         entries = [

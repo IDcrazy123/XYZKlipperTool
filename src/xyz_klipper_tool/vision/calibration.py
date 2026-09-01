@@ -51,8 +51,23 @@ class Calibration:
             self.camera_fingerprint,
             self.source_sha256,
         ):
-            if type(value) is not str or not value.strip():
+            if (
+                type(value) is not str
+                or not value.strip()
+                or len(value) > 128
+                or any(ord(c) < 32 for c in value)
+            ):
                 raise ValueError("calibration identity is required")
+        if (
+            "/" in self.calibration_id
+            or "\\" in self.calibration_id
+            or self.calibration_id in (".", "..")
+            or len(self.source_sha256) != 64
+            or any(c not in "0123456789abcdef" for c in self.source_sha256)
+        ):
+            raise ValueError("invalid calibration id or source hash")
+        if self.uncertainty_mm.value_mm < 0:
+            raise ValueError("uncertainty must not be negative")
         if type(self.version) is not int or self.version != 1:
             raise ValueError("unsupported calibration version")
         if not math.isfinite(self.residual_px) or self.residual_px < 0:
@@ -92,7 +107,10 @@ class JsonCalibrationStore:
                 json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
             ).hexdigest(),
         }
-        path = self.root / f"{calibration.calibration_id}.json"
+        root = self.root.resolve()
+        path = (root / f"{calibration.calibration_id}.json").resolve()
+        if path.parent != root:
+            raise ValueError("calibration path escapes store root")
         fd, temp_name = tempfile.mkstemp(
             dir=self.root, prefix=".calibration-", suffix=".tmp"
         )
@@ -109,7 +127,10 @@ class JsonCalibrationStore:
         """Read one checksummed calibration or fail closed on corruption."""
         if type(calibration_id) is not str or not calibration_id.strip():
             raise ValueError("calibration_id required")
-        path = self.root / f"{calibration_id}.json"
+        root = self.root.resolve()
+        path = (root / f"{calibration_id}.json").resolve()
+        if path.parent != root:
+            raise ValueError("calibration path escapes store root")
         if not path.exists():
             return None
         try:
