@@ -5,11 +5,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, ClassVar, cast
 
-from xyz_klipper_tool.domain.models import ProviderKind, ToolId
+from xyz_klipper_tool.domain.models import ProviderKind, ReasonCode, ToolId
 from xyz_klipper_tool.domain.units import Millimetres, PixelVector2
 from xyz_klipper_tool.ports import MAX_CAMERA_FRAME_BYTES, CurrentPose, PrinterState
 from xyz_klipper_tool.ports.ownership import RunOperation, RunToken
 from xyz_klipper_tool.stations.models import StationRecord
+from xyz_klipper_tool.vision.capture import CaptureRequest, CaptureResult
 
 
 def _next(script: list[object], calls: list[str], operation: str) -> object:
@@ -29,14 +30,23 @@ class FakeCamera:
     frames: list[object] = field(default_factory=list)
     calls: list[str] = field(default_factory=list)
 
-    def capture(self) -> bytes:
-        """Return the next scripted frame without sleeping or I/O."""
+    def capture(self, request: CaptureRequest) -> CaptureResult:
+        """Return the next scripted typed frame without sleeping or I/O."""
         value = _next(self.frames, self.calls, "capture")
         if not isinstance(value, bytes):
             raise TypeError("fake frame must be bytes")
         if len(value) > MAX_CAMERA_FRAME_BYTES:
             raise ValueError("fake frame exceeds bounded camera contract")
-        return value
+        return CaptureResult(
+            value,
+            ReasonCode.NONE,
+            1,
+            len(value),
+            request.frame_sample_id,
+            request.camera_fingerprint,
+            request.captured_at_utc,
+            request.exposure_metadata,
+        )
 
 
 @dataclass

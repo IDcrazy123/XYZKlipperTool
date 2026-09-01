@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from xyz_klipper_tool.domain.models import ProviderKind, ToolId
 from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres, PixelVector2
+from xyz_klipper_tool.vision.capture import CaptureRequest, CaptureResult
 
 from .ownership import RunOperation, RunToken
 
@@ -53,8 +54,8 @@ class CurrentPose:
 class CameraProvider(Protocol):
     """Capture one bounded frame; no port contract authorizes machine motion."""
 
-    def capture(self) -> bytes:
-        """Return one frame no larger than ``MAX_CAMERA_FRAME_BYTES``; no motion occurs."""
+    def capture(self, request: CaptureRequest) -> CaptureResult:
+        """Return one typed bounded frame for the requested target; no motion occurs."""
         ...
 
 

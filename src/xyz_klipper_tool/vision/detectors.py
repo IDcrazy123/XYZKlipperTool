@@ -4,14 +4,14 @@ import hashlib
 import json
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 from xyz_klipper_tool.domain.models import ReasonCode, Verdict
 from xyz_klipper_tool.domain.units import Pixels, Seconds
 
 from .calibration import Calibration
-from .capture import CameraFrame, CaptureLimits, FrameValidationError
+from .capture import CameraClock, CameraFrame, CaptureLimits, FrameValidationError
 
 
 @dataclass(frozen=True)
@@ -68,8 +68,7 @@ class Detection:
     """Pure detection result carrying calibration, sample, exposure and uncertainty.
 
     Pixel centers/residuals are image-frame pixels; uncertainty is combined
-    millimetres from calibration and detector error (currently calibration
-    uncertainty is the conservative available component). No side effects or
+    millimetres from named calibration and detector components. No side effects or
     blocking occur; invalid inputs produce a typed non-PASS verdict.
     """
 
@@ -88,8 +87,12 @@ class Detection:
     exposure_metadata: str | None = None
     center_residual_px: float | None = None
     overlay_artifact: bytes = field(default=b"", repr=False)
+    calibration_uncertainty_mm: float | None = None
+    detector_uncertainty_mm: float | None = None
 
     def __post_init__(self) -> None:
+        if type(self.calibration_id) is not str or not self.calibration_id.strip():
+            raise ValueError("calibration identity is required")
         if type(self.frame_sample_id) is not str or not self.frame_sample_id.strip():
             raise ValueError("frame sample identity is required")
         if (
@@ -97,6 +100,73 @@ class Detection:
             or not self.camera_fingerprint.strip()
         ):
             raise ValueError("camera fingerprint is required")
+        if (
+            type(self.confidence) is not float
+            or not math.isfinite(self.confidence)
+            or not 0 <= self.confidence <= 1
+        ):
+            raise ValueError("confidence must be finite in [0, 1]")
+        if (
+            type(self.candidate_count) is not int
+            or not 0 <= self.candidate_count <= 10000
+        ):
+            raise ValueError("candidate_count is out of bounds")
+        for name, value in (
+            ("frame_age_s", self.frame_age_s),
+            ("uncertainty_mm", self.uncertainty_mm),
+        ):
+            if (
+                type(value) is not float
+                or not math.isfinite(value)
+                or not 0 <= value <= 1_000_000
+            ):
+                raise ValueError(f"{name} is out of bounds")
+        if self.center_residual_px is not None and (
+            type(self.center_residual_px) is not float
+            or not math.isfinite(self.center_residual_px)
+            or not 0 <= self.center_residual_px <= 1_000_000
+        ):
+            raise ValueError("center residual is out of bounds")
+        if type(self.reason) is not ReasonCode or type(self.verdict) is not Verdict:
+            raise ValueError("reason and verdict must be typed enums")
+        if self.verdict is Verdict.PASS and (
+            self.reason is not ReasonCode.NONE
+            or self.center_x_px is None
+            or self.center_y_px is None
+            or self.candidate_count < 1
+        ):
+            raise ValueError("PASS detection must have a coherent candidate")
+        if self.verdict is Verdict.INVALID and self.reason is ReasonCode.NONE:
+            raise ValueError("INVALID detection requires a reason")
+        if self.center_x_px is not None and type(self.center_x_px) is not Pixels:
+            raise ValueError("center_x_px must be Pixels")
+        if self.center_y_px is not None and type(self.center_y_px) is not Pixels:
+            raise ValueError("center_y_px must be Pixels")
+        if self.calibration_uncertainty_mm is None:
+            object.__setattr__(self, "calibration_uncertainty_mm", self.uncertainty_mm)
+        if self.detector_uncertainty_mm is None:
+            object.__setattr__(self, "detector_uncertainty_mm", 0.0)
+        for name in ("calibration_uncertainty_mm", "detector_uncertainty_mm"):
+            value = getattr(self, name)
+            if type(value) is not float or not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and nonnegative")
+        if type(self.candidate_shapes) is not tuple or len(self.candidate_shapes) > 100:
+            raise ValueError("candidate shapes are bounded")
+        if any(
+            type(shape) is not str or not shape or len(shape) > 64
+            for shape in self.candidate_shapes
+        ):
+            raise ValueError("candidate shape is invalid")
+        if self.exposure_metadata is not None and (
+            type(self.exposure_metadata) is not str
+            or len(self.exposure_metadata) > 1024
+        ):
+            raise ValueError("exposure metadata exceeds bound")
+        if (
+            type(self.overlay_artifact) is not bytes
+            or len(self.overlay_artifact) > 4096
+        ):
+            raise ValueError("diagnostic overlay exceeds bound")
         if not self.overlay_artifact:
             data = {
                 "calibration_id": self.calibration_id,
@@ -114,8 +184,10 @@ class Detection:
 
     @property
     def combined_uncertainty_mm(self) -> float:
-        """Return conservative combined uncertainty in millimetres."""
-        return self.uncertainty_mm
+        """Return sqrt(calibration_mm² + detector_mm²), in millimetres."""
+        assert self.calibration_uncertainty_mm is not None
+        assert self.detector_uncertainty_mm is not None
+        return math.hypot(self.calibration_uncertainty_mm, self.detector_uncertainty_mm)
 
     @property
     def overlay_sha256(self) -> str:
@@ -139,6 +211,16 @@ class Detector(Protocol):
         context: DetectionContext | None = None,
     ) -> Detection:
         """Detect image geometry in pixels; no blocking or side effects."""
+        ...
+
+
+class ImageDecoder(Protocol):
+    """Injected bounded decoder contract used to measure decode time."""
+
+    def decode(
+        self, frame: CameraFrame, limits: CaptureLimits
+    ) -> tuple[int, int, bytes]:
+        """Decode one frame without I/O; malformed input raises ValueError."""
         ...
 
 
@@ -167,6 +249,36 @@ def _decode_pgm(frame: CameraFrame, limits: CaptureLimits) -> tuple[int, int, by
     ):
         raise ValueError("PGM dimensions or depth mismatch")
     return width, height, payload
+
+
+class _WallClock:
+    def now_utc(self) -> datetime:
+        """Return current UTC for fallback non-deterministic callers."""
+        return datetime.now(timezone.utc)
+
+
+class _PgmDecoder:
+    def decode(
+        self, frame: CameraFrame, limits: CaptureLimits
+    ) -> tuple[int, int, bytes]:
+        """Decode one bounded PGM frame without I/O."""
+        return _decode_pgm(frame, limits)
+
+
+def _decode_bounded(
+    decoder: ImageDecoder,
+    clock: CameraClock,
+    frame: CameraFrame,
+    limits: CaptureLimits,
+) -> tuple[int, int, bytes]:
+    started = clock.now_utc()
+    decoded = decoder.decode(frame, limits)
+    elapsed = (clock.now_utc() - started).total_seconds()
+    if elapsed > limits.max_decode_time_s.value_s:
+        raise FrameValidationError(
+            ReasonCode.DECODE_TIMEOUT, "decode exceeded bounded time"
+        )
+    return decoded
 
 
 def _components(
@@ -232,6 +344,16 @@ def _preflight(
     ):
         return _invalid(calibration, frame, ReasonCode.CALIBRATION_MISMATCH, context)
     if (
+        frame.captured_at_utc is not None
+        and frame.captured_at_utc != context.captured_at_utc
+    ):
+        return _invalid(calibration, frame, ReasonCode.STALE_FRAME, context)
+    if (
+        frame.frame_sample_id != context.frame_sample_id
+        or frame.camera_fingerprint != calibration.camera_fingerprint
+    ):
+        return _invalid(calibration, frame, ReasonCode.CALIBRATION_MISMATCH, context)
+    if (
         context.now_utc < context.captured_at_utc
         or (context.now_utc - context.captured_at_utc).total_seconds()
         > context.max_frame_age_s.value_s
@@ -248,6 +370,13 @@ def _residual(width: int, height: int, x: float, y: float) -> float:
 class BlobDetector:
     """Connected-component candidate pipeline over decoded image pixels."""
 
+    def __init__(
+        self, clock: CameraClock | None = None, decoder: ImageDecoder | None = None
+    ) -> None:
+        """Inject decode clock/decoder for deterministic timeout fault tests."""
+        self.clock = clock or _WallClock()
+        self.decoder = decoder or _PgmDecoder()
+
     def detect(
         self,
         frame: CameraFrame,
@@ -261,7 +390,9 @@ class BlobDetector:
             return early
         assert context is not None
         try:
-            width, height, payload = _decode_pgm(frame, limits)
+            width, height, payload = _decode_bounded(
+                self.decoder, self.clock, frame, limits
+            )
         except FrameValidationError as exc:
             return _invalid(calibration, frame, exc.reason, context)
         except ValueError:
@@ -279,6 +410,11 @@ class BlobDetector:
             )
         x0, y0, x1, y1, _ = candidates[0]
         center_x, center_y = (x0 + x1) / 2, (y0 + y1) / 2
+        residual = _residual(width, height, center_x, center_y)
+        detector_uncertainty = residual * max(
+            calibration.transform.mm_per_px_x, calibration.transform.mm_per_px_y
+        )
+        combined = math.hypot(calibration.uncertainty_mm.value_mm, detector_uncertainty)
         return Detection(
             calibration.calibration_id,
             context.frame_sample_id,
@@ -290,15 +426,24 @@ class BlobDetector:
             ReasonCode.NONE,
             Verdict.PASS,
             frame.age_s.value_s,
-            calibration.uncertainty_mm.value_mm,
+            combined,
             shapes,
             context.exposure_metadata,
-            _residual(width, height, center_x, center_y),
+            residual,
+            calibration_uncertainty_mm=calibration.uncertainty_mm.value_mm,
+            detector_uncertainty_mm=detector_uncertainty,
         )
 
 
 class CircleCandidateDetector:
     """Independent circle-like pipeline using component circularity."""
+
+    def __init__(
+        self, clock: CameraClock | None = None, decoder: ImageDecoder | None = None
+    ) -> None:
+        """Inject decode clock/decoder for deterministic timeout fault tests."""
+        self.clock = clock or _WallClock()
+        self.decoder = decoder or _PgmDecoder()
 
     def detect(
         self,
@@ -313,7 +458,9 @@ class CircleCandidateDetector:
             return early
         assert context is not None
         try:
-            width, height, payload = _decode_pgm(frame, limits)
+            width, height, payload = _decode_bounded(
+                self.decoder, self.clock, frame, limits
+            )
         except FrameValidationError as exc:
             return _invalid(calibration, frame, exc.reason, context)
         except ValueError:
@@ -340,6 +487,11 @@ class CircleCandidateDetector:
         x0, y0, x1, y1, area = candidates[0]
         center_x, center_y = (x0 + x1) / 2, (y0 + y1) / 2
         confidence = area / max(1, (x1 - x0 + 1) * (y1 - y0 + 1))
+        residual = _residual(width, height, center_x, center_y)
+        detector_uncertainty = residual * max(
+            calibration.transform.mm_per_px_x, calibration.transform.mm_per_px_y
+        )
+        combined = math.hypot(calibration.uncertainty_mm.value_mm, detector_uncertainty)
         return Detection(
             calibration.calibration_id,
             context.frame_sample_id,
@@ -351,10 +503,12 @@ class CircleCandidateDetector:
             ReasonCode.NONE,
             Verdict.PASS,
             frame.age_s.value_s,
-            calibration.uncertainty_mm.value_mm,
+            combined,
             shapes,
             context.exposure_metadata,
-            _residual(width, height, center_x, center_y),
+            residual,
+            calibration_uncertainty_mm=calibration.uncertainty_mm.value_mm,
+            detector_uncertainty_mm=detector_uncertainty,
         )
 
 

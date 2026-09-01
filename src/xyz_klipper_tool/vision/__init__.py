@@ -24,6 +24,7 @@ from .detectors import (
     Detection,
     DetectionContext,
     Detector,
+    ImageDecoder,
     benchmark_detectors,
 )
 
@@ -45,6 +46,7 @@ __all__ = [
     "DetectionContext",
     "Detector",
     "FrameValidationError",
+    "ImageDecoder",
     "JsonCalibrationStore",
     "Transform2D",
     "benchmark_detectors",

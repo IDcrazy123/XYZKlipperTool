@@ -1,7 +1,9 @@
 """Bounded, local-only camera input contracts; no camera I/O is performed."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Protocol
 from urllib.parse import urlparse
 
@@ -74,6 +76,31 @@ class CaptureResult:
     reason: ReasonCode
     attempts: int
     total_bytes: int
+    frame_sample_id: str = ""
+    camera_fingerprint: str = ""
+    captured_at_utc: datetime | None = None
+    exposure_metadata: str | None = None
+
+    def __post_init__(self) -> None:
+        if type(self.attempts) is not int or self.attempts < 1:
+            raise ValueError("attempts must be positive")
+        if type(self.total_bytes) is not int or self.total_bytes < 0:
+            raise ValueError("total_bytes must be nonnegative")
+        if (
+            type(self.frame_sample_id) is not str
+            or type(self.camera_fingerprint) is not str
+        ):
+            raise ValueError("capture identities must be text")
+        if self.captured_at_utc is not None and (
+            type(self.captured_at_utc) is not datetime
+            or self.captured_at_utc.utcoffset() != timedelta(0)
+        ):
+            raise ValueError("captured_at_utc must be UTC")
+        if self.exposure_metadata is not None and (
+            type(self.exposure_metadata) is not str
+            or len(self.exposure_metadata) > 1024
+        ):
+            raise ValueError("exposure metadata exceeds bound")
 
 
 class BoundedCameraProvider:
@@ -84,7 +111,7 @@ class BoundedCameraProvider:
     ) -> None:
         self.transport, self.clock, self.limits = transport, clock, limits
 
-    def capture(self, request: "CaptureRequest") -> CaptureResult:
+    def capture(self, request: CaptureRequest) -> CaptureResult:
         """Pass a finite timeout per attempt and classify bounded transport faults."""
         total = 0
         for attempt in range(1, self.limits.max_retries + 2):
@@ -94,23 +121,82 @@ class BoundedCameraProvider:
             except TimeoutError:
                 if attempt > self.limits.max_retries:
                     return CaptureResult(
-                        None, ReasonCode.DECODE_TIMEOUT, attempt, total
+                        None,
+                        ReasonCode.CAPTURE_TIMEOUT,
+                        attempt,
+                        total,
+                        request.frame_sample_id,
+                        request.camera_fingerprint,
+                        request.captured_at_utc,
+                        request.exposure_metadata,
                     )
                 continue
             except (ValueError, TypeError):
-                return CaptureResult(None, ReasonCode.CORRUPT_INPUT, attempt, total)
+                return CaptureResult(
+                    None,
+                    ReasonCode.CORRUPT_INPUT,
+                    attempt,
+                    total,
+                    request.frame_sample_id,
+                    request.camera_fingerprint,
+                    request.captured_at_utc,
+                    request.exposure_metadata,
+                )
             total += len(encoded)
             if (
                 self.clock.now_utc() - started
             ).total_seconds() > self.limits.max_decode_time_s.value_s:
-                return CaptureResult(None, ReasonCode.DECODE_TIMEOUT, attempt, total)
+                return CaptureResult(
+                    None,
+                    ReasonCode.DECODE_TIMEOUT,
+                    attempt,
+                    total,
+                    request.frame_sample_id,
+                    request.camera_fingerprint,
+                    request.captured_at_utc,
+                    request.exposure_metadata,
+                )
             if not encoded:
-                return CaptureResult(None, ReasonCode.MISSING_INPUT, attempt, total)
+                return CaptureResult(
+                    None,
+                    ReasonCode.MISSING_INPUT,
+                    attempt,
+                    total,
+                    request.frame_sample_id,
+                    request.camera_fingerprint,
+                    request.captured_at_utc,
+                    request.exposure_metadata,
+                )
             if total > self.limits.max_encoded_bytes:
-                return CaptureResult(None, ReasonCode.OVERSIZED_INPUT, attempt, total)
-            return CaptureResult(encoded, ReasonCode.NONE, attempt, total)
+                return CaptureResult(
+                    None,
+                    ReasonCode.OVERSIZED_INPUT,
+                    attempt,
+                    total,
+                    request.frame_sample_id,
+                    request.camera_fingerprint,
+                    request.captured_at_utc,
+                    request.exposure_metadata,
+                )
+            return CaptureResult(
+                encoded,
+                ReasonCode.NONE,
+                attempt,
+                total,
+                request.frame_sample_id,
+                request.camera_fingerprint,
+                request.captured_at_utc,
+                request.exposure_metadata,
+            )
         return CaptureResult(
-            None, ReasonCode.DECODE_TIMEOUT, self.limits.max_retries + 1, total
+            None,
+            ReasonCode.CAPTURE_TIMEOUT,
+            self.limits.max_retries + 1,
+            total,
+            request.frame_sample_id,
+            request.camera_fingerprint,
+            request.captured_at_utc,
+            request.exposure_metadata,
         )
 
 
@@ -120,11 +206,32 @@ class CaptureRequest:
 
     target: str
     timeout_s: Seconds
+    frame_sample_id: str = "sample"
+    camera_fingerprint: str = "camera"
+    captured_at_utc: datetime | None = None
+    exposure_metadata: str | None = None
 
     def __post_init__(self) -> None:
         validate_camera_url(self.target)
         if type(self.timeout_s) is not Seconds or not 0 < self.timeout_s.value_s <= 30:
             raise ValueError("timeout must be bounded Seconds")
+        if type(self.frame_sample_id) is not str or not self.frame_sample_id.strip():
+            raise ValueError("frame sample identity is required")
+        if (
+            type(self.camera_fingerprint) is not str
+            or not self.camera_fingerprint.strip()
+        ):
+            raise ValueError("camera fingerprint is required")
+        if self.captured_at_utc is not None and (
+            type(self.captured_at_utc) is not datetime
+            or self.captured_at_utc.utcoffset() != timedelta(0)
+        ):
+            raise ValueError("captured_at_utc must be UTC")
+        if self.exposure_metadata is not None and (
+            type(self.exposure_metadata) is not str
+            or len(self.exposure_metadata) > 1024
+        ):
+            raise ValueError("exposure metadata exceeds bound")
 
 
 @dataclass(frozen=True)
@@ -135,6 +242,29 @@ class CameraFrame:
     width_px: int
     height_px: int
     age_s: Seconds
+    frame_sample_id: str = "sample"
+    camera_fingerprint: str = "camera"
+    captured_at_utc: datetime | None = None
+    exposure_metadata: str | None = None
+
+    def __post_init__(self) -> None:
+        if type(self.frame_sample_id) is not str or not self.frame_sample_id.strip():
+            raise ValueError("frame sample identity is required")
+        if (
+            type(self.camera_fingerprint) is not str
+            or not self.camera_fingerprint.strip()
+        ):
+            raise ValueError("camera fingerprint is required")
+        if self.captured_at_utc is not None and (
+            type(self.captured_at_utc) is not datetime
+            or self.captured_at_utc.utcoffset() != timedelta(0)
+        ):
+            raise ValueError("captured_at_utc must be UTC")
+        if self.exposure_metadata is not None and (
+            type(self.exposure_metadata) is not str
+            or len(self.exposure_metadata) > 1024
+        ):
+            raise ValueError("exposure metadata exceeds bound")
 
     def validate(self, limits: CaptureLimits) -> None:
         """Validate encoded bytes, dimensions, pixels, and age against finite limits."""

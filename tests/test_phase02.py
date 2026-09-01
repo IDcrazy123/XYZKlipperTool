@@ -15,7 +15,7 @@ from xyz_klipper_tool.adapters import (
 )
 from xyz_klipper_tool.configuration import fingerprint
 from xyz_klipper_tool.domain.models import ProviderKind, ToolId
-from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres
+from xyz_klipper_tool.domain.units import CoordinateFrame, Millimetres, Seconds
 from xyz_klipper_tool.persistence import JsonStationStore, PersistenceError
 from xyz_klipper_tool.ports import RunOperation
 from xyz_klipper_tool.stations import (
@@ -26,6 +26,7 @@ from xyz_klipper_tool.stations import (
     teach_station,
 )
 from xyz_klipper_tool.tool_selection import discover_tools
+from xyz_klipper_tool.vision import CaptureRequest
 
 try:
     import jsonschema
@@ -65,7 +66,9 @@ class Phase02Tests(unittest.TestCase):
         with self.assertRaises(TypeError):
             FakePrinter(cast(Any, object()), cast(Any, "ready"))
         with self.assertRaises(ValueError):
-            FakeCamera([b"x" * (8 * 1024 * 1024 + 1)]).capture()
+            FakeCamera([b"x" * (8 * 1024 * 1024 + 1)]).capture(
+                CaptureRequest("device:/dev/video0", Seconds(1))
+            )
 
     def test_station_record_rejects_untyped_fields_before_attribute_access(
         self,
