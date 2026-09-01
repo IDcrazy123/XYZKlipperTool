@@ -1,3 +1,4 @@
+import hashlib
 import importlib
 import json
 import tempfile
@@ -939,20 +940,18 @@ class Phase03Tests(unittest.TestCase):
                 1,
             ),
         )
+
+        def fixed_runner(
+            entry: CorpusEntry,
+        ) -> tuple[int, tuple[float, float] | None, str]:
+            return (
+                (1, (1.0, 1.0), "")
+                if entry.entry_id == "one"
+                else (0, None, "ZERO_CANDIDATE")
+            )
+
         report = evaluate_benchmark(
-            entries,
-            {
-                "blob": lambda entry: (
-                    entry.expected_candidate_count,
-                    entry.expected_center_px,
-                    "",
-                ),
-                "circle": lambda entry: (
-                    entry.expected_candidate_count,
-                    entry.expected_center_px,
-                    "",
-                ),
-            },
+            entries, {"blob": fixed_runner, "circle": fixed_runner}
         )
         self.assertEqual(set(report), {"blob", "circle"})
         self.assertEqual(report["blob"]["dataset_label"], "SYNTHETIC")
@@ -1053,6 +1052,7 @@ class Phase03Tests(unittest.TestCase):
 
     @unittest.skipUnless(_jsonschema is not None, "install pinned dev validator")
     def test_committed_synthetic_fixture_and_benchmark_artifact_validate(self) -> None:
+        self.maxDiff = None
         root = Path(__file__).parents[1]
         manifest = json.loads(
             (root / "artifacts/synthetic/phase-03-corpus.json").read_text()
@@ -1097,6 +1097,91 @@ class Phase03Tests(unittest.TestCase):
                 ),
                 [],
             )
+        split = deterministic_split(list(entries), 0.5, 0.25, 17)
+        split_artifact = json.loads(
+            (root / "artifacts/synthetic/phase-03-corpus-split.json").read_text()
+        )
+        split_schema = json.loads(
+            (root / "schemas/corpus-split.v1.schema.json").read_text()
+        )
+        self.assertEqual(
+            list(
+                _jsonschema.Draft202012Validator(split_schema).iter_errors(
+                    split_artifact
+                )
+            ),
+            [],
+        )
+        self.assertEqual(
+            split_artifact["manifest_sha256"],
+            hashlib.sha256(
+                (root / "artifacts/synthetic/phase-03-corpus.json").read_bytes()
+            ).hexdigest(),
+        )
+        invalid_split = dict(split_artifact)
+        invalid_split["manifest_sha256"] = "0" * 64
+        self.assertNotEqual(
+            invalid_split["manifest_sha256"], split_artifact["manifest_sha256"]
+        )
+        holdout = split[CorpusSplit.HOLDOUT]
+        self.assertEqual(
+            {entry.entry_id for entry in holdout},
+            set(
+                json.loads(
+                    (
+                        root / "artifacts/synthetic/phase-03-corpus-split.json"
+                    ).read_text()
+                )["holdout_entry_ids"]
+            ),
+        )
+        self.assertEqual(
+            {entry.session_id for entry in holdout}, {"session-a", "session-c"}
+        )
+        self.assertEqual({entry.expected_candidate_count for entry in holdout}, {0, 1})
+        calibration = self.calibration()
+
+        def run_detector(
+            detector: Any, entry: CorpusEntry
+        ) -> tuple[int, tuple[float, float] | None, str]:
+            captured = calibration.created_at_utc
+            frame = CameraFrame(
+                (
+                    root / "artifacts/synthetic/phase-03-corpus" / entry.path
+                ).read_bytes(),
+                2,
+                3,
+                Seconds(0.1),
+                entry.entry_id,
+                calibration.camera_fingerprint,
+                captured,
+            )
+            context = DetectionContext(
+                calibration.calibration_id,
+                calibration.camera_fingerprint,
+                captured,
+                captured + timedelta(seconds=0.1),
+                Seconds(2),
+                entry.entry_id,
+                captured,
+                Seconds(2),
+                0.0,
+            )
+            result = detector.detect(frame, calibration, CaptureLimits(), context)
+            center = (
+                (result.center_x_px.value_px, result.center_y_px.value_px)
+                if result.center_x_px is not None and result.center_y_px is not None
+                else None
+            )
+            return result.candidate_count, center, result.reason.value
+
+        actual = evaluate_benchmark(
+            holdout,
+            {
+                "blob": lambda entry: run_detector(BlobDetector(), entry),
+                "circle": lambda entry: run_detector(CircleCandidateDetector(), entry),
+            },
+        )
+        self.assertEqual(actual, benchmark["reports"])
 
 
 if __name__ == "__main__":
