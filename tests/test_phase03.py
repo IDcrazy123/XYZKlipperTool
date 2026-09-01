@@ -1,7 +1,7 @@
 import json
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from xyz_klipper_tool.domain.models import ReasonCode, Verdict
@@ -15,6 +15,7 @@ from xyz_klipper_tool.vision import (
     CircleCandidateDetector,
     CorpusEntry,
     CorpusSplit,
+    DetectionContext,
     JsonCalibrationStore,
     Transform2D,
     deterministic_split,
@@ -39,6 +40,18 @@ class Phase03Tests(unittest.TestCase):
     def frame(self, data: bytes) -> CameraFrame:
         return CameraFrame(b"P5\n10 10\n255\n" + data, 10, 10, Seconds(0.1))
 
+    def context(self, cal: Calibration, age: float = 0.1) -> DetectionContext:
+        captured = datetime(2026, 9, 1, tzinfo=timezone.utc)
+        return DetectionContext(
+            cal.calibration_id,
+            cal.camera_fingerprint,
+            captured,
+            captured + timedelta(seconds=age),
+            Seconds(2),
+            "sample-1",
+            "1/60s",
+        )
+
     def test_capture_bounds_and_local_allowlist(self) -> None:
         CaptureRequest("http://127.0.0.1/camera", Seconds(1))
         CaptureRequest("device:/dev/video0", Seconds(1))
@@ -60,31 +73,115 @@ class Phase03Tests(unittest.TestCase):
         limits = CaptureLimits()
         pixels = bytearray(100)
         pixels[44:47] = b"\xff\xff\xff"
-        ok = BlobDetector().detect(self.frame(bytes(pixels)), cal, limits)
+        ok = BlobDetector().detect(
+            self.frame(bytes(pixels)), cal, limits, self.context(cal)
+        )
         self.assertEqual(
             (ok.verdict, ok.reason, ok.calibration_id),
             (Verdict.PASS, ReasonCode.NONE, "cal-1"),
         )
         self.assertEqual(
             CircleCandidateDetector()
-            .detect(self.frame(bytes(100)), cal, limits)
+            .detect(self.frame(bytes(100)), cal, limits, self.context(cal))
             .reason,
             ReasonCode.ZERO_CANDIDATE,
         )
         self.assertEqual(
             BlobDetector()
-            .detect(self.frame(bytes([255] + [0] * 98 + [255])), cal, limits)
+            .detect(
+                self.frame(bytes([255] + [0] * 98 + [255])),
+                cal,
+                limits,
+                self.context(cal),
+            )
             .reason,
             ReasonCode.AMBIGUOUS_CANDIDATE,
         )
         empty = CameraFrame(b"", 1, 1, Seconds(0.1))
         self.assertEqual(
-            BlobDetector().detect(empty, cal, limits).reason, ReasonCode.MISSING_INPUT
+            BlobDetector().detect(empty, cal, limits, self.context(cal)).reason,
+            ReasonCode.MISSING_INPUT,
         )
         stale = CameraFrame(b"P5\n10 10\n255\n" + bytes(100), 10, 10, Seconds(3))
         self.assertEqual(
-            CircleCandidateDetector().detect(stale, cal, limits).reason,
+            CircleCandidateDetector()
+            .detect(stale, cal, limits, self.context(cal))
+            .reason,
             ReasonCode.STALE_FRAME,
+        )
+
+    def test_detection_identity_freshness_and_overlay(self) -> None:
+        cal = self.calibration()
+        limits = CaptureLimits()
+        blank = self.frame(bytes(100))
+        self.assertEqual(
+            BlobDetector().detect(blank, cal, limits).reason,
+            ReasonCode.CALIBRATION_MISMATCH,
+        )
+        bad = DetectionContext(
+            "other",
+            cal.camera_fingerprint,
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
+            Seconds(2),
+            "s",
+        )
+        self.assertEqual(
+            BlobDetector().detect(blank, cal, limits, bad).reason,
+            ReasonCode.CALIBRATION_MISMATCH,
+        )
+        old = DetectionContext(
+            cal.calibration_id,
+            cal.camera_fingerprint,
+            datetime(2026, 8, 1, tzinfo=timezone.utc),
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
+            Seconds(2),
+            "s",
+        )
+        self.assertEqual(
+            BlobDetector().detect(blank, cal, limits, old).reason,
+            ReasonCode.STALE_FRAME,
+        )
+        first = BlobDetector().detect(blank, cal, limits, self.context(cal))
+        second = BlobDetector().detect(blank, cal, limits, self.context(cal))
+        self.assertEqual(first.overlay_artifact, second.overlay_artifact)
+        self.assertEqual(first.overlay_sha256, second.overlay_sha256)
+        self.assertLessEqual(first.overlay_size_bytes, 4096)
+
+    def test_bounded_camera_retries_and_decode_timeout(self) -> None:
+        class Transport:
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def capture(self, timeout_s: Seconds) -> bytes:
+                self.calls += 1
+                if self.calls == 1:
+                    raise TimeoutError()
+                return b"frame"
+
+        class Clock:
+            def __init__(self) -> None:
+                self.times = iter(
+                    (
+                        datetime(2026, 9, 1, tzinfo=timezone.utc),
+                        datetime(2026, 9, 1, tzinfo=timezone.utc),
+                        datetime(2026, 9, 1, 0, 0, 3, tzinfo=timezone.utc),
+                    )
+                )
+
+            def now_utc(self) -> datetime:
+                return next(self.times)
+
+        from xyz_klipper_tool.vision.capture import BoundedCameraProvider
+
+        provider = BoundedCameraProvider(
+            Transport(),
+            Clock(),
+            CaptureLimits(max_retries=1, max_decode_time_s=Seconds(2)),
+        )
+        result = provider.capture(CaptureRequest("device:/dev/video0", Seconds(1)))
+        self.assertEqual(
+            (result.reason, result.attempts), (ReasonCode.DECODE_TIMEOUT, 2)
         )
 
     def test_calibration_round_trip_and_corruption(self) -> None:

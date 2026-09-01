@@ -15,12 +15,17 @@ from xyz_klipper_tool.domain.units import Millimetres
 
 @dataclass(frozen=True)
 class Transform2D:
-    """Finite camera-image pixel-to-machine transform coefficients; frame is explicit."""
+    """Finite image-to-relative-millimetre transform; never a machine origin.
+
+    Scale is millimetres per pixel. Translation is relative to the explicitly
+    supplied camera reference, not a historical station or machine coordinate.
+    This value object has no I/O, blocking, or physical side effects.
+    """
 
     mm_per_px_x: float
     mm_per_px_y: float
-    origin_x_mm: Millimetres
-    origin_y_mm: Millimetres
+    relative_x_mm: Millimetres
+    relative_y_mm: Millimetres
 
     def __post_init__(self) -> None:
         if not all(
@@ -156,8 +161,8 @@ class JsonCalibrationStore:
                 Transform2D(
                     transform["mm_per_px_x"],
                     transform["mm_per_px_y"],
-                    Millimetres(transform["origin_x_mm"]),
-                    Millimetres(transform["origin_y_mm"]),
+                    Millimetres(transform["relative_x_mm"]),
+                    Millimetres(transform["relative_y_mm"]),
                 ),
                 payload["residual_px"],
                 Millimetres(payload["uncertainty_mm"]),
@@ -185,8 +190,8 @@ def calibration_payload(calibration: Calibration) -> dict[str, Any]:
         "transform": {
             "mm_per_px_x": calibration.transform.mm_per_px_x,
             "mm_per_px_y": calibration.transform.mm_per_px_y,
-            "origin_x_mm": calibration.transform.origin_x_mm.value_mm,
-            "origin_y_mm": calibration.transform.origin_y_mm.value_mm,
+            "relative_x_mm": calibration.transform.relative_x_mm.value_mm,
+            "relative_y_mm": calibration.transform.relative_y_mm.value_mm,
         },
         "residual_px": calibration.residual_px,
         "uncertainty_mm": calibration.uncertainty_mm.value_mm,

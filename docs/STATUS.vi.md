@@ -4,7 +4,7 @@
 - Trạng thái kho: Phase 02 được supervisor duyệt tại candidate `ce99ca14b4df5e870a79364ef188884c0394dc65`
 - Mức sẵn sàng production: **CHƯA SẴN SÀNG**
 - Phase hiện tại: Phase 03 — capture camera, calibration và framework detector
-- Cổng kế tiếp: supervisor review Phase 03; hành vi vật lý vẫn `REQUIRES_HIL`
+- Cổng kế tiếp: supervisor review correction 2 của Phase 03; độ tin cậy corpus thật vẫn `NEEDS_WORK` và hành vi vật lý vẫn `REQUIRES_HIL`
 - Hành động vật lý trên máy in: trạng thái kho hiện tại không cho phép
 
 ## Sổ phase

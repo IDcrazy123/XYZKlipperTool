@@ -1,6 +1,8 @@
 """Bounded, local-only camera input contracts; no camera I/O is performed."""
 
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Protocol
 from urllib.parse import urlparse
 
 from xyz_klipper_tool.domain.models import ReasonCode
@@ -23,6 +25,8 @@ class CaptureLimits:
     max_width_px: int = 8192
     max_height_px: int = 8192
     max_retries: int = 3
+    max_pixels: int = 64_000_000
+    max_decode_time_s: Seconds = field(default_factory=lambda: Seconds(2.0))
     max_frame_age_s: Seconds = field(default_factory=lambda: Seconds(2.0))
 
     def __post_init__(self) -> None:
@@ -37,6 +41,77 @@ class CaptureLimits:
             raise ValueError("invalid height limit")
         if type(self.max_retries) is not int or not 0 <= self.max_retries <= 8:
             raise ValueError("invalid retry limit")
+        if type(self.max_pixels) is not int or not 1 <= self.max_pixels <= 256_000_000:
+            raise ValueError("invalid pixel limit")
+        if (
+            type(self.max_decode_time_s) is not Seconds
+            or not 0 < self.max_decode_time_s.value_s <= 30
+        ):
+            raise ValueError("invalid decode-time limit")
+
+
+class CameraTransport(Protocol):
+    """Injected transport boundary; no live camera or network is implied."""
+
+    def capture(self, timeout_s: Seconds) -> bytes:
+        """Return encoded bytes or raise a typed transport fault."""
+        ...
+
+
+class CameraClock(Protocol):
+    """Injected clock for deterministic elapsed-time checks."""
+
+    def now_utc(self) -> datetime:
+        """Return a timezone-aware UTC timestamp without sleeping."""
+        ...
+
+
+@dataclass(frozen=True)
+class CaptureResult:
+    """Bounded capture outcome with attempts and total bytes."""
+
+    encoded: bytes | None
+    reason: ReasonCode
+    attempts: int
+    total_bytes: int
+
+
+class BoundedCameraProvider:
+    """Retrying, clock-injected camera adapter for offline tests only."""
+
+    def __init__(
+        self, transport: CameraTransport, clock: CameraClock, limits: CaptureLimits
+    ) -> None:
+        self.transport, self.clock, self.limits = transport, clock, limits
+
+    def capture(self, request: "CaptureRequest") -> CaptureResult:
+        """Pass a finite timeout per attempt and classify bounded transport faults."""
+        total = 0
+        for attempt in range(1, self.limits.max_retries + 2):
+            started = self.clock.now_utc()
+            try:
+                encoded = self.transport.capture(request.timeout_s)
+            except TimeoutError:
+                if attempt > self.limits.max_retries:
+                    return CaptureResult(
+                        None, ReasonCode.DECODE_TIMEOUT, attempt, total
+                    )
+                continue
+            except (ValueError, TypeError):
+                return CaptureResult(None, ReasonCode.CORRUPT_INPUT, attempt, total)
+            total += len(encoded)
+            if (
+                self.clock.now_utc() - started
+            ).total_seconds() > self.limits.max_decode_time_s.value_s:
+                return CaptureResult(None, ReasonCode.DECODE_TIMEOUT, attempt, total)
+            if not encoded:
+                return CaptureResult(None, ReasonCode.MISSING_INPUT, attempt, total)
+            if total > self.limits.max_encoded_bytes:
+                return CaptureResult(None, ReasonCode.OVERSIZED_INPUT, attempt, total)
+            return CaptureResult(encoded, ReasonCode.NONE, attempt, total)
+        return CaptureResult(
+            None, ReasonCode.DECODE_TIMEOUT, self.limits.max_retries + 1, total
+        )
 
 
 @dataclass(frozen=True)
@@ -83,7 +158,7 @@ class CameraFrame:
         if (
             self.width_px > limits.max_width_px
             or self.height_px > limits.max_height_px
-            or self.width_px * self.height_px > 64_000_000
+            or self.width_px * self.height_px > limits.max_pixels
         ):
             raise FrameValidationError(
                 ReasonCode.OVERSIZED_INPUT, "frame dimensions exceed bounds"

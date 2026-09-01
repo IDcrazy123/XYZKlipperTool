@@ -7,9 +7,13 @@ from .calibration import (
     Transform2D,
 )
 from .capture import (
+    BoundedCameraProvider,
+    CameraClock,
     CameraFrame,
+    CameraTransport,
     CaptureLimits,
     CaptureRequest,
+    CaptureResult,
     FrameValidationError,
     validate_camera_url,
 )
@@ -18,21 +22,27 @@ from .detectors import (
     BlobDetector,
     CircleCandidateDetector,
     Detection,
+    DetectionContext,
     Detector,
     benchmark_detectors,
 )
 
 __all__ = [
     "BlobDetector",
+    "BoundedCameraProvider",
     "Calibration",
     "CalibrationStore",
+    "CameraClock",
     "CameraFrame",
+    "CameraTransport",
     "CaptureLimits",
     "CaptureRequest",
+    "CaptureResult",
     "CircleCandidateDetector",
     "CorpusEntry",
     "CorpusSplit",
     "Detection",
+    "DetectionContext",
     "Detector",
     "FrameValidationError",
     "JsonCalibrationStore",
