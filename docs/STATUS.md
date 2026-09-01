@@ -4,7 +4,8 @@
 - Repository state: Phase 02 supervisor-approved at candidate `ce99ca14b4df5e870a79364ef188884c0394dc65`
 - Production readiness: **NOT READY**
 - Current phase: Phase 03 — camera capture, calibration, and detector framework
-- Next gate: supervisor review of Phase 03 correction 2; real-corpus reliability remains `NEEDS_WORK` and physical behavior remains `REQUIRES_HIL`
+- Phase state: `NEEDS_WORK` — offline evidence/persistence tooling is candidate only; real sanitized session-separated holdout is absent
+- Next gate: supervisor review of Phase 03 correction 5; physical behavior remains `REQUIRES_HIL`
 - Physical printer actions: none authorized by this repository state
 
 ## Phase ledger

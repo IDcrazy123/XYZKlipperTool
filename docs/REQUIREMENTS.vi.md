@@ -37,3 +37,6 @@ Mỗi ID ổn định xuất hiện một lần và có ít nhất một tham ch
 | REQ-CALIB-001 | Lưu calibration versioned với transform, residual, uncertainty, identity, provenance, checksum và atomicity | `IMPLEMENTED` | Master prompt; SRC-010; ASSUMPTION: calibration store local |
 | REQ-DETECT-001 | Có plugin detector với diagnostic typed cho zero/ambiguous/corrupt/stale/calibration-mismatch | `IMPLEMENTED` | Master prompt; SRC-009 |
 | REQ-CORPUS-002 | Giữ hash corpus bất biến và holdout tách theo session; dữ liệu tổng hợp không chứng minh reliability | `IMPLEMENTED` | Master prompt; ASSUMPTION: chưa có corpus thật đã sanitize |
+| REQ-CALIB-002 | Validate envelope calibration có version bằng schema, checksum, backup hữu hạn, recovery và bảo toàn trước replace qua fault inject | `IMPLEMENTED` | Master prompt; ASSUMPTION: sandbox filesystem cục bộ |
+| REQ-CORPUS-003 | Tạo và verify inventory nhãn có path tương đối, provenance, byte size, SHA-256 và metadata hữu hạn | `IMPLEMENTED` | Master prompt; ASSUMPTION: chưa có corpus thật đã sanitize |
+| REQ-BENCH-001 | Đánh giá hai pipeline ứng viên trên holdout có nhãn và công bố metrics reason-coded chỉ synthetic | `IMPLEMENTED` | Master prompt; ASSUMPTION: chưa có corpus thật đã sanitize |

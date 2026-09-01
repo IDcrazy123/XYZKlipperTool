@@ -25,3 +25,6 @@
 | TEST-021 | Phase 02 schemas and fingerprint | pinned `jsonschema` Draft 2020-12 plus configuration fingerprint tests | station envelope contract, canonical ordering, redaction, and change detection pass |
 | TEST-022 | Phase 03 capture/calibration/detectors | `PYTHONPATH=src; python -m unittest tests.test_phase03` | bounded capture, local allowlist, calibration round-trip/corruption, candidate diagnostics pass |
 | TEST-023 | Phase 03 corpus leakage | `PYTHONPATH=src; python -m unittest tests.test_phase03` | session-separated split has no leakage; real-corpus reliability gate remains NEEDS_WORK |
+| TEST-024 | Phase 03 calibration persistence fault matrix | `PYTHONPATH=src; python -m unittest tests.test_phase03 -v` | bounded schema/checksum, pre-replace preservation, and backup rotation fault stages pass |
+| TEST-025 | Phase 03 corpus inventory and benchmark contracts | `PYTHONPATH=src; python -m unittest tests.test_phase03 -v` | confined relative paths, hashes, whole-session split, and both synthetic candidate reports pass |
+| TEST-026 | Phase 03 Draft 2020-12 schemas | `pinned venv; PYTHONPATH=src; python -m unittest tests.test_phase03.Phase03Tests.test_phase03_schemas_are_draft202012_contracts` | calibration, corpus, and benchmark schemas validate positive instances and reject extra/UTC-invalid fields |

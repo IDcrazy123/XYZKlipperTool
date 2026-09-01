@@ -17,7 +17,15 @@ from .capture import (
     FrameValidationError,
     validate_camera_url,
 )
-from .corpus import CorpusEntry, CorpusSplit, deterministic_split
+from .corpus import (
+    CorpusEntry,
+    CorpusSplit,
+    build_inventory,
+    deterministic_split,
+    evaluate_benchmark,
+    inventory_json,
+    verify_inventory,
+)
 from .detectors import (
     BlobDetector,
     CircleCandidateDetector,
@@ -50,6 +58,10 @@ __all__ = [
     "JsonCalibrationStore",
     "Transform2D",
     "benchmark_detectors",
+    "build_inventory",
     "deterministic_split",
+    "evaluate_benchmark",
+    "inventory_json",
     "validate_camera_url",
+    "verify_inventory",
 ]

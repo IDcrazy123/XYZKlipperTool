@@ -4,7 +4,9 @@ import hashlib
 import json
 import math
 import os
+import shutil
 import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -110,9 +112,29 @@ class CalibrationStore(Protocol):
 class JsonCalibrationStore:
     """Checksummed versioned calibration store confined to a caller directory."""
 
-    def __init__(self, root: Path) -> None:
+    def __init__(
+        self,
+        root: Path,
+        max_file_bytes: int = 1_048_576,
+        max_backups: int = 3,
+        fault: Callable[[str], None] | None = None,
+    ) -> None:
+        if (
+            type(max_file_bytes) is not int
+            or not 1 <= max_file_bytes <= 16 * 1024 * 1024
+        ):
+            raise ValueError("invalid calibration file bound")
+        if type(max_backups) is not int or not 0 <= max_backups <= 8:
+            raise ValueError("invalid calibration backup bound")
         self.root = root
+        self.max_file_bytes = max_file_bytes
+        self.max_backups = max_backups
+        self.fault = fault
         self.root.mkdir(parents=True, exist_ok=True)
+
+    def _stage(self, name: str) -> None:
+        if self.fault is not None:
+            self.fault(name)
 
     def put(self, calibration: Calibration) -> None:
         """Atomically persist calibration metadata; no camera or printer I/O occurs."""
@@ -132,11 +154,30 @@ class JsonCalibrationStore:
             dir=self.root, prefix=".calibration-", suffix=".tmp"
         )
         try:
+            self._stage("before_temp")
             with os.fdopen(fd, "w", encoding="utf-8") as handle:
                 json.dump(envelope, handle, sort_keys=True, separators=(",", ":"))
+                if handle.tell() > self.max_file_bytes:
+                    raise ValueError("calibration state exceeds bound")
+                self._stage("after_temp_write")
                 handle.flush()
+                self._stage("after_flush")
                 os.fsync(handle.fileno())
+                self._stage("after_fsync")
+            if path.exists() and self.max_backups:
+                for index in range(self.max_backups, 0, -1):
+                    old = root / f"{calibration.calibration_id}.json.bak{index}"
+                    previous = (
+                        root / f"{calibration.calibration_id}.json.bak{index - 1}"
+                        if index > 1
+                        else path
+                    )
+                    if previous.exists():
+                        shutil.copy2(previous, old)
+                        self._stage(f"backup_rotation_{index}")
+            self._stage("before_current_replace")
             os.replace(temp_name, path)
+            self._stage("after_current_replace")
         finally:
             Path(temp_name).unlink(missing_ok=True)
 
@@ -150,6 +191,8 @@ class JsonCalibrationStore:
             raise ValueError("calibration path escapes store root")
         if not path.exists():
             return None
+        if path.stat().st_size > self.max_file_bytes:
+            raise ValueError("calibration state exceeds bound")
         try:
             envelope = json.loads(path.read_text(encoding="utf-8"))
             if (
@@ -192,6 +235,20 @@ class JsonCalibrationStore:
             OverflowError,
         ) as exc:
             raise ValueError("corrupt calibration state") from exc
+
+    def recover(self, calibration_id: str, backup_index: int = 1) -> Calibration:
+        """Explicitly validate and return a named backup; never silently falls back."""
+        if type(backup_index) is not int or not 1 <= backup_index <= self.max_backups:
+            raise ValueError("invalid backup index")
+        path = self.root.resolve() / f"{calibration_id}.json.bak{backup_index}"
+        if not path.exists():
+            raise ValueError("requested calibration backup is absent")
+        original = self.root.resolve() / f"{calibration_id}.json"
+        os.replace(path, original)
+        recovered = self.get(calibration_id)
+        if recovered is None:
+            raise ValueError("backup recovery failed")
+        return recovered
 
 
 def calibration_payload(calibration: Calibration) -> dict[str, Any]:

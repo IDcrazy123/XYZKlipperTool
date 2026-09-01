@@ -25,3 +25,6 @@
 | TEST-021 | schema và fingerprint Phase 02 | jsonschema Draft 2020-12 đã pin cùng test fingerprint | contract envelope station, ordering canonical, redaction và phát hiện đổi đạt |
 | TEST-022 | capture/calibration/detector Phase 03 | `PYTHONPATH=src; python -m unittest tests.test_phase03` | capture bounded, allowlist local, round-trip/corrupt calibration, diagnostic candidate đạt |
 | TEST-023 | leakage corpus Phase 03 | `PYTHONPATH=src; python -m unittest tests.test_phase03` | split theo session không leakage; gate reliability corpus thật còn NEEDS_WORK |
+| TEST-024 | Ma trận fault persistence calibration Phase 03 | `PYTHONPATH=src; python -m unittest tests.test_phase03 -v` | schema/checksum có bound, bảo toàn trước replace và mọi stage xoay backup đều đạt |
+| TEST-025 | Contract inventory corpus và benchmark Phase 03 | `PYTHONPATH=src; python -m unittest tests.test_phase03 -v` | path tương đối bị giới hạn, hash, split toàn session và báo cáo hai candidate synthetic đều đạt |
+| TEST-026 | Schema Draft 2020-12 Phase 03 | `venv pinned; PYTHONPATH=src; python -m unittest tests.test_phase03.Phase03Tests.test_phase03_schemas_are_draft202012_contracts` | schema calibration, corpus và benchmark nhận positive, từ chối field thừa/UTC sai |

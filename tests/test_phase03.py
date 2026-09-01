@@ -1,3 +1,4 @@
+import importlib
 import json
 import tempfile
 import unittest
@@ -22,9 +23,20 @@ from xyz_klipper_tool.vision import (
     JsonCalibrationStore,
     Transform2D,
     benchmark_detectors,
+    build_inventory,
     deterministic_split,
+    evaluate_benchmark,
+    inventory_json,
     validate_camera_url,
+    verify_inventory,
 )
+from xyz_klipper_tool.vision.calibration import calibration_payload
+
+_jsonschema: Any = None
+try:
+    _jsonschema = importlib.import_module("jsonschema")
+except ModuleNotFoundError:
+    pass
 
 
 class Phase03Tests(unittest.TestCase):
@@ -714,6 +726,256 @@ class Phase03Tests(unittest.TestCase):
         self.assertFalse(
             {e.session_id for e in split[CorpusSplit.HOLDOUT]}
             & {e.session_id for e in split[CorpusSplit.CALIBRATION]}
+        )
+
+    def test_inventory_is_relative_hashed_and_split_requires_sessions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "session-a" / "frame.pgm"
+            first.parent.mkdir()
+            first.write_bytes(b"pixels")
+            entries = build_inventory(root, [first])
+            self.assertEqual(entries[0].path, Path("session-a/frame.pgm"))
+            self.assertNotIn(str(root), inventory_json(entries))
+            with self.assertRaises(ValueError):
+                verify_inventory(
+                    root,
+                    [
+                        CorpusEntry(
+                            entries[0].entry_id,
+                            entries[0].path,
+                            entries[0].session_id,
+                            entries[0].label,
+                            "0" * 64,
+                            entries[0].provenance,
+                            0,
+                            None,
+                            "UNLABELED",
+                            entries[0].byte_size,
+                        )
+                    ],
+                )
+        with self.assertRaises(ValueError):
+            deterministic_split([CorpusEntry("a", Path("a"), "only", "x", "a" * 64)])
+
+    def test_calibration_fault_before_replace_preserves_current(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            stages: list[str] = []
+            armed = False
+
+            def fault(stage: str) -> None:
+                nonlocal armed
+                stages.append(stage)
+                if armed and stage == "before_current_replace":
+                    raise RuntimeError(stage)
+
+            store = JsonCalibrationStore(Path(directory), max_backups=3, fault=fault)
+            calibration = self.calibration()
+            store.put(calibration)
+            armed = True
+            with self.assertRaises(RuntimeError):
+                store.put(calibration)
+            self.assertEqual(store.get("cal-1"), calibration)
+            self.assertIn("before_current_replace", stages)
+            path = Path(directory) / "cal-1.json"
+            path.write_text("{", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                store.get("cal-1")
+            path.write_text("{}", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                store.get("cal-1")
+
+    def test_calibration_backup_rotation_faults_preserve_current(self) -> None:
+        stages_to_fault = (
+            "backup_rotation_1",
+            "backup_rotation_2",
+            "backup_rotation_3",
+        )
+        for fault_stage in stages_to_fault:
+            with (
+                self.subTest(fault_stage=fault_stage),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                seen: list[str] = []
+                armed = [False]
+
+                def fault(
+                    stage: str,
+                    target_stage: str = fault_stage,
+                    seen_stages: list[str] = seen,
+                    armed_flag: list[bool] = armed,
+                ) -> None:
+                    seen_stages.append(stage)
+                    if armed_flag[0] and stage == target_stage:
+                        raise RuntimeError(stage)
+
+                store = JsonCalibrationStore(
+                    Path(directory), max_backups=3, fault=fault
+                )
+                original = self.calibration()
+                store.put(original)
+                store.put(original)
+                store.put(original)
+                armed[0] = True
+                with self.assertRaises(RuntimeError):
+                    store.put(original)
+                self.assertEqual(store.get("cal-1"), original)
+                self.assertIn(fault_stage, seen)
+
+    def test_calibration_and_inventory_bounds_faults(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with self.assertRaises(ValueError):
+                JsonCalibrationStore(root, max_file_bytes=0)
+            with self.assertRaises(ValueError):
+                JsonCalibrationStore(root, max_backups=9)
+            frame = root / "s" / "f.pgm"
+            frame.parent.mkdir()
+            frame.write_bytes(b"abc")
+            with self.assertRaises(ValueError):
+                build_inventory(root, [root.parent / "outside.pgm"])
+            with self.assertRaises(ValueError):
+                verify_inventory(
+                    root,
+                    [
+                        CorpusEntry(
+                            "x",
+                            Path("s/f.pgm"),
+                            "s",
+                            "x",
+                            "a" * 64,
+                            "SYNTHETIC",
+                            0,
+                            None,
+                            "x",
+                            4,
+                        )
+                    ],
+                )
+            entry = build_inventory(root, [frame])[0]
+            frame.write_bytes(b"changed")
+            with self.assertRaises(ValueError):
+                verify_inventory(root, [entry])
+        for kwargs in (
+            {"provenance": "REAL"},
+            {"path": Path("../escape")},
+            {"expected_candidate_count": -1},
+            {"expected_center_px": (1.0,)},
+            {"failure_class": "x" * 129},
+            {"byte_size": -1},
+        ):
+            values: dict[str, Any] = {
+                "entry_id": "x",
+                "path": Path("f"),
+                "session_id": "s",
+                "label": "l",
+                "sha256": "a" * 64,
+            }
+            values.update(kwargs)
+            with self.assertRaises(ValueError):
+                CorpusEntry(**values)
+
+    def test_synthetic_holdout_benchmark_metrics(self) -> None:
+        entries = (
+            CorpusEntry(
+                "one",
+                Path("s/one.pgm"),
+                "s",
+                "target",
+                "a" * 64,
+                "SYNTHETIC",
+                1,
+                (1.0, 1.0),
+                None,
+                1,
+            ),
+            CorpusEntry(
+                "two",
+                Path("s/two.pgm"),
+                "s",
+                "target",
+                "b" * 64,
+                "SYNTHETIC",
+                0,
+                None,
+                "ZERO_CANDIDATE",
+                1,
+            ),
+        )
+        report = evaluate_benchmark(
+            entries,
+            {
+                "blob": lambda entry: (entry.expected_candidate_count, 0.5, ""),
+                "circle": lambda entry: (entry.expected_candidate_count, 0.25, ""),
+            },
+        )
+        self.assertEqual(set(report), {"blob", "circle"})
+        self.assertEqual(report["blob"]["dataset_label"], "SYNTHETIC")
+        self.assertEqual(report["blob"]["samples"], 2)
+
+    @unittest.skipUnless(_jsonschema is not None, "install pinned dev validator")
+    def test_phase03_schemas_are_draft202012_contracts(self) -> None:
+        root = Path(__file__).parents[1]
+        calibration_schema = json.loads(
+            (root / "schemas" / "calibration-envelope.v1.schema.json").read_text()
+        )
+        corpus_schema = json.loads(
+            (root / "schemas" / "corpus-manifest.v1.schema.json").read_text()
+        )
+        benchmark_schema = json.loads(
+            (root / "schemas" / "benchmark-report.v1.schema.json").read_text()
+        )
+        for schema in (calibration_schema, corpus_schema, benchmark_schema):
+            _jsonschema.Draft202012Validator.check_schema(schema)
+        calibration_data = calibration_payload(self.calibration())
+        calibration_instance = {
+            "schema_version": 1,
+            "calibration": calibration_data,
+            "checksum": "a" * 64,
+        }
+        corpus_instance = {
+            "schema_version": 1,
+            "entries": [
+                {
+                    "entry_id": "e",
+                    "path": "session/frame.pgm",
+                    "session_id": "session",
+                    "label": "target",
+                    "sha256": "a" * 64,
+                    "provenance": "SYNTHETIC",
+                    "byte_size": 1,
+                }
+            ],
+        }
+        benchmark_instance: dict[str, Any] = {
+            "dataset_label": "SYNTHETIC",
+            "samples": 1,
+            "true_positive": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "center_error_px_mean": 0.0,
+            "failure_classes": [],
+        }
+        cases: tuple[tuple[dict[str, Any], dict[str, Any]], ...] = (
+            (calibration_schema, calibration_instance),
+            (corpus_schema, corpus_instance),
+            (benchmark_schema, benchmark_instance),
+        )
+        for schema, instance in cases:
+            validator = _jsonschema.Draft202012Validator(schema)
+            self.assertEqual(list(validator.iter_errors(instance)), [])
+            invalid = dict(instance)
+            invalid["unexpected"] = True
+            self.assertTrue(list(validator.iter_errors(invalid)))
+        cast(dict[str, Any], calibration_instance["calibration"])["created_at_utc"] = (
+            "2026-09-01T00:00:00+07:00"
+        )
+        self.assertTrue(
+            list(
+                _jsonschema.Draft202012Validator(calibration_schema).iter_errors(
+                    calibration_instance
+                )
+            )
         )
 
 

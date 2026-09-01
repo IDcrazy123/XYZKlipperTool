@@ -13,3 +13,4 @@
 | RISK-009 | Ambiguous tool or provider state is selected | `MITIGATED-PHASE-02` | typed runtime validation, deterministic discovery, fail-closed selection; adapter owner |
 | RISK-010 | SAFE_Z omission is treated as clearance | `MITIGATED-PHASE-02` | omitted SAFE_Z rejects with `UNSAFE_APPROACH`; station owner |
 | RISK-011 | No sanitized real camera-frame corpus is available for holdout reliability evidence | `OPEN` | preserve evidence-gap; synthetic tests are mechanics-only; vision owner |
+| RISK-012 | Platform directory durability after fsync/replace is not a portable guarantee | `OPEN` | best-effort file durability only; require platform-specific validation before production persistence claim |

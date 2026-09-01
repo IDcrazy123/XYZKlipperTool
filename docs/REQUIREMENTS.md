@@ -37,3 +37,6 @@ Each stable ID occurs once and has at least one `SRC-*`, `EVID-*`, or `ASSUMPTIO
 | REQ-CALIB-001 | Persist versioned camera calibration with transform, residual, uncertainty, identity, provenance, checksum, and atomicity | `IMPLEMENTED` | Master prompt; SRC-010; ASSUMPTION: calibration store is local |
 | REQ-DETECT-001 | Provide detector plugins with typed zero/ambiguous/corrupt/stale/calibration-mismatch diagnostics | `IMPLEMENTED` | Master prompt; SRC-009 |
 | REQ-CORPUS-002 | Keep immutable corpus hashes and session-separated holdout splits; synthetic data cannot establish reliability | `IMPLEMENTED` | Master prompt; ASSUMPTION: real sanitized corpus is unavailable |
+| REQ-CALIB-002 | Validate versioned calibration envelopes with schema, checksum, bounded backups, recovery and injected pre-replace fault preservation | `IMPLEMENTED` | Master prompt; ASSUMPTION: local filesystem sandbox |
+| REQ-CORPUS-003 | Build and verify relative-path labeled inventories with provenance, byte size, SHA-256 and bounded metadata | `IMPLEMENTED` | Master prompt; ASSUMPTION: real sanitized corpus is unavailable |
+| REQ-BENCH-001 | Evaluate both candidate pipelines on labeled holdout mechanics and publish synthetic-only reason-coded metrics | `IMPLEMENTED` | Master prompt; ASSUMPTION: real sanitized corpus is unavailable |

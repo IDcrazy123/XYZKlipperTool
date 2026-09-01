@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "dataset_label": "SYNTHETIC",
+  "purpose": "Offline mechanics fixture only; never physical reliability evidence.",
+  "sessions": [
+    {"session_id": "synthetic-session-a", "frames": ["session-a/frame-001.pgm"]},
+    {"session_id": "synthetic-session-b", "frames": ["session-b/frame-001.pgm"]},
+    {"session_id": "synthetic-session-c", "frames": ["session-c/frame-001.pgm"]}
+  ],
+  "provenance": "Generated locally for tests; no real camera data.",
+  "physical_gate": "REQUIRES_HIL"
+}

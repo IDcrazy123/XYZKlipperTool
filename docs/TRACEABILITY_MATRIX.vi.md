@@ -37,3 +37,6 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-CALIB-001 | Master prompt; SRC-010 | store versioned checksum trong `vision/calibration.py` | actual: test round-trip/corruption |
 | REQ-DETECT-001 | Master prompt; SRC-009 | model plugin/diagnostic trong `vision/detectors.py` | actual: test candidate/zero/ambiguous |
 | REQ-CORPUS-002 | Master prompt; ASSUMPTION | inventory/split session trong `vision/corpus.py` | actual: test leakage; gate corpus thật NEEDS_WORK |
+| REQ-CALIB-002 | Master prompt; ASSUMPTION | `vision/calibration.py`; schema envelope calibration | actual: test checksum, bound và fault trước replace |
+| REQ-CORPUS-003 | Master prompt; ASSUMPTION | `vision/corpus.py` inventory/verifier | actual: test path tương đối, hash và mismatch |
+| REQ-BENCH-001 | Master prompt; ASSUMPTION | `vision/corpus.py` evaluate_benchmark | actual: test metric nhãn synthetic; corpus thật NEEDS_WORK |
