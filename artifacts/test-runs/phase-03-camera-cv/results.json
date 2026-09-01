@@ -2,9 +2,9 @@
   "phase": "03-camera-cv",
   "status": "SUPERVISOR_REVIEW_PENDING",
   "base_commit": "f0283a3c756d728c6b66a2775d02ed24d4d97cd5",
-  "commit_under_test": "6a15bc5bef6ed33b5b5a07d030d295e4afec352d",
+  "commit_under_test": "7616bc058ba065a2b02d5001f06843c40b427f0a",
   "branch": "phase/03-camera-cv",
-  "utc_time": "2026-09-01T00:04:44Z",
+  "utc_time": "2026-09-01T00:11:20Z",
   "commands": [
     {"command": "$env:PYTHONPATH='src'; python -m unittest discover -s tests", "exit_code": 0, "tests": 31},
     {"command": "$env:PYTHONPATH='src'; python -m coverage run -m unittest discover -s tests; python -m coverage report -m", "exit_code": 0, "coverage_percent": 90},
@@ -18,12 +18,12 @@
   ],
   "hash_links": {
     "src/xyz_klipper_tool/domain/models.py": "sha256:45bee3085af63632cbe0d7393fb7402fa71faa518a8957ecc5136cca24c2083b",
-    "src/xyz_klipper_tool/vision/__init__.py": "sha256:e2a0bd39dd972ac6f52fa1aec869da64e60ef7920a3ba95e86f20d26b2c5458d",
-    "src/xyz_klipper_tool/vision/capture.py": "sha256:28a91e3045fc5debd4e3533ace63363edbb02735fa655c096526c150905932ab",
-    "src/xyz_klipper_tool/vision/calibration.py": "sha256:00c283b8fb8c14a14bf81aa6f0315677798e45cf45c4377aec7b65607cf94340",
-    "src/xyz_klipper_tool/vision/detectors.py": "sha256:3ee263f1ba37c98f80c29c2684f9abd7a005cea7e749ce3ba730d35991feaf42",
+    "src/xyz_klipper_tool/vision/__init__.py": "sha256:18441c54bec690ca1bdd3b5ab21cda0cd377d744e2ad6641720f838f54aba134",
+    "src/xyz_klipper_tool/vision/capture.py": "sha256:1edcabda434d995ba7a598d9f65eeee5241fb5c7346a2f4871bc13de184e667f",
+    "src/xyz_klipper_tool/vision/calibration.py": "sha256:9ef3e9905d0a2feb6c5db7f85e6b60198df6ae25aca27ffb74410983d75cca6c",
+    "src/xyz_klipper_tool/vision/detectors.py": "sha256:4306d528754c58c9860512de9ae55d681bdb9d390044c2d52ebf77c6b27b37fc",
     "src/xyz_klipper_tool/vision/corpus.py": "sha256:58d2846ec94264e2e6f9a035c54b1dcd1919d337849b7ead1218ca8617351ae7",
-    "tests/test_phase03.py": "sha256:2ef732768035a173cdbd2fb184e858fca6043e414a06e7169c989b2bd521e4b8"
+    "tests/test_phase03.py": "sha256:df19836abc08d62dcac89f1a301735d0f5d0fad1ee80b1e56d644f5930a13289"
   },
   "real_corpus_holdout": "NEEDS_WORK",
   "physical_camera_compatibility": "REQUIRES_HIL",
