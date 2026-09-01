@@ -30,6 +30,7 @@ class DetectionContext:
     frame_sample_id: str
     calibration_created_at_utc: datetime
     max_calibration_age_s: Seconds
+    localization_uncertainty_px: float
     exposure_metadata: str | None = None
 
     def __post_init__(self) -> None:
@@ -63,6 +64,12 @@ class DetectionContext:
             or self.max_calibration_age_s.value_s < 0
         ):
             raise ValueError("max calibration age must be bounded Seconds")
+        if (
+            type(self.localization_uncertainty_px) is not float
+            or not math.isfinite(self.localization_uncertainty_px)
+            or not 0 <= self.localization_uncertainty_px <= 10000
+        ):
+            raise ValueError("localization uncertainty must be finite bounded pixels")
         if type(
             self.calibration_created_at_utc
         ) is not datetime or self.calibration_created_at_utc.utcoffset() != timedelta(
@@ -366,6 +373,8 @@ def _preflight(
         or frame.camera_fingerprint != calibration.camera_fingerprint
     ):
         return _invalid(calibration, frame, ReasonCode.CALIBRATION_MISMATCH, context)
+    if context.calibration_created_at_utc != calibration.created_at_utc:
+        return _invalid(calibration, frame, ReasonCode.CALIBRATION_MISMATCH, context)
     if (
         context.now_utc < context.captured_at_utc
         or (context.now_utc - context.captured_at_utc).total_seconds()
@@ -430,7 +439,7 @@ class BlobDetector:
         x0, y0, x1, y1, _ = candidates[0]
         center_x, center_y = (x0 + x1) / 2, (y0 + y1) / 2
         residual = _residual(width, height, center_x, center_y)
-        detector_uncertainty = residual * max(
+        detector_uncertainty = context.localization_uncertainty_px * max(
             calibration.transform.mm_per_px_x, calibration.transform.mm_per_px_y
         )
         combined = math.hypot(calibration.uncertainty_mm.value_mm, detector_uncertainty)
@@ -507,7 +516,7 @@ class CircleCandidateDetector:
         center_x, center_y = (x0 + x1) / 2, (y0 + y1) / 2
         confidence = area / max(1, (x1 - x0 + 1) * (y1 - y0 + 1))
         residual = _residual(width, height, center_x, center_y)
-        detector_uncertainty = residual * max(
+        detector_uncertainty = context.localization_uncertainty_px * max(
             calibration.transform.mm_per_px_x, calibration.transform.mm_per_px_y
         )
         combined = math.hypot(calibration.uncertainty_mm.value_mm, detector_uncertainty)
@@ -550,6 +559,7 @@ def benchmark_detectors(
                 f"synthetic-{index}",
                 calibration.created_at_utc,
                 limits.max_frame_age_s,
+                0.0,
             )
             outputs.append(detector.detect(frame, calibration, limits, context))
         result[name] = {

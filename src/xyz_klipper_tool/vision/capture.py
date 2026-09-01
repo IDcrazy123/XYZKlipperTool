@@ -84,6 +84,7 @@ class CaptureResult:
     frame_sample_id: str
     camera_fingerprint: str
     captured_at_utc: datetime
+    encoded_limit_bytes: int
     exposure_metadata: str | None = None
 
     def __post_init__(self) -> None:
@@ -95,6 +96,10 @@ class CaptureResult:
             raise ValueError("attempts must be positive")
         if type(self.total_bytes) is not int or self.total_bytes < 0:
             raise ValueError("total_bytes must be nonnegative")
+        if type(self.encoded_limit_bytes) is not int or self.encoded_limit_bytes < 1:
+            raise ValueError("encoded limit must be positive")
+        if self.total_bytes < (len(self.encoded) if self.encoded is not None else 0):
+            raise ValueError("total bytes cannot be below encoded bytes")
         if (
             type(self.frame_sample_id) is not str
             or not self.frame_sample_id.strip()
@@ -110,8 +115,13 @@ class CaptureResult:
             self.encoded is not None and bool(self.encoded)
         ):
             raise ValueError("capture success/result coherence failure")
-        if self.encoded is not None and len(self.encoded) > 8 * 1024 * 1024:
+        if self.encoded is not None and len(self.encoded) > self.encoded_limit_bytes:
             raise ValueError("capture bytes exceed bound")
+        if (
+            self.total_bytes > self.encoded_limit_bytes
+            and self.reason is not ReasonCode.OVERSIZED_INPUT
+        ):
+            raise ValueError("capture total exceeds configured bound")
         if self.exposure_metadata is not None and (
             type(self.exposure_metadata) is not str
             or len(self.exposure_metadata) > 1024
@@ -145,6 +155,7 @@ class BoundedCameraProvider:
                         request.frame_sample_id,
                         request.camera_fingerprint,
                         started,
+                        self.limits.max_encoded_bytes,
                         request.exposure_metadata,
                     )
                 continue
@@ -157,6 +168,7 @@ class BoundedCameraProvider:
                     request.frame_sample_id,
                     request.camera_fingerprint,
                     started,
+                    self.limits.max_encoded_bytes,
                     request.exposure_metadata,
                 )
             total += len(encoded)
@@ -170,6 +182,7 @@ class BoundedCameraProvider:
                     request.frame_sample_id,
                     request.camera_fingerprint,
                     started,
+                    self.limits.max_encoded_bytes,
                     request.exposure_metadata,
                 )
             if not encoded:
@@ -181,6 +194,7 @@ class BoundedCameraProvider:
                     request.frame_sample_id,
                     request.camera_fingerprint,
                     started,
+                    self.limits.max_encoded_bytes,
                     request.exposure_metadata,
                 )
             if total > self.limits.max_encoded_bytes:
@@ -192,6 +206,7 @@ class BoundedCameraProvider:
                     request.frame_sample_id,
                     request.camera_fingerprint,
                     started,
+                    self.limits.max_encoded_bytes,
                     request.exposure_metadata,
                 )
             return CaptureResult(
@@ -202,6 +217,7 @@ class BoundedCameraProvider:
                 request.frame_sample_id,
                 request.camera_fingerprint,
                 started,
+                self.limits.max_encoded_bytes,
                 request.exposure_metadata,
             )
         return CaptureResult(
@@ -212,6 +228,7 @@ class BoundedCameraProvider:
             request.frame_sample_id,
             request.camera_fingerprint,
             started,
+            self.limits.max_encoded_bytes,
             request.exposure_metadata,
         )
 

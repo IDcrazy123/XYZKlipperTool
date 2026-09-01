@@ -70,6 +70,7 @@ class Phase03Tests(unittest.TestCase):
             "sample-1",
             captured,
             Seconds(3600),
+            0.1,
             "1/60s",
         )
 
@@ -164,9 +165,25 @@ class Phase03Tests(unittest.TestCase):
             "s",
             datetime(2026, 9, 1, tzinfo=timezone.utc),
             Seconds(3600),
+            0.1,
         )
         self.assertEqual(
             BlobDetector().detect(blank, cal, limits, bad).reason,
+            ReasonCode.CALIBRATION_MISMATCH,
+        )
+        spoofed = DetectionContext(
+            cal.calibration_id,
+            cal.camera_fingerprint,
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
+            datetime(2026, 9, 1, tzinfo=timezone.utc),
+            Seconds(2),
+            "sample-1",
+            datetime(2026, 8, 31, tzinfo=timezone.utc),
+            Seconds(3600),
+            0.1,
+        )
+        self.assertEqual(
+            BlobDetector().detect(blank, cal, limits, spoofed).reason,
             ReasonCode.CALIBRATION_MISMATCH,
         )
         old = DetectionContext(
@@ -178,6 +195,7 @@ class Phase03Tests(unittest.TestCase):
             "s",
             datetime(2026, 8, 1, tzinfo=timezone.utc),
             Seconds(2),
+            0.1,
         )
         self.assertEqual(
             BlobDetector().detect(blank, cal, limits, old).reason,
@@ -339,9 +357,9 @@ class Phase03Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             CaptureRequest("device:/dev/video0", Seconds(1), "s", "fp", "x" * 1025)
         with self.assertRaises(ValueError):
-            CaptureResult(None, ReasonCode.NONE, 0, 0, "s", "fp", captured)
+            CaptureResult(None, ReasonCode.NONE, 0, 0, "s", "fp", captured, 100)
         with self.assertRaises(ValueError):
-            CaptureResult(None, ReasonCode.NONE, 1, -1, "s", "fp", captured)
+            CaptureResult(None, ReasonCode.NONE, 1, -1, "s", "fp", captured, 100)
         with self.assertRaises(ValueError):
             CaptureResult(
                 None,
@@ -351,6 +369,7 @@ class Phase03Tests(unittest.TestCase):
                 "s",
                 "fp",
                 datetime(2026, 9, 1, tzinfo=timezone(timedelta(hours=1))),
+                100,
             )
         with self.assertRaises(ValueError):
             CameraFrame(
@@ -423,7 +442,7 @@ class Phase03Tests(unittest.TestCase):
         )
         for values in bad_contexts:
             with self.assertRaises(ValueError):
-                DetectionContext(*cast(Any, values))
+                DetectionContext(*cast(Any, (*values, 0.1)))
         with self.assertRaises(ValueError):
             CameraFrame(b"x", 1, 1, Seconds(0.1), "", "camera", captured)
         with self.assertRaises(ValueError):
@@ -465,6 +484,7 @@ class Phase03Tests(unittest.TestCase):
                 "s",
                 captured,
                 Seconds(1),
+                0.1,
                 cast(Any, 1),
             )
         with self.assertRaises(ValueError):
@@ -643,6 +663,15 @@ class Phase03Tests(unittest.TestCase):
             .reason,
             ReasonCode.CAPTURE_TIMEOUT,
         )
+        large = b"x" * (8 * 1024 * 1024 + 1)
+        accepted = BoundedCameraProvider(
+            Transport(large), Clock(), CaptureLimits(max_encoded_bytes=len(large))
+        ).capture(request)
+        self.assertEqual(accepted.reason, ReasonCode.NONE)
+        rejected = BoundedCameraProvider(
+            Transport(large), Clock(), CaptureLimits(max_encoded_bytes=len(large) - 1)
+        ).capture(request)
+        self.assertEqual(rejected.reason, ReasonCode.OVERSIZED_INPUT)
 
     def test_calibration_round_trip_and_corruption(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

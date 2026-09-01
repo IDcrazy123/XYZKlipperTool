@@ -45,6 +45,7 @@ class FakeCamera:
             request.frame_sample_id,
             request.camera_fingerprint,
             datetime.now(timezone.utc),
+            MAX_CAMERA_FRAME_BYTES,
             request.exposure_metadata,
         )
 
