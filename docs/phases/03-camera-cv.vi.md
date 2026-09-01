@@ -21,7 +21,7 @@ Mọi dimension, encoded byte, retry, timeout, frame age, số candidate và chu
 
 ## Acceptance test
 
-Test bound capture/decode, calibration malformed/non-finite, checksum/version/fault persistence, detector success/zero/multi-candidate/diagnostic, calibration mismatch/stale, chống leakage corpus, schema Draft 2020-12, type/lint/parity/secret/hash/link và import-boundary phải đạt. Đánh giá corpus thật và tương thích camera vật lý vẫn `REQUIRES_HIL`/thiếu bằng chứng.
+Test bound capture/decode, calibration malformed/non-finite, checksum/version/fault persistence, detector success/zero/multi-candidate/diagnostic, calibration mismatch/stale, chống leakage corpus, schema Draft 2020-12, type/lint/parity/secret/hash/link và import-boundary phải đạt. Đánh giá corpus thật đã sanitize còn thiếu và có trạng thái `NEEDS_WORK`; tương thích camera vật lý riêng biệt là `REQUIRES_HIL`.
 
 ## Kết thúc
 

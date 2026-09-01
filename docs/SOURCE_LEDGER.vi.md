@@ -19,4 +19,4 @@ Ngày truy cập mọi dòng: 2026-08-31. Mọi web page không có version đư
 | SRC-013 | https://docs.opencv.org/4.12.0/d1/d32/tutorial_py_contour_properties.html | tag OpenCV `4.12.0`, commit deref `49486f61fb25722cbcf586b7f4320921d46fb38e`; mở trang 2026-09-01 | khái niệm bounding-box contour, area, extent và centroid dùng cho diagnostic candidate | Apache-2.0 | Chỉ tham chiếu; implementation first-party và threshold vẫn là assumption thiết kế chưa validate |
 | SRC-014 | https://docs.opencv.org/4.12.0/d3/dc0/group__imgproc__shape.html | tag OpenCV `4.12.0`, commit deref `49486f61fb25722cbcf586b7f4320921d46fb38e`; mở trang 2026-09-01 | thuật ngữ connected-components và shape analysis | Apache-2.0 | Không sao chép implementation upstream; không phải bằng chứng reliability và không claim Hough |
 
-Nguồn sơ cấp đã được mở và đọc ngày 2026-08-31. Record chỉ xác lập provenance và claim được hỗ trợ; không xác lập tương thích phần cứng hay cho phép chạy vật lý.
+Mỗi row ghi ngày truy cập và content identity của chính nguồn đó. Record chỉ xác lập provenance và claim được hỗ trợ; không xác lập tương thích phần cứng hay cho phép chạy vật lý.

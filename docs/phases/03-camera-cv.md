@@ -21,7 +21,7 @@ All dimensions, encoded bytes, retries, timeouts, frame age, candidate count, an
 
 ## Acceptance tests
 
-Capture/decode bounds, malformed/non-finite calibration, persistence checksum/version/fault recovery, detector success/zero/multi-candidate/diagnostic paths, calibration mismatch/staleness, corpus leakage prevention, schema Draft 2020-12 validation, type/lint/parity/secret/hash/link checks, and import-boundary checks pass. Real corpus evaluation and physical camera compatibility remain `REQUIRES_HIL`/evidence-gap.
+Capture/decode bounds, malformed/non-finite calibration, persistence checksum/version/fault recovery, detector success/zero/multi-candidate/diagnostic paths, calibration mismatch/staleness, corpus leakage prevention, schema Draft 2020-12 validation, type/lint/parity/secret/hash/link checks, and import-boundary checks pass. The missing sanitized real-corpus evaluation is `NEEDS_WORK`; physical camera compatibility is separately `REQUIRES_HIL`.
 
 ## Exit
 
