@@ -12,3 +12,4 @@
 | RISK-008 | Partial station write becomes current state | `MITIGATED-PHASE-02` | atomic temp/flush/replace, checksum, backup, and fault tests; persistence owner |
 | RISK-009 | Ambiguous tool or provider state is selected | `MITIGATED-PHASE-02` | typed runtime validation, deterministic discovery, fail-closed selection; adapter owner |
 | RISK-010 | SAFE_Z omission is treated as clearance | `MITIGATED-PHASE-02` | omitted SAFE_Z rejects with `UNSAFE_APPROACH`; station owner |
+| RISK-011 | No sanitized real camera-frame corpus is available for holdout reliability evidence | `OPEN` | preserve evidence-gap; synthetic tests are mechanics-only; vision owner |

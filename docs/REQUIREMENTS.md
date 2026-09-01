@@ -33,3 +33,7 @@ Each stable ID occurs once and has at least one `SRC-*`, `EVID-*`, or `ASSUMPTIO
 | REQ-INSTALL-001 | Make install/update/rollback/uninstall idempotent, dry-run, scope-checked, and non-destructive by default | `PLANNED` | Master prompt; ASSUMPTION: no implicit purge |
 | REQ-OPS-001 | Provide evidence, diagnostics, support redaction, documentation, and exact progress/reporting records | `PLANNED` | Master prompt; ASSUMPTION: report-only operations |
 | REQ-HIL-001 | Keep physical compatibility and production readiness `REQUIRES_HIL` until a supervised canary passes | `REQUIRES_HIL` | Master prompt; EVID-Z-INVALID-001 |
+| REQ-CAMERA-001 | Bound local-only camera capture, encoded data, dimensions, pixels, age, timeout, and retries | `IMPLEMENTED` | Master prompt; SRC-009 |
+| REQ-CALIB-001 | Persist versioned camera calibration with transform, residual, uncertainty, identity, provenance, checksum, and atomicity | `IMPLEMENTED` | Master prompt; SRC-010; ASSUMPTION: calibration store is local |
+| REQ-DETECT-001 | Provide detector plugins with typed zero/ambiguous/corrupt/stale/calibration-mismatch diagnostics | `IMPLEMENTED` | Master prompt; SRC-009 |
+| REQ-CORPUS-002 | Keep immutable corpus hashes and session-separated holdout splits; synthetic data cannot establish reliability | `IMPLEMENTED` | Master prompt; ASSUMPTION: real sanitized corpus is unavailable |

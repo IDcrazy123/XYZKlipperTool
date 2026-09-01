@@ -23,3 +23,5 @@
 | TEST-019 | contract port/fake/station Phase 02 | `PYTHONPATH=src; python -m unittest discover -s tests -v` | port, fake xác định, tool động, workflow station và cô lập writer đạt |
 | TEST-020 | ma trận fault persistence Phase 02 | `PYTHONPATH=src; python -m unittest tests.test_phase02 -v` | fault temp/flush/replace, corrupt, checksum, version và backup fail closed |
 | TEST-021 | schema và fingerprint Phase 02 | jsonschema Draft 2020-12 đã pin cùng test fingerprint | contract envelope station, ordering canonical, redaction và phát hiện đổi đạt |
+| TEST-022 | capture/calibration/detector Phase 03 | `PYTHONPATH=src; python -m unittest tests.test_phase03` | capture bounded, allowlist local, round-trip/corrupt calibration, diagnostic candidate đạt |
+| TEST-023 | leakage corpus Phase 03 | `PYTHONPATH=src; python -m unittest tests.test_phase03` | split theo session không leakage; gate reliability corpus thật còn NEEDS_WORK |

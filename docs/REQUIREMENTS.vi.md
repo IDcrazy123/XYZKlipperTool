@@ -33,3 +33,7 @@ Mỗi ID ổn định xuất hiện một lần và có ít nhất một tham ch
 | REQ-INSTALL-001 | Install/update/rollback/uninstall idempotent, dry-run, scope-checked, không phá hủy mặc định | `PLANNED` | Master prompt; ASSUMPTION: không purge ngầm |
 | REQ-OPS-001 | Có evidence, diagnostic, support redaction, tài liệu và progress/reporting record chính xác | `PLANNED` | Master prompt; ASSUMPTION: vận hành report-only |
 | REQ-HIL-001 | Giữ tương thích vật lý và production readiness `REQUIRES_HIL` tới khi canary giám sát đạt | `REQUIRES_HIL` | Master prompt; EVID-Z-INVALID-001 |
+| REQ-CAMERA-001 | Giới hạn capture camera local-only, dữ liệu mã hóa, dimension, pixel, age, timeout và retry | `IMPLEMENTED` | Master prompt; SRC-009 |
+| REQ-CALIB-001 | Lưu calibration versioned với transform, residual, uncertainty, identity, provenance, checksum và atomicity | `IMPLEMENTED` | Master prompt; SRC-010; ASSUMPTION: calibration store local |
+| REQ-DETECT-001 | Có plugin detector với diagnostic typed cho zero/ambiguous/corrupt/stale/calibration-mismatch | `IMPLEMENTED` | Master prompt; SRC-009 |
+| REQ-CORPUS-002 | Giữ hash corpus bất biến và holdout tách theo session; dữ liệu tổng hợp không chứng minh reliability | `IMPLEMENTED` | Master prompt; ASSUMPTION: chưa có corpus thật đã sanitize |

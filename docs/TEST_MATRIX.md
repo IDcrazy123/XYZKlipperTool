@@ -23,3 +23,5 @@
 | TEST-019 | Phase 02 port/fake/station contracts | `PYTHONPATH=src; python -m unittest discover -s tests -v` | ports, deterministic fakes, dynamic tools, station workflows, and writer isolation pass |
 | TEST-020 | Phase 02 persistence fault matrix | `PYTHONPATH=src; python -m unittest tests.test_phase02 -v` | atomic temp/flush/replace, corruption, checksum, version, and backup faults fail closed |
 | TEST-021 | Phase 02 schemas and fingerprint | pinned `jsonschema` Draft 2020-12 plus configuration fingerprint tests | station envelope contract, canonical ordering, redaction, and change detection pass |
+| TEST-022 | Phase 03 capture/calibration/detectors | `PYTHONPATH=src; python -m unittest tests.test_phase03` | bounded capture, local allowlist, calibration round-trip/corruption, candidate diagnostics pass |
+| TEST-023 | Phase 03 corpus leakage | `PYTHONPATH=src; python -m unittest tests.test_phase03` | session-separated split has no leakage; real-corpus reliability gate remains NEEDS_WORK |

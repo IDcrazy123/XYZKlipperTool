@@ -33,3 +33,7 @@ Every requirement below occurs exactly once.
 | REQ-INSTALL-001 | Master prompt; ASSUMPTION | roadmap; installer policy | planned: sandbox idempotency tests |
 | REQ-OPS-001 | Master prompt; ASSUMPTION | progress/reporting records | actual: parity/link/diff checks; planned release docs gate |
 | REQ-HIL-001 | EVID-Z-INVALID-001; Master prompt | risk register; HIL run-sheet gate | actual: no physical action; planned supervised canary |
+| REQ-CAMERA-001 | Master prompt; SRC-009 | `vision/capture.py` bounded local capture contracts | actual: `tests/test_phase03.py`; resource/security gate |
+| REQ-CALIB-001 | Master prompt; SRC-010 | `vision/calibration.py` versioned checksummed store | actual: round-trip/corruption tests |
+| REQ-DETECT-001 | Master prompt; SRC-009 | `vision/detectors.py` plugin and diagnostics model | actual: candidate/zero/ambiguous tests |
+| REQ-CORPUS-002 | Master prompt; ASSUMPTION | `vision/corpus.py` immutable inventory/session split | actual: leakage test; real-corpus gate NEEDS_WORK |
