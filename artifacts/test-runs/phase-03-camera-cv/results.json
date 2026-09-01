@@ -2,12 +2,12 @@
   "phase": "03-camera-cv",
   "status": "SUPERVISOR_REVIEW_PENDING",
   "base_commit": "f0283a3c756d728c6b66a2775d02ed24d4d97cd5",
-  "commit_under_test": "f7843159742771d835c240f2c8d39b6368b91a6a",
+  "commit_under_test": "94e25a534ae5a0dd719c360e18fff07e902dc00e",
   "branch": "phase/03-camera-cv",
-  "utc_time": "2026-09-01T00:22:01Z",
+  "utc_time": "2026-09-01T00:35:55Z",
   "commands": [
-    {"command": "$env:PYTHONPATH='src'; python -m unittest discover -s tests", "exit_code": 0, "tests": 33, "output": "OK (skipped=2)"},
-    {"command": "$env:PYTHONPATH='src'; python -m coverage run -m unittest discover -s tests; python -m coverage report -m", "exit_code": 0, "tests": 33, "coverage_percent": 89, "output": "TOTAL 1772 statements, 89%"},
+    {"command": "$env:PYTHONPATH='src'; python -m unittest discover -s tests", "exit_code": 0, "tests": 37, "passed": 35, "skipped": 2, "output": "OK (skipped=2)"},
+    {"command": "$env:PYTHONPATH='src'; python -m coverage erase; python -m coverage run -m unittest discover -s tests; python -m coverage report -m --include='src/*'", "exit_code": 0, "tests": 37, "passed": 35, "skipped": 2, "coverage_percent": 90, "output": "TOTAL 1442 statements, 90%"},
     {"command": "pinned venv outside repository; PYTHONPATH=src; python -m mypy src/xyz_klipper_tool tests", "exit_code": 0, "output": "Success: no issues found in 30 source files"},
     {"command": "pinned venv outside repository; PYTHONPATH=src; python -m pyright src/xyz_klipper_tool tests", "exit_code": 0, "output": "0 errors, 0 warnings, 0 informations"},
     {"command": "python -m ruff check src tests; python -m ruff format --check src tests", "exit_code": 0, "output": "All checks passed; 30 files already formatted"},
@@ -17,13 +17,16 @@
     {"command": "git diff --check; raw evidence hash comparison", "exit_code": 0, "output": "PASS; raw evidence unchanged"}
   ],
   "hash_links": {
-    "src/xyz_klipper_tool/domain/models.py": "sha256:45bee3085af63632cbe0d7393fb7402fa71faa518a8957ecc5136cca24c2083b",
-    "src/xyz_klipper_tool/vision/__init__.py": "sha256:dbdeed7cb43c31cb1f065d353804332b0a3d0cdf934c5e0f4caf4b8c9fae9ec9",
-    "src/xyz_klipper_tool/vision/capture.py": "sha256:522157a456eb94ca9bffc9cf9dcf25b3bc5ff330f6ffe8c68f78da2097a2db50",
+    "src/xyz_klipper_tool/domain/models.py": "sha256:d005cd378d111482f64f3286a5eb61c5b4d0cbf729aec0c0c630cfa34f3cd690",
+    "src/xyz_klipper_tool/adapters/fakes.py": "sha256:ef7479409c33dffb15bb191fd06e80232fd3cb57047569152adb5fc475c0c521",
+    "src/xyz_klipper_tool/ports/contracts.py": "sha256:dda02d88967c9390507e73a06c43b0851fed79379558fecb7143ed3483c9c901",
+    "src/xyz_klipper_tool/vision/__init__.py": "sha256:17b48a36bcb95d08c72d48f50d050896db15d9bb93ab64c15ce98149a1ceaeaf",
+    "src/xyz_klipper_tool/vision/capture.py": "sha256:522182d76490cc86ec7bf4bd15253db90087fa24f9dfb5a695fd17c7aef3a575",
     "src/xyz_klipper_tool/vision/calibration.py": "sha256:a5764df88c30889aa0f836d26ebb528e717718c443b03a0405df90ea30cb6f9c",
-    "src/xyz_klipper_tool/vision/detectors.py": "sha256:44231664a303f70fa02192d4d779d59a6197d4adea5a2ca652270533590e2996",
+    "src/xyz_klipper_tool/vision/detectors.py": "sha256:b4fe936dbdb15a67464a23539be5d1d39e918a8b54672de326ca4194e255cf8b",
     "src/xyz_klipper_tool/vision/corpus.py": "sha256:58d2846ec94264e2e6f9a035c54b1dcd1919d337849b7ead1218ca8617351ae7",
-    "tests/test_phase03.py": "sha256:4fa4de27646f8aaf1a01ddb1a7f455ad416bb0b151d70d4e73285c3c77f32b24"
+    "tests/test_phase02.py": "sha256:891431fb90ae8c5a55e32deb8d4616b2e9933f3a8f3da8fa4179cb704a2f8dad",
+    "tests/test_phase03.py": "sha256:8bc8b12b70c66e260813c4172eae34f54abe80f1ec3f301645e3ecf698c0744c"
   },
   "real_corpus_holdout": "NEEDS_WORK",
   "physical_camera_compatibility": "REQUIRES_HIL",
