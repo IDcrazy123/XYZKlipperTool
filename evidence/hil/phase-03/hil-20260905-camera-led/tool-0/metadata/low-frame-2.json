@@ -1,0 +1,185 @@
+{
+  "schema": "xyz-klipper-tool.hil-frame.v1",
+  "claim_status": "WARNING",
+  "reason_codes": [
+    "METADATA_INCOMPLETE",
+    "OBSERVED_TOOL_LED_TOP_DOWN"
+  ],
+  "captured_at_utc": "2026-09-05T12:50:08.5950523Z",
+  "outer_cycle_id": "20260905-outer-1",
+  "tool_visit_id": "tool-0",
+  "frame_sample_id": "tool-0-low-2",
+  "requested_tool": "T0",
+  "declared_tool": "tool T0",
+  "declared_tool_number": 0,
+  "detected_tool": "tool T0",
+  "detected_tool_number": 0,
+  "toolchanger_status": "ready",
+  "webhooks": {
+    "state": "ready",
+    "state_message": "Printer is ready"
+  },
+  "gcode_position_mm": {
+    "y": 20,
+    "x": 170,
+    "z": 40
+  },
+  "coordinate_frame": "gcode_absolute",
+  "homed_axes": "xyz inferred from successful G28; exact field unavailable via UI",
+  "heater_targets_celsius": {
+    "extruder": 0,
+    "extruder4": 0,
+    "heater_bed": 0,
+    "extruder1": 0,
+    "extruder2": 0,
+    "extruder3": 0
+  },
+  "illumination": {
+    "blue": 0.05,
+    "label": "LOW",
+    "red": 0.05,
+    "green": 0.05,
+    "white": 0
+  },
+  "led_color_data": [
+    [
+      0.05,
+      0.05,
+      0.05,
+      0.0
+    ],
+    [
+      0.05,
+      0.05,
+      0.05,
+      0.0
+    ],
+    [
+      0.05,
+      0.05,
+      0.05,
+      0.0
+    ]
+  ],
+  "all_led_color_data": {
+    "T2": [
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "T0": [
+      [
+        0.05,
+        0.05,
+        0.05,
+        0.0
+      ],
+      [
+        0.05,
+        0.05,
+        0.05,
+        0.0
+      ],
+      [
+        0.05,
+        0.05,
+        0.05,
+        0.0
+      ]
+    ],
+    "T4": [
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "T1": [
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "T3": [
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ]
+  },
+  "camera": {
+    "width_px": 1280,
+    "source_url": "http://192.168.1.43/webcam/?action=snapshot",
+    "content_type": "image/jpeg",
+    "bytes": 265420,
+    "height_px": 720,
+    "sha256": "9a5bcc1f8d4bbcf032076d11bf2b04dc589ff9b6969d4a7da0bab650ccc78f23",
+    "name": "VoronBed"
+  },
+  "operator_authorization": "2026-09-05 explicit supervised HIL; G28, bounded tool changes, bounded motion, run-scoped X170 Y20 Z40; no heating/probing/apply/SAVE_CONFIG/restart/deployment",
+  "station_provenance": {
+    "x_mm": 170,
+    "source": "run-scoped operator authorization; not product default",
+    "z_mm": 40,
+    "y_mm": 20
+  },
+  "accepted_for_camera_corpus": false,
+  "camera_illumination_claim": false,
+  "illumination_role": "tool_led_top_down_not_camera_source"
+}

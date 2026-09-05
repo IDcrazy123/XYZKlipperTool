@@ -1,0 +1,340 @@
+{
+  "schema": "xyz-klipper-tool.hil-run.v1",
+  "claim_status": "WARNING",
+  "run_id": "hil-20260905-camera-led",
+  "outer_cycle_id": "20260905-outer-1",
+  "started_at_utc": "2026-09-05",
+  "stopped_at_utc": "2026-09-05T12:53:49.0252663Z",
+  "scope": "Stopped at safe boundary after T1 pickup/station alignment; no T1-T4 captures",
+  "actions": [
+    "GET_POSITION",
+    "STATUS",
+    "G28",
+    "G91",
+    "G1 Z30 F900",
+    "G90",
+    "G1 X170 Y20 F1800",
+    "G1 Z40 F600",
+    "T0",
+    "SET_LED all tool LEDs off",
+    "SET_LED T0 low",
+    "SET_LED T0 medium",
+    "T1 provider tool change",
+    "G1 X170 Y20 F1800",
+    "G1 Z40 F600",
+    "SET_LED all tool LEDs off"
+  ],
+  "abort_reason_codes": [
+    "OPERATOR_CLARIFICATION_TOOL_LED_NOT_CAMERA_SOURCE",
+    "METADATA_INCOMPLETE",
+    "STOPPED_SAFE_BOUNDARY"
+  ],
+  "raw_frame_count": 9,
+  "raw_frames": [
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\low-frame-1.jpg",
+      "bytes": 265260,
+      "sha256": "6998221f744b5d8e1a19a49e75caf2a3de219c02025f2089a7afd9970976eaa7"
+    },
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\low-frame-2.jpg",
+      "bytes": 265420,
+      "sha256": "9a5bcc1f8d4bbcf032076d11bf2b04dc589ff9b6969d4a7da0bab650ccc78f23"
+    },
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\low-frame-3.jpg",
+      "bytes": 264996,
+      "sha256": "b2dbe6fa64a7316982045e513cac0754a458aef1de23627ce37b7378eeeb3426"
+    },
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\medium-frame-1.jpg",
+      "bytes": 238033,
+      "sha256": "d9f66756f5cdf533f8092972824e7c712467abb0241d981a5ba264aedae111a2"
+    },
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\medium-frame-2.jpg",
+      "bytes": 237691,
+      "sha256": "2a92c50e7b7edc0b8e368beedc73d5ec63cdc871ed58150f8348fce898f1cbc4"
+    },
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\medium-frame-3.jpg",
+      "bytes": 237786,
+      "sha256": "8cb78691f849a109b687e890f3b50588df1c22acb21bba474f56d2117a98bb1e"
+    },
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\off-frame-1.jpg",
+      "bytes": 292656,
+      "sha256": "e22687a0e071dcc911124f3c496d8ffeb6804c668c989d16a9bbe42a77ee5a99"
+    },
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\off-frame-2.jpg",
+      "bytes": 292451,
+      "sha256": "273269ca7b084085b4f6ffa30ae9674488c3358c5704023f8be81e6698f87036"
+    },
+    {
+      "path": "evidence\\hil\\phase-03\\hil-20260905-camera-led\\tool-0\\raw\\off-frame-3.jpg",
+      "bytes": 291333,
+      "sha256": "6f0d650888226143bd36a95ac5d3b1c2623daaf6c06e8c7ab82d5c15f786940b"
+    }
+  ],
+  "counts": {
+    "tool0_total": 9,
+    "tool0_off": 3,
+    "tool0_low_requested_but_tool_led_top_down": 3,
+    "tool0_medium_requested_but_tool_led_top_down": 3,
+    "tool1_total": 0,
+    "tool2_total": 0,
+    "tool3_total": 0,
+    "tool4_total": 0,
+    "accepted_camera_corpus": 0,
+    "warnings": 9,
+    "invalid": 0
+  },
+  "camera": {
+    "name": "VoronBed",
+    "uid": "48efbfd8-83c8-488a-9fb8-b409905e808b",
+    "source_url": "http://192.168.1.43/webcam/?action=snapshot",
+    "source_fingerprint_sha256": "780a11fd2e40a543c416d7c045bc1c8e068025c53e4675aab8bb01e518346517",
+    "fingerprint_input": "VoronBed|48efbfd8-83c8-488a-9fb8-b409905e808b|/webcam/?action=snapshot|mjpegstreamer",
+    "service": "mjpegstreamer"
+  },
+  "software": {
+    "moonraker_version": "v0.11.0-0-g985c1d0",
+    "moonraker_api_version": "1.5.0",
+    "klippy_state": "ready",
+    "klippy_connected": true
+  },
+  "final_machine_state": {
+    "homed_axes": "xyz",
+    "toolhead_position_mm": [
+      169.841,
+      19.805,
+      40.236,
+      0.0
+    ],
+    "gcode_position_mm": [
+      170.0,
+      20.0,
+      40.0,
+      0.0
+    ],
+    "webhooks": {
+      "state": "ready",
+      "state_message": "Printer is ready"
+    },
+    "toolchanger": {
+      "params_safe_y": 120,
+      "params_close_y": 30,
+      "params_fast_speed": 15000,
+      "params_path_speed": 900,
+      "params_dropoff_path": [
+        {
+          "y": 9.5,
+          "z": 3
+        },
+        {
+          "y": 9.5,
+          "z": 1.5
+        },
+        {
+          "y": 5.5,
+          "z": 0
+        },
+        {
+          "z": 0,
+          "y": 0,
+          "f": 0.5
+        },
+        {
+          "z": -12,
+          "y": 0
+        },
+        {
+          "z": -12,
+          "y": 16
+        }
+      ],
+      "params_pickup_path": [
+        {
+          "z": -12,
+          "y": 16
+        },
+        {
+          "z": -12,
+          "y": 0
+        },
+        {
+          "z": 0,
+          "y": 0,
+          "f": 0.5,
+          "verify": 1
+        },
+        {
+          "y": 5.5,
+          "z": 0
+        },
+        {
+          "y": 9.5,
+          "z": 1.5
+        },
+        {
+          "y": 9.5,
+          "z": 3
+        }
+      ],
+      "params_input_shaper_freq_x": 0,
+      "params_input_shaper_type_x": "mzv",
+      "params_input_shaper_damping_ratio_x": 0.1,
+      "params_input_shaper_freq_y": 0,
+      "params_input_shaper_type_y": "mzv",
+      "params_input_shaper_damping_ratio_y": 0.1,
+      "name": "toolchanger",
+      "status": "ready",
+      "tool": "tool T1",
+      "tool_number": 1,
+      "detected_tool": "tool T1",
+      "detected_tool_number": 1,
+      "tool_numbers": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "tool_names": [
+        "tool T0",
+        "tool T1",
+        "tool T2",
+        "tool T3",
+        "tool T4"
+      ],
+      "has_detection": true
+    },
+    "all_led_color_data": {
+      "T0": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "T1": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "T2": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "T3": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "T4": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    "heater_targets_celsius": {
+      "heater_bed": 0.0,
+      "extruder": 0.0,
+      "extruder1": 0.0,
+      "extruder2": 0.0,
+      "extruder3": 0.0,
+      "extruder4": 0.0
+    },
+    "heater_temperatures_celsius": {
+      "heater_bed": 28.75,
+      "extruder": 29.03,
+      "extruder1": 34.97,
+      "extruder2": 28.41,
+      "extruder3": 28.48,
+      "extruder4": 28.59
+    }
+  },
+  "operator_authorization": "2026-09-05 explicit supervised HIL; no heating/probing/apply/SAVE_CONFIG/restart/deployment",
+  "station_provenance": {
+    "x_mm": 170,
+    "y_mm": 20,
+    "z_mm": 40,
+    "source": "run-scoped authorization only; not product default"
+  },
+  "applied": false
+}
