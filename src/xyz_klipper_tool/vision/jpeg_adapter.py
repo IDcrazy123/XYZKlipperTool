@@ -149,6 +149,21 @@ def _decode_roi(
     limits: JpegAnalysisLimits,
 ) -> tuple[np.ndarray, QualityDiagnostics] | JpegDetection:
     if (
+        context.expected_calibration_id != calibration.calibration_id
+        or context.expected_camera_fingerprint != calibration.camera_fingerprint
+        or context.calibration_created_at_utc != calibration.created_at_utc
+    ):
+        return _invalid(calibration, context, ReasonCode.CALIBRATION_MISMATCH)
+    if (
+        context.now_utc < context.captured_at_utc
+        or (context.now_utc - context.captured_at_utc).total_seconds()
+        > context.max_frame_age_s.value_s
+        or context.now_utc < context.calibration_created_at_utc
+        or (context.now_utc - context.calibration_created_at_utc).total_seconds()
+        > context.max_calibration_age_s.value_s
+    ):
+        return _invalid(calibration, context, ReasonCode.STALE_FRAME)
+    if (
         type(encoded_jpeg) is not bytes
         or not encoded_jpeg
         or len(encoded_jpeg) > limits.max_encoded_bytes

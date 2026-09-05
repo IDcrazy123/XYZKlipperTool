@@ -1,6 +1,6 @@
 # pyright: reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownVariableType=false, reportOptionalSubscript=false
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, cast
 
 import cv2
@@ -108,6 +108,37 @@ class JpegAdapterTests(unittest.TestCase):
         self.assertEqual(
             (bad.detection.verdict, bad.detection.reason),
             (Verdict.INVALID, ReasonCode.CORRUPT_INPUT),
+        )
+        oversized = GradientRadialDetector().detect_jpeg(
+            self.jpeg(),
+            self.cal,
+            self.roi,
+            self.context,
+            JpegAnalysisLimits(max_encoded_bytes=10),
+        )
+        self.assertEqual(
+            (oversized.detection.verdict, oversized.detection.reason),
+            (Verdict.INVALID, ReasonCode.OVERSIZED_INPUT),
+        )
+
+    def test_stale_context_fails_closed(self) -> None:
+        stale = DetectionContext(
+            "cal-1",
+            "fingerprint",
+            self.context.captured_at_utc,
+            self.context.captured_at_utc + timedelta(seconds=3),
+            Seconds(2),
+            "sample-1",
+            self.cal.created_at_utc,
+            Seconds(3600),
+            0.1,
+        )
+        result = GradientRadialDetector().detect_jpeg(
+            self.jpeg(), self.cal, self.roi, stale
+        )
+        self.assertEqual(
+            (result.detection.verdict, result.detection.reason),
+            (Verdict.INVALID, ReasonCode.STALE_FRAME),
         )
 
     def test_roi_identity_and_staleness_are_rejected(self) -> None:
