@@ -32,7 +32,7 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-NONBLOCK-001 | SRC-002; SRC-003 | boundary host/Klippy | planned: fake reactor non-blocking |
 | REQ-INSTALL-001 | Master prompt; ASSUMPTION | roadmap; installer policy | planned: sandbox idempotency |
 | REQ-OPS-001 | Master prompt; ASSUMPTION | progress/reporting records | actual: parity/link/diff; planned release docs |
-| REQ-HIL-001 | EVID-Z-INVALID-001; Master prompt | risk register; HIL run-sheet gate | actual: không hành động vật lý; planned canary |
+| REQ-HIL-001 | EVID-Z-INVALID-001; Master prompt | risk register; HIL run-sheet và `evidence/hil/phase-03/ABORT_REPORT.md` | actual: ghi nhận partial-run fail-closed; không claim T2; tiếp tục cần cho phép home `xyz` |
 | REQ-CAMERA-001 | Master prompt; SRC-009 | contract capture local bounded trong `vision/capture.py` | actual: `tests/test_phase03.py`; gate resource/security |
 | REQ-CALIB-001 | Master prompt; SRC-010 | store versioned checksum trong `vision/calibration.py` | actual: test round-trip/corruption |
 | REQ-DETECT-001 | Master prompt; SRC-009 | model plugin/diagnostic trong `vision/detectors.py` | actual: test candidate/zero/ambiguous |
