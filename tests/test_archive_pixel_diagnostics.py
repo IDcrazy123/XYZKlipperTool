@@ -75,6 +75,30 @@ class ArchivedPixelCliTests(unittest.TestCase):
             check=False,
         )
 
+    def run_single(
+        self, root: Path, manifest: Path, output: Path
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [
+                sys.executable,
+                "scripts/archive_pixel_diagnostics.py",
+                "--source-root",
+                str(root),
+                "--source-manifest",
+                str(manifest),
+                "--output",
+                str(output),
+                "--roi",
+                "0",
+                "0",
+                "32",
+                "32",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
     def test_same_basename_gets_two_non_overwriting_overlays(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
@@ -107,6 +131,90 @@ class ArchivedPixelCliTests(unittest.TestCase):
             result = self.run_cli(a, ma, a, ma, out)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(marker.read_text(encoding="utf-8"), "keep")
+
+    def test_legacy_invalid_and_new_reason_codes_survive_full_cli(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_source(root)
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            entry = data["frames"][0]
+            entry.update(
+                {
+                    "capture_status": "INVALID",
+                    "invalid_reason": "WRONG_CAMERA_SOURCE",
+                    "corpus_inclusion": "EXCLUDED",
+                }
+            )
+            metadata = root / "metadata" / "frame.json"
+            metadata.parent.mkdir()
+            metadata.write_text(
+                json.dumps(
+                    {
+                        "reason_codes": ["HTTP_EVIDENCE_PERSISTENCE_FAILED"],
+                        "claim_status": "WARNING",
+                        "captured_at_utc": "2026-09-05T00:00:00Z",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            entry["metadata"] = "metadata/frame.json"
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            result = self.run_single(root, manifest, base / "out")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            record = json.loads(
+                (base / "out/reports.json").read_text(encoding="utf-8")
+            )["records"][0]
+            self.assertEqual(record["reason"], "HTTP_EVIDENCE_PERSISTENCE_FAILED")
+            self.assertEqual(record["raw_http_evidence"], "MISSING")
+            self.assertEqual(record["status"], "WARNING")
+            legacy_root = base / "legacy"
+            legacy_manifest = self.make_source(legacy_root)
+            legacy_data = json.loads(legacy_manifest.read_text(encoding="utf-8"))
+            legacy_data["frames"][0].update(
+                {
+                    "capture_status": "INVALID",
+                    "invalid_reason": "WRONG_CAMERA_SOURCE",
+                    "corpus_inclusion": "EXCLUDED",
+                }
+            )
+            legacy_manifest.write_text(json.dumps(legacy_data), encoding="utf-8")
+            legacy_result = self.run_single(
+                legacy_root, legacy_manifest, base / "legacy-out"
+            )
+            self.assertEqual(legacy_result.returncode, 0, legacy_result.stderr)
+            legacy_record = json.loads(
+                (base / "legacy-out/reports.json").read_text(encoding="utf-8")
+            )["records"][0]
+            self.assertEqual(legacy_record["status"], "INVALID")
+            self.assertEqual(legacy_record["reason"], "WRONG_CAMERA_SOURCE")
+
+    def test_missing_metadata_contract_fails_actionably(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_source(root)
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            data["frames"][0].pop("capture_status")
+            data["frames"][0].pop("corpus_inclusion")
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            result = self.run_single(root, manifest, base / "out")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("metadata missing or unsupported", result.stderr)
+
+    def test_malformed_metadata_fails_actionably(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_source(root)
+            metadata = root / "bad.json"
+            metadata.write_text("{not-json", encoding="utf-8")
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            data["frames"][0]["metadata"] = "bad.json"
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            result = self.run_single(root, manifest, base / "out")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("metadata malformed", result.stderr)
 
 
 if __name__ == "__main__":

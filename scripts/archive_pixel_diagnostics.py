@@ -145,15 +145,14 @@ def load_metadata(
             raise SystemExit(f"metadata malformed: {candidate}: {error}") from error
         if not isinstance(metadata, dict):
             raise SystemExit(f"metadata must be an object: {candidate}")
+        if metadata_rel is not None:
+            return metadata, candidate
         metadata_digest = metadata.get(
             "sha256", metadata.get("camera", {}).get("sha256")
         )
-        if (
-            metadata_rel is not None
-            or metadata_digest == digest
-            or metadata.get("raw_path")
-            == str(path.relative_to(candidate.parents[1])).replace("\\", "/")
-        ):
+        if metadata_digest == digest or metadata.get("raw_path") == str(
+            path.relative_to(candidate.parents[1])
+        ).replace("\\", "/"):
             return metadata, candidate
     if "capture_status" in item or "corpus_inclusion" in item:
         return item, None
@@ -239,14 +238,16 @@ def main() -> int:
                 isinstance(value, str) for value in reasons
             ):
                 base["source_reason_codes"] = reasons
-                base["reason"] = reasons[0] if reasons else "UNKNOWN_METADATA"
+                normalized_reason = reasons[0] if reasons else "UNKNOWN_METADATA"
                 base["raw_http_evidence"] = (
                     "MISSING"
                     if "HTTP_EVIDENCE_PERSISTENCE_FAILED" in reasons
                     else "PRESENT_OR_NOT_CLAIMED"
                 )
             else:
-                base["reason"] = "UNKNOWN_METADATA"
+                normalized_reason = metadata.get(
+                    "invalid_reason", metadata.get("capture_status", "UNKNOWN_METADATA")
+                )
                 base["raw_http_evidence"] = "UNKNOWN"
             base["claim_status"] = metadata.get("claim_status", "UNKNOWN")
             base["homed_axes"] = metadata.get(
@@ -254,12 +255,17 @@ def main() -> int:
             )
             base["frame_time"] = metadata.get("captured_at_utc", "UNKNOWN")
             capture_status = metadata.get("capture_status", "UNKNOWN")
+            source_status = capture_status
+            if source_status == "UNKNOWN":
+                source_status = metadata.get("claim_status", "UNKNOWN")
             base["source_capture_status"] = capture_status
             base["source_invalid_reason"] = metadata.get("invalid_reason", "UNKNOWN")
             base["source_corpus_inclusion"] = metadata.get(
                 "corpus_inclusion", "UNKNOWN"
             )
             base["source_verdict"] = metadata.get("verdict", "UNKNOWN")
+            base["source_status"] = source_status
+            base["reason"] = normalized_reason
             try:
                 validate_jpeg_header(raw, MAX_BYTES, MAX_PIXELS)
             except JpegBoundaryError as error:
@@ -297,10 +303,8 @@ def main() -> int:
             h, w = image.shape[:2]
             base.update(
                 {
-                    "status": capture_status
-                    if capture_status != "UNKNOWN"
-                    else "WARNING",
-                    "reason": metadata.get("invalid_reason", capture_status),
+                    "status": source_status,
+                    "reason": normalized_reason,
                     "dimensions_px": [int(w), int(h)],
                     "full_frame": measure(image, (0, 0, w, h), w, h),
                     "development_roi": measure(image, roi, w, h),
@@ -367,10 +371,13 @@ def main() -> int:
     (output / "reports.json").write_text(
         json.dumps(report, indent=2, sort_keys=True, allow_nan=False), encoding="utf-8"
     )
-    text = "# Archived pixel candidate inspection\n\nDevelopment-only, calibration-free candidate geometry. Red markers show every detected candidate; no marker is an accepted nozzle. No millimetres, freshness, accuracy, holdout, or machine eligibility claim. Full-frame and explicit ROI are both retained. Nine low-light frames carry RAW_HTTP_EVIDENCE_MISSING.\n"
+    missing_http = sum(
+        1 for record in records if record.get("raw_http_evidence") == "MISSING"
+    )
+    text = f"# Archived pixel candidate inspection\n\nDevelopment-only, calibration-free candidate geometry. Red markers show every detected candidate; no marker is an accepted nozzle. No millimetres, freshness, accuracy, holdout, or machine eligibility claim. Full-frame and explicit ROI are both retained. {missing_http} records carry RAW_HTTP_EVIDENCE_MISSING.\n"
     (output / "SUMMARY.md").write_text(text, encoding="utf-8")
     (output / "SUMMARY.vi.md").write_text(
-        "# Kiểm tra candidate pixel từ archive\n\nChỉ dành cho phát triển, hình học candidate không calibration. Marker đỏ hiển thị mọi candidate; không marker nào là nozzle được chấp nhận. Không có millimet, freshness, accuracy, holdout hay điều kiện máy. Giữ cả full-frame và ROI explicit. Chín frame low-light mang nhãn RAW_HTTP_EVIDENCE_MISSING.\n",
+        f"# Kiểm tra candidate pixel từ archive\n\nChỉ dành cho phát triển, hình học candidate không calibration. Marker đỏ hiển thị mọi candidate; không marker nào là nozzle được chấp nhận. Không có millimet, freshness, accuracy, holdout hay điều kiện máy. Giữ cả full-frame và ROI explicit. {missing_http} record mang nhãn RAW_HTTP_EVIDENCE_MISSING.\n",
         encoding="utf-8",
     )
     return 0
