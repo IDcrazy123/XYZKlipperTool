@@ -12,6 +12,6 @@
 | RISK-008 | Partial station write becomes current state | `MITIGATED-PHASE-02` | atomic temp/flush/replace, checksum, backup, and fault tests; persistence owner |
 | RISK-009 | Ambiguous tool or provider state is selected | `MITIGATED-PHASE-02` | typed runtime validation, deterministic discovery, fail-closed selection; adapter owner |
 | RISK-010 | SAFE_Z omission is treated as clearance | `MITIGATED-PHASE-02` | omitted SAFE_Z rejects with `UNSAFE_APPROACH`; station owner |
-| RISK-011 | No sanitized real camera-frame corpus is available for holdout reliability evidence | `OPEN` | preserve evidence-gap; synthetic tests are mechanics-only; vision owner |
+| RISK-011 | No reviewed, labeled, calibrated real camera-frame holdout is available for reliability evidence | `OPEN` | keep 75 hash-verified real frames `WARNING`/excluded; require reviewed center labels and independent session split; synthetic tests are mechanics-only; vision owner |
 | RISK-012 | Platform directory durability after fsync/replace is not a portable guarantee | `OPEN` | best-effort file durability only; require platform-specific validation before production persistence claim |
 | RISK-013 | HIL canary may proceed with ambiguous tool identity or unhomed axes | `OPEN` | fail closed; preserve partial evidence; require fresh explicit operator authorization and successful `xyz` homing before continuation |

@@ -3,6 +3,7 @@ import importlib
 import json
 import tempfile
 import unittest
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, cast
@@ -961,6 +962,56 @@ class Phase03Tests(unittest.TestCase):
         self.assertEqual(report["blob"]["precision"], 1.0)
         self.assertEqual(report["blob"]["recall"], 1.0)
 
+    def test_benchmark_rejects_unlabeled_or_incomplete_ground_truth(self) -> None:
+        def no_candidate(
+            _entry: CorpusEntry,
+        ) -> tuple[int, tuple[float, float] | None, str]:
+            return 0, None, "ZERO_CANDIDATE"
+
+        runner: dict[
+            str, Callable[[CorpusEntry], tuple[int, tuple[float, float] | None, str]]
+        ] = {"candidate": no_candidate}
+        unlabeled = CorpusEntry(
+            "unlabeled",
+            Path("session/frame.pgm"),
+            "session",
+            "UNLABELED",
+            "a" * 64,
+            "REAL_SANITIZED",
+            0,
+            None,
+            "UNLABELED",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "unlabeled"):
+            evaluate_benchmark((unlabeled,), runner)
+        missing_center = CorpusEntry(
+            "missing-center",
+            Path("session/frame-2.pgm"),
+            "session",
+            "nozzle",
+            "b" * 64,
+            "REAL_SANITIZED",
+            1,
+            None,
+            None,
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "labeled center"):
+            evaluate_benchmark((missing_center,), runner)
+
+    def test_corpus_center_rejects_nonfinite_pixels(self) -> None:
+        with self.assertRaisesRegex(ValueError, "finite nonnegative"):
+            CorpusEntry(
+                "bad-center",
+                Path("session/frame.pgm"),
+                "session",
+                "nozzle",
+                "a" * 64,
+                expected_candidate_count=1,
+                expected_center_px=(float("nan"), 1.0),
+            )
+
     @unittest.skipUnless(_jsonschema is not None, "install pinned dev validator")
     def test_phase03_schemas_are_draft202012_contracts(self) -> None:
         root = Path(__file__).parents[1]
@@ -1030,6 +1081,15 @@ class Phase03Tests(unittest.TestCase):
             list(
                 _jsonschema.Draft202012Validator(calibration_schema).iter_errors(
                     calibration_instance
+                )
+            )
+        )
+        invalid_corpus = json.loads(json.dumps(corpus_instance))
+        invalid_corpus["entries"][0]["expected_center_px"] = [-1.0, 0.0]
+        self.assertTrue(
+            list(
+                _jsonschema.Draft202012Validator(corpus_schema).iter_errors(
+                    invalid_corpus
                 )
             )
         )

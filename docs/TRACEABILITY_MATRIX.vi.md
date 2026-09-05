@@ -14,8 +14,8 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-SAMPLE-001 | EVID-XY-001 | thiết kế sampling hierarchy | planned: test ba outer-cycle |
 | REQ-STAT-001 | EVID-XY-001; Master prompt | Summary/StatisticResult trong `domain/statistics.py` | actual: test sufficiency, counts, SD/MAD/uncertainty/reference drift trong `tests/test_domain.py` |
 | REQ-OUTLIER-001 | EVID-XY-001 | raw bất biến, summary unfiltered/filtered và Rejection trong `statistics.py` | actual: test rejection có lý do, loại invalid, validate threshold |
-| REQ-VISION-001 | SRC-009; SRC-015; Master prompt | ranh giới vision host; `vision/jpeg_adapter.py` | actual: decode JPEG bounded, identity ROI, diagnostic chất lượng, hai pipeline độc lập và test input fail-closed; ảnh thật chưa gán nhãn vẫn bị loại |
-| REQ-CORPUS-001 | SRC-009; SRC-010 | kế hoạch corpus/evaluation | planned: session split/holdout |
+| REQ-VISION-001 | SRC-009; SRC-015; Master prompt | ranh giới vision host; `vision/jpeg_adapter.py`; archive inspector | actual: decode JPEG bounded, identity ROI, diagnostic chất lượng, hai pipeline độc lập, ingestion `photos[]` chặt và test input fail-closed; 75 frame thật chưa gán nhãn vẫn bị loại |
+| REQ-CORPUS-001 | SRC-009; SRC-010 | kế hoạch corpus/evaluation | actual: hai session acquisition đã tổ chức và kiểm tra hash; nhãn được review cùng split session độc lập ba phần vẫn `NEEDS_WORK` |
 | REQ-PERSIST-001 | Master prompt; ASSUMPTION | persistence policy | planned: atomic write/power-loss |
 | REQ-SCHEMA-001 | Master prompt; ASSUMPTION | `domain/schema.py`; cặp JSON Schema v1 | actual: test contract, round-trip, malformed/version/enum/non-finite fault trong `tests/test_schema.py` |
 | REQ-EVID-001 | Import Phase 00; EVID-Z-INVALID-001 | provenance policy; manifest | actual: hash 23/23 và JSON 21/21 |
@@ -38,5 +38,5 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-DETECT-001 | Master prompt; SRC-009 | model plugin/diagnostic trong `vision/detectors.py` | actual: test candidate/zero/ambiguous |
 | REQ-CORPUS-002 | Master prompt; ASSUMPTION | inventory/split session trong `vision/corpus.py` | actual: test leakage; gate corpus thật NEEDS_WORK |
 | REQ-CALIB-002 | Master prompt; ASSUMPTION | `vision/calibration.py`; schema envelope calibration | actual: test checksum, bound, rotation, recovery corrupt/traversal và fault trước replace |
-| REQ-CORPUS-003 | Master prompt; ASSUMPTION | `vision/corpus.py` inventory/verifier | actual: test path tương đối, hash và mismatch |
-| REQ-BENCH-001 | Master prompt; ASSUMPTION | `vision/corpus.py` evaluate_benchmark; artifact/schema benchmark synthetic | actual: test report hai candidate, TP/FP/FN/TN và center-error dẫn xuất; corpus thật NEEDS_WORK |
+| REQ-CORPUS-003 | Master prompt; ASSUMPTION | `vision/corpus.py` inventory/verifier | actual: test path tương đối, hash, mismatch, tâm hữu hạn/không âm và từ chối holdout chưa gán nhãn |
+| REQ-BENCH-001 | Master prompt; ASSUMPTION | `vision/corpus.py` evaluate_benchmark; artifact/schema benchmark synthetic | actual: test report hai candidate, TP/FP/FN/TN và center-error dẫn xuất; ground truth chưa gán nhãn/không đầy đủ bị từ chối; holdout thật `NEEDS_WORK` |

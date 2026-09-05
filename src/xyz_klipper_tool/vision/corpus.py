@@ -58,9 +58,12 @@ class CorpusEntry:
             raise ValueError("candidate count out of bounds")
         if self.expected_center_px is not None and (
             len(self.expected_center_px) != 2
-            or any(type(v) is not float for v in self.expected_center_px)
+            or any(
+                type(v) is not float or not math.isfinite(v) or v < 0
+                for v in self.expected_center_px
+            )
         ):
-            raise ValueError("center must be typed pixel floats")
+            raise ValueError("center must be finite nonnegative pixel floats")
         if self.failure_class is not None and (
             type(self.failure_class) is not str or len(self.failure_class) > 128
         ):
@@ -207,6 +210,13 @@ def evaluate_benchmark(
     """
     if not holdout:
         raise ValueError("bounded labeled holdout is required")
+    for entry in holdout:
+        if entry.label == "UNLABELED" or entry.failure_class == "UNLABELED":
+            raise ValueError("unlabeled entries are forbidden in benchmark holdout")
+        if entry.expected_candidate_count > 0 and entry.expected_center_px is None:
+            raise ValueError("positive holdout entries require a labeled center")
+        if entry.expected_candidate_count == 0 and entry.expected_center_px is not None:
+            raise ValueError("negative holdout entries cannot carry a labeled center")
     output: dict[str, dict[str, object]] = {}
     for name, runner in sorted(runners.items()):
         rows = [runner(entry) for entry in holdout]

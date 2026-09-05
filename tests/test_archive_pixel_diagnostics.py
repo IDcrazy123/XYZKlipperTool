@@ -42,6 +42,58 @@ class ArchivedPixelCliTests(unittest.TestCase):
         )
         return manifest
 
+    def make_photo_source(self, root: Path) -> Path:
+        session_id = "session-x"
+        tool = "T12"
+        lighting_id = "L064"
+        frame = "F02"
+        photo_dir = root / "01_PHOTOS" / session_id / tool
+        photo_dir.mkdir(parents=True)
+        image = np.zeros((32, 32, 3), dtype=np.uint8)
+        cv2.circle(image, (16, 16), 6, (120, 120, 120), -1)
+        path = photo_dir / f"{tool}_{lighting_id}_{frame}.jpg"
+        self.assertTrue(cv2.imwrite(str(path), image))
+        digest = __import__("hashlib").sha256(path.read_bytes()).hexdigest()
+        classification = "WARNING_DEVELOPMENT_ONLY_REQUIRES_REVIEW"
+        manifest = root / "80_EVIDENCE" / session_id / "manifest.json"
+        manifest.parent.mkdir(parents=True)
+        manifest.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "session_id": session_id,
+                    "status": "CAPTURED_UNREVIEWED",
+                    "classification": classification,
+                    "accepted_for_calibration": False,
+                    "photos": [
+                        {
+                            "schema_version": 1,
+                            "session_id": session_id,
+                            "tool": tool,
+                            "lighting_id": lighting_id,
+                            "frame": frame,
+                            "captured_utc": "2026-09-05T15:36:28.2801645Z",
+                            "relative_photo_path": (
+                                f"01_PHOTOS/{session_id}/{tool}/"
+                                f"{tool}_{lighting_id}_{frame}.jpg"
+                            ),
+                            "sha256": digest,
+                            "byte_count": path.stat().st_size,
+                            "width_px": 32,
+                            "height_px": 32,
+                            "content_type": "image/jpeg",
+                            "accepted": False,
+                            "classification": classification,
+                            "ring_brightness_255": 64,
+                            "tool_leds": "verified_off",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return manifest
+
     def run_cli(
         self,
         root_a: Path,
@@ -215,6 +267,91 @@ class ArchivedPixelCliTests(unittest.TestCase):
             result = self.run_single(root, manifest, base / "out")
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("metadata malformed", result.stderr)
+
+    def test_capture_library_photos_contract_stays_excluded(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_photo_source(root)
+            result = self.run_single(root, manifest, base / "out")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads((base / "out/reports.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(report["records"]), 1)
+            record = report["records"][0]
+            self.assertEqual(record["source_manifest_contract"], "photos")
+            self.assertEqual(record["session_id"], "session-x")
+            self.assertEqual(record["tool"], "T12")
+            self.assertEqual(record["lighting_id"], "L064")
+            self.assertEqual(record["level_uint8"], 64)
+            self.assertEqual(record["frame"], "F02")
+            self.assertEqual(record["status"], "WARNING")
+            self.assertEqual(record["source_corpus_inclusion"], "EXCLUDED")
+            self.assertFalse(record["source_declared_acceptance"])
+            self.assertFalse(record["accepted_nozzle"])
+            self.assertFalse(record["machine_eligibility"])
+            self.assertEqual(len(list((base / "out/overlays").rglob("*.jpg"))), 2)
+
+    def test_capture_library_declared_dimensions_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_photo_source(root)
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            data["photos"][0]["width_px"] = 31
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            result = self.run_single(root, manifest, base / "out")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("decoded dimensions mismatch", result.stderr)
+
+    def test_capture_library_refuses_preaccepted_input(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_photo_source(root)
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            data["photos"][0]["accepted"] = True
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            result = self.run_single(root, manifest, base / "out")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("must remain unaccepted", result.stderr)
+
+    def test_capture_library_path_traversal_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_photo_source(root)
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            data["photos"][0]["relative_photo_path"] = (
+                "01_PHOTOS/ignored/../session-x/T12/T12_L064_F02.jpg"
+            )
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            result = self.run_single(root, manifest, base / "out")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("contains traversal", result.stderr)
+
+    def test_ambiguous_manifest_collection_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_photo_source(root)
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            data["frames"] = []
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            result = self.run_single(root, manifest, base / "out")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("exactly one of frames/items/photos", result.stderr)
+
+    def test_empty_manifest_collection_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "source"
+            manifest = self.make_photo_source(root)
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            data["photos"] = []
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            result = self.run_single(root, manifest, base / "out")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("must not be empty", result.stderr)
 
 
 if __name__ == "__main__":

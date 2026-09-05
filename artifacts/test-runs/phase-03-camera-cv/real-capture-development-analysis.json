@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "artifact": "phase-03-real-capture-development-analysis",
+  "claim_state": "OBSERVED",
+  "verdict": "WARNING",
+  "created_at_utc": "2026-09-05T15:58:16.336228Z",
+  "dataset": {
+    "logical_root": "XYZKlipperTool-Captures",
+    "photo_section": "01_PHOTOS",
+    "evidence_section": "80_EVIDENCE",
+    "analysis_section": "90_TESTS_ANALYSIS",
+    "label": "REAL_CAPTURE_UNLABELED",
+    "holdout_eligible": false,
+    "accepted_for_calibration": false,
+    "images_committed_to_repository": false
+  },
+  "source_sessions": [
+    {
+      "session_id": "20260905T152727Z_VoronBed_L001_round01",
+      "manifest_sha256": "c36da555f54e7f5131073410224b4d6e0f41101523e66809a7324d8faa472f7e",
+      "photo_count": 15,
+      "classification": "WARNING_DEVELOPMENT_ONLY_REQUIRES_REVIEW"
+    },
+    {
+      "session_id": "20260905T153618Z_VoronBed_L004-L255_sweep01",
+      "manifest_sha256": "0e01b74b3eee4d9d030981e650150b56dcc2076eaf866180a5f9b012620e4020",
+      "photo_count": 60,
+      "classification": "WARNING_DEVELOPMENT_ONLY_REQUIRES_REVIEW"
+    }
+  ],
+  "integrity": {
+    "verified_photo_count": 75,
+    "verified_byte_count": 21617906,
+    "sha256_or_byte_count_failures": 0,
+    "warning_records": 75,
+    "excluded_records": 75,
+    "accepted_nozzle_records": 0,
+    "machine_eligible_records": 0,
+    "raw_evidence_modified": false,
+    "user_picture_directory_modified": false
+  },
+  "analysis": {
+    "tool": "scripts/archive_pixel_diagnostics.py",
+    "tool_sha256_at_execution": "928d533ef8033c806de082e460790f5eb5afc6251a970c28f208766b4d6a343f",
+    "validated_successor_tool_sha256": "d56b63858444192ad8d7f6097b3f8525587bb491e88fae823db2908def980978",
+    "successor_change": "Valid-input behavior unchanged; empty collections and noncanonical internal paths now fail closed.",
+    "output": "90_TESTS_ANALYSIS/20260905_Phase03_PixelDiagnostics_75frames_v1",
+    "report_sha256": "db798a02e3ebb957dce537625c4fbcb6564d3274b7ab32c63e001f11ba001654",
+    "full_frame_overlay_count": 75,
+    "development_roi_overlay_count": 75,
+    "development_roi_px": [620, 230, 220, 240],
+    "roi_is_product_default": false,
+    "calibration": "UNAVAILABLE",
+    "machine_actions": false
+  },
+  "level_metrics": [
+    {
+      "level_uint8": 1,
+      "frames": 15,
+      "roi_candidate_count_min": 5,
+      "roi_candidate_count_max": 28,
+      "roi_clipped_all_channels_ge_250_ratio_mean": 0.00025,
+      "roi_grayscale_saturation_ge_250_ratio_mean": 0.000577020202020202,
+      "roi_blur_score_mean": 95.2284948138822
+    },
+    {
+      "level_uint8": 4,
+      "frames": 15,
+      "roi_candidate_count_min": 6,
+      "roi_candidate_count_max": 20,
+      "roi_clipped_all_channels_ge_250_ratio_mean": 0.0439330808080808,
+      "roi_grayscale_saturation_ge_250_ratio_mean": 0.05298106060606061,
+      "roi_blur_score_mean": 75.17675255445076
+    },
+    {
+      "level_uint8": 16,
+      "frames": 15,
+      "roi_candidate_count_min": 3,
+      "roi_candidate_count_max": 13,
+      "roi_clipped_all_channels_ge_250_ratio_mean": 0.10023737373737372,
+      "roi_grayscale_saturation_ge_250_ratio_mean": 0.10774116161616162,
+      "roi_blur_score_mean": 42.62223273494893
+    },
+    {
+      "level_uint8": 64,
+      "frames": 15,
+      "roi_candidate_count_min": 6,
+      "roi_candidate_count_max": 17,
+      "roi_clipped_all_channels_ge_250_ratio_mean": 0.10522348484848484,
+      "roi_grayscale_saturation_ge_250_ratio_mean": 0.11727146464646467,
+      "roi_blur_score_mean": 52.070156058884294
+    },
+    {
+      "level_uint8": 255,
+      "frames": 15,
+      "roi_candidate_count_min": 7,
+      "roi_candidate_count_max": 18,
+      "roi_clipped_all_channels_ge_250_ratio_mean": 0.1489179292929293,
+      "roi_grayscale_saturation_ge_250_ratio_mean": 0.18979040404040404,
+      "roi_blur_score_mean": 51.27258259546218
+    }
+  ],
+  "observations": [
+    "The explicit development ROI contains multiple reflection and edge contours in every frame; generic contour count ranges from 3 to 28 and is not a nozzle count.",
+    "The L255 stress level has the highest mean grayscale saturation ratio in the explicit ROI.",
+    "All pixel candidates remain uncalibrated and unaccepted."
+  ],
+  "limitations": [
+    "No per-frame nozzle-center ground truth has been reviewed.",
+    "No camera calibration identity or uncertainty is available for these sessions.",
+    "Two acquisition sessions do not yet provide calibration, development, and holdout partitions with independent labeled sessions.",
+    "No physical accuracy, detector reliability, machine safety, or production-readiness claim is supported."
+  ]
+}

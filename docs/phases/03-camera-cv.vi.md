@@ -2,7 +2,7 @@
 
 ## Phạm vi và cổng
 
-Triển khai contract dữ liệu capture camera phía host có giới hạn, persistence calibration, plugin detector, diagnostics xác định và công cụ chia corpus. Phase này không tích hợp Klipper/Moonraker, I/O máy in, chuyển động, camera network, triển khai hay HIL.
+Triển khai contract dữ liệu capture camera phía host có giới hạn, persistence calibration, plugin detector, diagnostics xác định và công cụ chia corpus. Code repository trong phase này không tích hợp Klipper/Moonraker, I/O máy in, chuyển động, điều khiển camera network, triển khai hay thực thi HIL; nó có thể kiểm tra frame archive được cung cấp rõ ràng và đã capture theo một lượt operator cho phép riêng.
 
 ## Deliverable
 
@@ -15,7 +15,7 @@ Triển khai contract dữ liệu capture camera phía host có giới hạn, pe
 
 ## Quyết định và giả định
 
-Adapter JPEG host và kiểm tra pixel archive cần runtime OpenCV đã pin; pure domain vẫn độc lập OpenCV. Phase này không sao chép code upstream. 21 frame thật đều WARNING/unhomed và thiếu calibration/ground truth, nên chỉ là diagnostic phát triển, không chứng minh reliability detection hay độ chính xác vật lý.
+Adapter JPEG host và kiểm tra pixel archive cần runtime OpenCV đã pin; pure domain vẫn độc lập OpenCV. Phase này không sao chép code upstream. 21 frame thật đã inventory trước đó vẫn bị loại. Một thư viện capture riêng được operator cho phép hiện có 75 JPEG VoronBed đã kiểm tra hash trong hai session và năm mức sáng quan sát; mọi record vẫn là `WARNING`, chưa gán nhãn, chưa calibration, bị loại khỏi holdout/calibration và không thể chứng minh reliability detection hay độ chính xác vật lý.
 
 Mọi dimension, encoded byte, retry, timeout, frame age, số candidate và chuỗi diagnostic đều hữu hạn. URL camera chỉ nhận scheme/host local được allowlist rõ; credential và path traversal bị từ chối. Origin calibration tách khỏi origin station và không có scale/origin/tolerance lịch sử làm default.
 
@@ -28,4 +28,4 @@ Test bound capture/decode, calibration malformed/non-finite, checksum/version/fa
 Dừng ở `SUPERVISOR_REVIEW_PENDING`; báo lệnh, coverage, hash artifact, giới hạn evidence, rủi ro OPEN và HIL chính xác. Không bắt đầu Phase 04.
 Phạm vi correction: adapter OpenCV JPEG chỉ phía host dùng identity ROI/calibration explicit, decode bounded, diagnostic chất lượng, plugin gradient/radial và contour/ellipse độc lập, cùng consensus fail-closed. Ảnh user vẫn bị loại khỏi claim reliability.
 
-Kiểm tra candidate pixel từ archive là đường host-only tách riêng. Nó nhận source root/manifest explicit và output directory mới, kiểm tra hash nguồn và containment, xuất mọi hình học candidate cùng shape score hình học có bound và residual, đồng thời ghi overlay full-frame và development-ROI. Calibration không có, frame time là unknown khi thiếu, candidate không bao giờ được chấp nhận là nozzle, và collision output bị từ chối.
+Kiểm tra candidate pixel từ archive là đường host-only tách riêng. Nó nhận source root/manifest explicit và output directory mới, gồm contract thư viện capture `photos[]`, kiểm tra hash nguồn, byte count/kích thước khai báo, timestamp UTC, quy tắc tên, trạng thái và containment, xuất mọi hình học candidate cùng shape score hình học có bound và residual, đồng thời ghi overlay full-frame và development-ROI. Calibration không có, frame time là unknown khi thiếu, candidate không bao giờ được chấp nhận là nozzle; manifest mơ hồ, input đã accepted, traversal và collision output đều bị từ chối. Đánh giá benchmark tách riêng từ chối entry `UNLABELED` và mẫu positive thiếu ground truth tâm đã review.

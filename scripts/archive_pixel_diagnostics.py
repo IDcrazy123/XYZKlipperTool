@@ -24,6 +24,138 @@ from xyz_klipper_tool.vision.jpeg_bounds import (
 
 MAX_BYTES = 8 * 1024 * 1024
 MAX_PIXELS = 64_000_000
+MANIFEST_COLLECTION_KEYS = ("frames", "items", "photos")
+
+
+def required_text(
+    item: dict[str, Any], field: str, manifest: Path, maximum: int = 256
+) -> str:
+    """Return one bounded non-empty manifest string or stop with its field name."""
+    value = item.get(field)
+    if not isinstance(value, str) or not value.strip() or len(value) > maximum:
+        raise SystemExit(f"photos[] {field} must be bounded text: {manifest}")
+    return value
+
+
+def read_manifest_collection(
+    data: dict[str, Any], manifest: Path
+) -> tuple[str, list[dict[str, Any]]]:
+    """Select exactly one supported manifest collection without ambiguity."""
+    present = [key for key in MANIFEST_COLLECTION_KEYS if key in data]
+    if len(present) != 1:
+        raise SystemExit(
+            f"manifest must contain exactly one of frames/items/photos: {manifest}"
+        )
+    contract = present[0]
+    entries = data[contract]
+    if not isinstance(entries, list):
+        raise SystemExit(f"manifest {contract} must be an array: {manifest}")
+    if not entries:
+        raise SystemExit(f"manifest {contract} must not be empty: {manifest}")
+    if len(entries) > 10_000:
+        raise SystemExit(f"manifest entry count exceeds bound: {manifest}")
+    if not all(isinstance(entry, dict) for entry in entries):
+        raise SystemExit(f"malformed manifest entry: {manifest}")
+    return contract, entries
+
+
+def normalize_photo_entry(
+    data: dict[str, Any], item: dict[str, Any], manifest: Path
+) -> tuple[str, dict[str, Any]]:
+    """Validate one capture-library photos[] record as excluded evidence.
+
+    This adapter intentionally refuses any acquisition record already marked as
+    accepted. Promotion to calibration or holdout data requires a separate,
+    reviewed labeling contract.
+    """
+    if data.get("schema_version") != 1 or item.get("schema_version") != 1:
+        raise SystemExit(f"photos[] requires schema_version 1: {manifest}")
+    if data.get("accepted_for_calibration") is not False:
+        raise SystemExit(
+            f"photos[] manifest must be excluded from calibration: {manifest}"
+        )
+    if item.get("accepted") is not False:
+        raise SystemExit(f"photos[] entry must remain unaccepted: {manifest}")
+
+    session_id = required_text(item, "session_id", manifest, 128)
+    if session_id != required_text(data, "session_id", manifest, 128):
+        raise SystemExit(f"photos[] session_id mismatch: {manifest}")
+    tool = required_text(item, "tool", manifest, 64)
+    lighting_id = required_text(item, "lighting_id", manifest, 64)
+    frame = required_text(item, "frame", manifest, 64)
+    captured_utc = required_text(item, "captured_utc", manifest, 64)
+    try:
+        parsed_time = datetime.fromisoformat(captured_utc.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise SystemExit(f"photos[] captured_utc is invalid: {manifest}") from error
+    if not captured_utc.endswith(
+        "Z"
+    ) or parsed_time.utcoffset() != timezone.utc.utcoffset(parsed_time):
+        raise SystemExit(f"photos[] captured_utc must be UTC Z time: {manifest}")
+
+    relative_photo_path = required_text(item, "relative_photo_path", manifest, 512)
+    normalized_relative = relative_photo_path.replace("\\", "/")
+    relative_parts = normalized_relative.split("/")
+    if ".." in relative_parts:
+        raise SystemExit("manifest source path contains traversal")
+    expected_parts = [
+        "01_PHOTOS",
+        session_id,
+        tool,
+        f"{tool}_{lighting_id}_{frame}.jpg",
+    ]
+    if relative_parts != expected_parts:
+        raise SystemExit(f"photos[] path/name contract mismatch: {manifest}")
+    if item.get("content_type") != "image/jpeg":
+        raise SystemExit(f"photos[] content_type must be image/jpeg: {manifest}")
+
+    digest = required_text(item, "sha256", manifest, 64)
+    if len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest):
+        raise SystemExit(f"photos[] sha256 is invalid: {manifest}")
+    byte_count = item.get("byte_count")
+    width_px = item.get("width_px")
+    height_px = item.get("height_px")
+    brightness = item.get("ring_brightness_255")
+    if type(byte_count) is not int or not 1 <= byte_count <= MAX_BYTES:
+        raise SystemExit(f"photos[] byte_count is out of bounds: {manifest}")
+    if (
+        type(width_px) is not int
+        or type(height_px) is not int
+        or width_px < 1
+        or height_px < 1
+        or width_px * height_px > MAX_PIXELS
+    ):
+        raise SystemExit(f"photos[] dimensions are out of bounds: {manifest}")
+    if type(brightness) is not int or not 0 <= brightness <= 255:
+        raise SystemExit(f"photos[] ring brightness is out of bounds: {manifest}")
+
+    classification = required_text(item, "classification", manifest, 128)
+    if not classification.startswith(("WARNING", "INVALID")):
+        raise SystemExit(
+            f"photos[] classification must remain WARNING or INVALID: {manifest}"
+        )
+    top_classification = data.get("classification")
+    if top_classification is not None and top_classification != classification:
+        raise SystemExit(f"photos[] classification mismatch: {manifest}")
+    verdict = "INVALID" if classification.startswith("INVALID") else "WARNING"
+    metadata = {
+        "reason_codes": [classification],
+        "claim_status": "OBSERVED",
+        "captured_at_utc": captured_utc,
+        "capture_status": data.get("status", "UNKNOWN"),
+        "corpus_inclusion": "EXCLUDED",
+        "verdict": verdict,
+        "source_classification": classification,
+        "session_id": session_id,
+        "tool": tool,
+        "lighting_id": lighting_id,
+        "ring_brightness_255": brightness,
+        "tool_leds": required_text(item, "tool_leds", manifest, 64),
+        "declared_width_px": width_px,
+        "declared_height_px": height_px,
+        "declared_byte_count": byte_count,
+    }
+    return relative_photo_path, metadata
 
 
 def numeric(values: list[float]) -> dict[str, object]:
@@ -187,17 +319,23 @@ def main() -> int:
         data = json.loads(manifest.read_text(encoding="utf-8"))
         if not isinstance(data, dict):
             raise SystemExit(f"manifest must be an object: {manifest}")
-        entries = data.get("frames", data.get("items"))
-        if not isinstance(entries, list):
-            raise SystemExit(f"manifest missing frames/items: {manifest}")
+        contract, entries = read_manifest_collection(data, manifest)
         for item in entries:
-            if not isinstance(item, dict):
-                raise SystemExit(f"malformed manifest entry: {manifest}")
-            rel = str(item.get("file", item.get("raw", item.get("path", "")))).replace(
-                "/", "\\"
-            )
+            acquisition_metadata: dict[str, Any] | None = None
+            if contract == "photos":
+                photo_rel, acquisition_metadata = normalize_photo_entry(
+                    data, item, manifest
+                )
+                rel = photo_rel.replace("/", "\\")
+            else:
+                rel = str(
+                    item.get("file", item.get("raw", item.get("path", "")))
+                ).replace("/", "\\")
             if not rel:
                 raise SystemExit(f"manifest entry missing path: {manifest}")
+            relative_path = Path(rel)
+            if relative_path.is_absolute() or ".." in relative_path.parts:
+                raise SystemExit("manifest source path contains traversal")
             path = (root / rel).resolve()
             if root not in path.parents or path.suffix.lower() not in {".jpg", ".jpeg"}:
                 raise SystemExit("manifest source path escapes root or is not JPEG")
@@ -213,14 +351,20 @@ def main() -> int:
                 or hashlib.sha256(raw).hexdigest() != digest
             ):
                 raise SystemExit(f"source byte/hash validation failed: {path}")
+            if acquisition_metadata is not None and len(
+                raw
+            ) != acquisition_metadata.get("declared_byte_count"):
+                raise SystemExit(f"photos[] byte_count mismatch: {path}")
             base: dict[str, object] = {
                 "source_manifest": str(manifest),
+                "source_manifest_contract": contract,
                 "source": root.name,
                 "name": path.name,
                 "source_sha256": digest,
                 "bytes": len(raw),
                 "level_uint8": item.get(
-                    "brightness_uint8", item.get("level", "UNKNOWN")
+                    "brightness_uint8",
+                    item.get("level", item.get("ring_brightness_255", "UNKNOWN")),
                 ),
                 "frame": item.get("frame", item.get("frame_id", "UNKNOWN")),
                 "frame_time": "UNKNOWN",
@@ -228,7 +372,21 @@ def main() -> int:
                 "machine_eligibility": False,
                 "accepted_nozzle": False,
             }
-            metadata, metadata_path = load_metadata(root, path, item, digest)
+            if acquisition_metadata is None:
+                metadata, metadata_path = load_metadata(root, path, item, digest)
+            else:
+                metadata = acquisition_metadata
+                metadata_path = None
+                base.update(
+                    {
+                        "session_id": metadata["session_id"],
+                        "tool": metadata["tool"],
+                        "lighting_id": metadata["lighting_id"],
+                        "source_classification": metadata["source_classification"],
+                        "source_declared_acceptance": False,
+                        "source_tool_leds": metadata["tool_leds"],
+                    }
+                )
             if metadata_path is not None:
                 base["metadata_sha256"] = hashlib.sha256(
                     metadata_path.read_bytes()
@@ -255,7 +413,10 @@ def main() -> int:
             )
             base["frame_time"] = metadata.get("captured_at_utc", "UNKNOWN")
             capture_status = metadata.get("capture_status", "UNKNOWN")
-            source_status = capture_status
+            if contract == "photos":
+                source_status = metadata["verdict"]
+            else:
+                source_status = capture_status
             if source_status == "UNKNOWN":
                 source_status = metadata.get("claim_status", "UNKNOWN")
             base["source_capture_status"] = capture_status
@@ -301,6 +462,11 @@ def main() -> int:
                 records.append(base)
                 continue
             h, w = image.shape[:2]
+            if acquisition_metadata is not None and [int(w), int(h)] != [
+                acquisition_metadata["declared_width_px"],
+                acquisition_metadata["declared_height_px"],
+            ]:
+                raise SystemExit(f"photos[] decoded dimensions mismatch: {path}")
             base.update(
                 {
                     "status": source_status,

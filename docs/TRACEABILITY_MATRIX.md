@@ -14,8 +14,8 @@ Every requirement below occurs exactly once.
 | REQ-SAMPLE-001 | EVID-XY-001 | sampling hierarchy design | planned: three outer-cycle test |
 | REQ-STAT-001 | EVID-XY-001; Master prompt | `domain/statistics.py` Summary/StatisticResult | actual: `tests/test_domain.py` sufficiency, counts, SD/MAD/uncertainty/reference drift |
 | REQ-OUTLIER-001 | EVID-XY-001 | `statistics.py` immutable raw plus unfiltered/filtered summaries and Rejection | actual: reasoned rejection, invalid exclusion, threshold validation tests |
-| REQ-VISION-001 | SRC-009; SRC-015; Master prompt | host vision boundary; `vision/jpeg_adapter.py` | actual: bounded JPEG decode, ROI identity, quality diagnostics, independent pipelines, and fail-closed input tests; real unlabeled imagery remains excluded |
-| REQ-CORPUS-001 | SRC-009; SRC-010 | corpus and evaluation plan | planned: session split/holdout gate |
+| REQ-VISION-001 | SRC-009; SRC-015; Master prompt | host vision boundary; `vision/jpeg_adapter.py`; archive inspector | actual: bounded JPEG decode, ROI identity, quality diagnostics, independent pipelines, strict `photos[]` ingestion, and fail-closed input tests; 75 real unlabeled frames remain excluded |
+| REQ-CORPUS-001 | SRC-009; SRC-010 | corpus and evaluation plan | actual: two acquisition sessions are organized and hash-verified; reviewed labels plus three-way independent session split remain `NEEDS_WORK` |
 | REQ-PERSIST-001 | Master prompt; ASSUMPTION | persistence policy | planned: atomic write/power-loss tests |
 | REQ-SCHEMA-001 | Master prompt; ASSUMPTION | `domain/schema.py`; paired v1 JSON Schemas | actual: `tests/test_schema.py` contract, round-trip, malformed/version/enum/non-finite faults |
 | REQ-EVID-001 | Phase 00 import; EVID-Z-INVALID-001 | provenance policy; evidence manifest | actual: 23/23 hash and 21/21 JSON checks |
@@ -38,5 +38,5 @@ Every requirement below occurs exactly once.
 | REQ-DETECT-001 | Master prompt; SRC-009 | `vision/detectors.py` plugin and diagnostics model | actual: candidate/zero/ambiguous tests |
 | REQ-CORPUS-002 | Master prompt; ASSUMPTION | `vision/corpus.py` immutable inventory/session split | actual: leakage test; real-corpus gate NEEDS_WORK |
 | REQ-CALIB-002 | Master prompt; ASSUMPTION | `vision/calibration.py`; calibration envelope schema | actual: checksum, bounds, rotation, corrupt/traversal recovery and pre-replace fault tests |
-| REQ-CORPUS-003 | Master prompt; ASSUMPTION | `vision/corpus.py` inventory/verifier | actual: relative path, hash and mismatch tests |
-| REQ-BENCH-001 | Master prompt; ASSUMPTION | `vision/corpus.py` evaluate_benchmark; synthetic benchmark artifact/schema | actual: both candidate reports, TP/FP/FN/TN and derived center-error tests; real corpus NEEDS_WORK |
+| REQ-CORPUS-003 | Master prompt; ASSUMPTION | `vision/corpus.py` inventory/verifier | actual: relative path, hash, mismatch, finite/nonnegative center, and unlabeled-holdout rejection tests |
+| REQ-BENCH-001 | Master prompt; ASSUMPTION | `vision/corpus.py` evaluate_benchmark; synthetic benchmark artifact/schema | actual: both candidate reports, TP/FP/FN/TN and derived center-error tests; unlabeled/incomplete ground truth fails closed; real holdout `NEEDS_WORK` |
