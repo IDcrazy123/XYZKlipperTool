@@ -24,7 +24,6 @@ from xyz_klipper_tool.vision.jpeg_bounds import (
 
 MAX_BYTES = 8 * 1024 * 1024
 MAX_PIXELS = 64_000_000
-FULL = (0, 0, 1280, 720)
 
 
 def numeric(values: list[float]) -> dict[str, object]:
@@ -177,13 +176,38 @@ def main() -> int:
                 "level_uint8": int(item.get("brightness_uint8", item.get("level", 0))),
                 "frame": int(item["frame"]),
                 "frame_time": "UNKNOWN",
-                "raw_http_evidence": "MISSING"
-                if "lowlight" in root.name.lower()
-                else "PRESENT_OR_NOT_CLAIMED",
                 "calibration": "UNAVAILABLE",
                 "machine_eligibility": False,
                 "accepted_nozzle": False,
             }
+            metadata: dict[str, Any] = {}
+            metadata_rel = item.get("metadata")
+            if isinstance(metadata_rel, str):
+                metadata_path = (root / metadata_rel.replace("/", "\\")).resolve()
+                if root in metadata_path.parents and metadata_path.is_file():
+                    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                    base["metadata_sha256"] = hashlib.sha256(
+                        metadata_path.read_bytes()
+                    ).hexdigest()
+            reasons = metadata.get("reason_codes")
+            if isinstance(reasons, list) and all(
+                isinstance(value, str) for value in reasons
+            ):
+                base["source_reason_codes"] = reasons
+                base["reason"] = reasons[0] if reasons else "UNKNOWN_METADATA"
+                base["raw_http_evidence"] = (
+                    "MISSING"
+                    if "HTTP_EVIDENCE_PERSISTENCE_FAILED" in reasons
+                    else "PRESENT_OR_NOT_CLAIMED"
+                )
+            else:
+                base["reason"] = "UNKNOWN_METADATA"
+                base["raw_http_evidence"] = "UNKNOWN"
+            base["claim_status"] = metadata.get("claim_status", "UNKNOWN")
+            base["homed_axes"] = metadata.get(
+                "homed_axes", metadata.get("homed_axes_before", "UNKNOWN")
+            )
+            base["frame_time"] = metadata.get("captured_at_utc", "UNKNOWN")
             try:
                 validate_jpeg_header(raw, MAX_BYTES, MAX_PIXELS)
             except JpegBoundaryError as error:
@@ -222,13 +246,13 @@ def main() -> int:
             base.update(
                 {
                     "status": "WARNING",
-                    "reason": "UNHOMED_POSE_UNVERIFIED",
                     "dimensions_px": [int(w), int(h)],
-                    "full_frame": measure(image, FULL, w, h),
+                    "full_frame": measure(image, (0, 0, w, h), w, h),
                     "development_roi": measure(image, roi, w, h),
                 }
             )
-            for name, bounds in (("full_frame", FULL), ("development_roi", roi)):
+            full_bounds = (0, 0, w, h)
+            for name, bounds in (("full_frame", full_bounds), ("development_roi", roi)):
                 overlay = image.copy()
                 bx, by, bw, bh = bounds
                 cv2.rectangle(
@@ -257,8 +281,13 @@ def main() -> int:
                 )
                 overlay_dir = output / "overlays" / name
                 overlay_dir.mkdir(parents=True, exist_ok=True)
-                overlay_name = f"{root.name}__{path.name}"
-                cv2.imwrite(str(overlay_dir / overlay_name), overlay)
+                source_namespace = hashlib.sha256(str(root).encode()).hexdigest()[:16]
+                overlay_name = f"{source_namespace}__{source_manifest_sha256[str(manifest)][:16]}__{hashlib.sha256(str(path.relative_to(root)).encode()).hexdigest()[:16]}__{path.name}"
+                overlay_path = overlay_dir / overlay_name
+                if overlay_path.exists() or not cv2.imwrite(str(overlay_path), overlay):
+                    raise SystemExit(
+                        f"overlay write failed or would overwrite: {overlay_path}"
+                    )
             records.append(base)
     report = {
         "schema": "xyz-klipper-tool.archived-pixel-candidate-inspection.v1",
@@ -268,7 +297,7 @@ def main() -> int:
         "platform": platform.platform(),
         "opencv": cv2.__version__,
         "parameters": {
-            "full_frame_px": FULL,
+            "full_frame": "decoded image bounds",
             "development_roi_px": roi,
             "max_encoded_bytes": MAX_BYTES,
             "max_pixels": MAX_PIXELS,
