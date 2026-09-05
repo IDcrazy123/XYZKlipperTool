@@ -37,6 +37,10 @@ def main() -> int:
     parser.add_argument("--mm-per-pixel-x", type=float)
     parser.add_argument("--mm-per-pixel-y", type=float)
     args = parser.parse_args()
+    limits = JpegAnalysisLimits()
+    x, y, width, height = args.roi
+    if x < 0 or y < 0 or not 1 <= width <= 8192 or not 1 <= height <= 8192:
+        raise SystemExit("ROI must be nonnegative and bounded")
     root = args.path.resolve()
     if not root.exists() or not root.is_file() and not root.is_dir():
         raise SystemExit("path must be an image file or directory")
@@ -115,6 +119,29 @@ def main() -> int:
         if path.suffix.lower() not in {".jpg", ".jpeg"}:
             continue
         encoded = path.read_bytes()
+        if not encoded or len(encoded) > limits.max_encoded_bytes:
+            print(
+                json.dumps(
+                    {
+                        "name": path.name,
+                        "byte_size": len(encoded),
+                        "sha256": hashlib.sha256(encoded).hexdigest(),
+                        "status": "EXCLUDED_PENDING_LABELS",
+                        "reason": "OVERSIZED_INPUT",
+                        "pipeline_a": "UNAVAILABLE",
+                        "pipeline_b": "UNAVAILABLE",
+                        "quality": {
+                            "saturation_ratio": 0.0,
+                            "glare_ratio": 0.0,
+                            "blur_score": 0.0,
+                            "contrast_std": 0.0,
+                            "masked_pixel_count": 0,
+                        },
+                    },
+                    sort_keys=True,
+                )
+            )
+            continue
         if not supplied_calibration:
             decoded: Any = cv2.imdecode(
                 np.frombuffer(encoded, dtype=np.uint8), cv2.IMREAD_GRAYSCALE
@@ -129,8 +156,39 @@ def main() -> int:
                 }
                 reason = "CORRUPT_INPUT"
             else:
-                x, y, width, height = args.roi
-                crop = decoded[y : y + height, x : x + width]
+                image_height, image_width = decoded.shape
+                reason = "INVALID_ROI"
+                if (
+                    image_width * image_height > limits.max_pixels
+                    or x + width > image_width
+                    or y + height > image_height
+                ):
+                    reason = "INVALID_ROI"
+                    crop = None
+                else:
+                    crop = decoded[y : y + height, x : x + width]
+                if crop is None or crop.size == 0:
+                    quality = {
+                        "saturation_ratio": 0.0,
+                        "glare_ratio": 0.0,
+                        "blur_score": 0.0,
+                        "contrast_std": 0.0,
+                        "masked_pixel_count": 0,
+                    }
+                    record = {
+                        "name": path.name,
+                        "byte_size": len(encoded),
+                        "sha256": hashlib.sha256(encoded).hexdigest(),
+                        "status": "EXCLUDED_PENDING_LABELS",
+                        "reason": reason,
+                        "pipeline_a": "UNAVAILABLE",
+                        "pipeline_b": "UNAVAILABLE",
+                        "quality": quality,
+                        "uncertainty_mm": None,
+                        "shape_score": None,
+                    }
+                    print(json.dumps(record, sort_keys=True))
+                    continue
                 saturated = crop >= 250
                 quality = {
                     "saturation_ratio": float(np.mean(saturated)),
@@ -156,6 +214,8 @@ def main() -> int:
                 "pipeline_a": "CALIBRATION_UNAVAILABLE",
                 "pipeline_b": "CALIBRATION_UNAVAILABLE",
                 "quality": quality,
+                "uncertainty_mm": None,
+                "shape_score": None,
             }
             print(json.dumps(record, sort_keys=True))
             continue

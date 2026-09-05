@@ -134,6 +134,7 @@ def _invalid(
     reason: ReasonCode,
     quality: QualityDiagnostics | None = None,
     pipeline: str = "",
+    candidate_count: int = 0,
 ) -> JpegDetection:
     detection = Detection(
         calibration.calibration_id,
@@ -142,10 +143,10 @@ def _invalid(
         None,
         None,
         0.0,
-        0,
+        candidate_count,
         reason,
         Verdict.INVALID,
-        0.0,
+        max(0.0, (context.now_utc - context.captured_at_utc).total_seconds()),
         calibration.uncertainty_mm.value_mm,
     )
     return JpegDetection(
@@ -249,6 +250,7 @@ def _result(
             reason if reason is not ReasonCode.NONE else ReasonCode.ZERO_CANDIDATE,
             quality,
             pipeline,
+            count,
         )
     detection = Detection(
         calibration.calibration_id,

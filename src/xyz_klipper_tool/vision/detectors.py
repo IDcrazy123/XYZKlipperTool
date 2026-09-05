@@ -154,8 +154,11 @@ class Detection:
             or self.center_x_px is None
             or self.center_y_px is None
             or self.candidate_count < 1
+            or self.confidence <= 0.0
         ):
-            raise ValueError("PASS detection must have a coherent candidate")
+            raise ValueError(
+                "PASS detection must have positive confidence and a coherent candidate"
+            )
         if self.verdict is Verdict.INVALID and self.reason is ReasonCode.NONE:
             raise ValueError("INVALID detection requires a reason")
         if self.center_x_px is not None and type(self.center_x_px) is not Pixels:
