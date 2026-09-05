@@ -2,7 +2,7 @@
   "phase": "03-camera-cv",
   "status": "NEEDS_WORK",
   "base_commit": "f0283a3c756d728c6b66a2775d02ed24d4d97cd5",
-  "commit_under_test": "f03262b7066247acbc60f58014f9ba86aac95555",
+  "commit_under_test": "c476084a54221bee24b3f2086938cce57d49b74d",
   "branch": "phase/03-camera-cv",
   "utc_time": "2026-09-05T14:23:00Z",
   "commands": [
@@ -29,13 +29,13 @@
     "src/xyz_klipper_tool/vision/corpus.py": "sha256:5e8950ea308c74c7c03168d94de732b0a434c01fbb73e0961cb6bf63f0367cb6",
     "src/xyz_klipper_tool/vision/jpeg_adapter.py": "sha256:3f2f9479651c4ef67316ac4dcf9d5f2b890a3784cce88c37e1e83d61036b6c7f",
     "src/xyz_klipper_tool/vision/jpeg_bounds.py": "sha256:50184649acf1ffd70f41912716dc3e38a422131d8b7cf96b3c6101eadccd574a",
-    "scripts/archive_pixel_diagnostics.py": "sha256:26aa0b6760491f5ad6d0555bbc0a117bbd7d5f0649a9bcbfc21078cbee79df31",
+    "scripts/archive_pixel_diagnostics.py": "sha256:ab831a5302bd2b10de4ea759c559dd4908f05391c3f20beee89cd2372ef9a7a8",
     "scripts/explore_picture.py": "sha256:bd794b4575f1ae8c23892bbb2e5b347566f2e09537634f04c4a8224b87550863",
     "schemas/jpeg-analysis-report.v1.schema.json": "sha256:ca42144a9b4e5e0a7db1a22d29e7e2afd399507a78e20f8b9e3ce6b6796a4948",
     "tests/test_phase02.py": "sha256:e8eac66be7e47c96877a18e7c6f90e3bf075c2445ea836db127c69aab3c5045f",
     "tests/test_phase03.py": "sha256:537b5db7f3cbfa176e869b985ff4bb64f54cb29cc4e38562abc53c9bfb36dd6a",
     "tests/test_jpeg_adapter.py": "sha256:c64567ab037d19a39c6aa04c9897db00221c7a5d22faa8453226674cc4313020",
-    "tests/test_archive_pixel_diagnostics.py": "sha256:ded65c58ca6863711786e33feac0c3bc3ef16563cd62810ab7a4bbc9f871f01d"
+    "tests/test_archive_pixel_diagnostics.py": "sha256:3e2e368ef0914a5ae4e3bade1f7e07d5e5c1e625fe0d3dc56227210acec085f3"
   },
   "real_corpus_holdout": "NEEDS_WORK",
   "platform_directory_durability": "OPEN",
