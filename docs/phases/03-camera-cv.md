@@ -27,3 +27,5 @@ Capture/decode bounds, malformed/non-finite calibration, persistence checksum/ve
 
 Stop at `SUPERVISOR_REVIEW_PENDING`; report exact commands, coverage, artifact hashes, evidence limitations, OPEN risks, and HIL boundary. Do not begin Phase 04.
 Correction scope: the host-only OpenCV JPEG adapter now uses explicit ROI/calibration identity, bounded decode, quality diagnostics, independent gradient/radial and contour/ellipse plugins, and fail-closed consensus. User-provided images remain excluded from reliability claims.
+
+The archived pixel candidate inspection is a separate host-only path. It accepts explicit source roots/manifests and a new output directory, validates source hashes and containment, emits all candidate geometry with bounded geometric shape scores and residuals, and writes full-frame plus development-ROI overlays. Calibration is unavailable, frame time is unknown when absent, candidates are never accepted as nozzles, and output collisions are rejected.

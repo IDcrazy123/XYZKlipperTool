@@ -1,8 +1,9 @@
-# pyright: reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownVariableType=false, reportUnknownLambdaType=false
-"""Create calibration-free, read-only diagnostics for sealed JPEG manifests."""
+# pyright: reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownVariableType=false
+"""Read-only archived JPEG candidate inspection; never produces calibrated measurements."""
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import platform
@@ -15,11 +16,12 @@ from typing import Any
 import cv2
 import numpy as np
 
+MAX_BYTES = 8 * 1024 * 1024
+MAX_PIXELS = 64_000_000
 FULL = (0, 0, 1280, 720)
-ROI = (620, 230, 220, 240)
 
 
-def stats(values: list[float]) -> dict[str, object]:
+def numeric(values: list[float]) -> dict[str, object]:
     if not values:
         return {
             "count": 0,
@@ -31,165 +33,236 @@ def stats(values: list[float]) -> dict[str, object]:
             "max": None,
             "range": None,
         }
-    median = statistics.median(values)
+    med = statistics.median(values)
     return {
         "count": len(values),
         "mean": statistics.fmean(values),
-        "median": median,
+        "median": med,
         "sample_sd": statistics.stdev(values) if len(values) > 1 else None,
-        "mad": statistics.median([abs(v - median) for v in values]),
+        "mad": statistics.median(abs(v - med) for v in values),
         "min": min(values),
         "max": max(values),
         "range": max(values) - min(values),
     }
 
 
-def one(
-    path: Path,
-    source: str,
-    level: int,
-    frame: int,
-    missing_http: bool,
-    digest: str,
-    out: Path,
+def candidates(gray: Any, x0: int, y0: int) -> tuple[list[dict[str, object]], Any]:
+    edges = cv2.Canny(gray, 40, 120)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    found: list[dict[str, object]] = []
+    for contour in contours:
+        area = float(cv2.contourArea(contour))
+        perimeter = float(cv2.arcLength(contour, True))
+        if area < 20 or perimeter <= 0:
+            continue
+        moments = cv2.moments(contour)
+        if not moments["m00"]:
+            continue
+        cx = moments["m10"] / moments["m00"]
+        cy = moments["m01"] / moments["m00"]
+        points = contour.reshape(-1, 2).astype(np.float64)
+        radius = np.hypot(points[:, 0] - cx, points[:, 1] - cy)
+        residual = float(radius.std())
+        shape_score = max(0.0, min(1.0, 4.0 * np.pi * area / (perimeter * perimeter)))
+        found.append(
+            {
+                "center_px": [cx + x0, cy + y0],
+                "area_px2": area,
+                "bbox_px": list(map(int, cv2.boundingRect(contour))),
+                "shape_score": shape_score,
+                "fit_residual_px": residual,
+                "accepted_as_nozzle": False,
+                "rejection_reasons": ["UNCALIBRATED_CANDIDATE_ONLY"],
+            }
+        )
+    return found, contours
+
+
+def measure(
+    image: Any, bounds: tuple[int, int, int, int], full_w: int, full_h: int
 ) -> dict[str, object]:
-    raw = path.read_bytes()
-    if hashlib.sha256(raw).hexdigest() != digest:
-        raise RuntimeError(f"source hash mismatch: {path}")
-    image = cv2.imread(str(path), cv2.IMREAD_COLOR)
-    record: dict[str, object] = {
-        "source": source,
-        "level_uint8": level,
-        "frame": frame,
-        "name": path.name,
-        "source_sha256": digest,
-        "bytes": len(raw),
-        "uncertainty_mm": None,
-        "detector_candidates": "UNSUPPORTED_WITHOUT_CALIBRATION",
-        "machine_eligibility": False,
-        "raw_http_evidence": "MISSING" if missing_http else "PRESENT_OR_NOT_CLAIMED",
-    }
-    if image is None or image.ndim != 3:
-        record.update(
-            {
-                "status": "INVALID",
-                "reason": "CORRUPT_INPUT",
-                "full_frame": None,
-                "development_roi": None,
-            }
-        )
-        return record
-    h, w = image.shape[:2]
-    record["dimensions_px"] = [int(w), int(h)]
-
-    def measure(x: int, y: int, rw: int, rh: int) -> dict[str, object]:
-        if x < 0 or y < 0 or x + rw > w or y + rh > h:
-            return {"status": "INVALID", "reason": "ROI_OUT_OF_BOUNDS"}
-        crop: Any = image[y : y + rh, x : x + rw]
-        g = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY).astype(np.float64)
-        pixels = g.ravel().tolist()
-        all_channels = crop.astype(np.uint16)
-        clipped = int(np.count_nonzero(np.all(all_channels >= 250, axis=2)))
-        underexposed = int(np.count_nonzero(np.all(all_channels <= 1, axis=2)))
-        result = stats([float(v) for v in pixels])
-        result.update(
-            {
-                "status": "VALID_PIXELS",
-                "shape_score": None,
-                "uncertainty_mm": None,
-                "clipped_all_channels_ge_250_count": clipped,
-                "clipped_all_channels_ge_250_ratio": clipped / (rw * rh),
-                "underexposed_all_channels_le_1_count": underexposed,
-                "underexposed_all_channels_le_1_ratio": underexposed / (rw * rh),
-                "grayscale_saturation_ge_250_count": int(np.count_nonzero(g >= 250)),
-                "grayscale_saturation_ge_250_ratio": float(np.mean(g >= 250)),
-                "blur_score": float(cv2.Laplacian(g, cv2.CV_64F).var()),
-                "contrast_std": float(g.std()),
-                "width_px": rw,
-                "height_px": rh,
-            }
-        )
-        return result
-
-    record.update(
+    x, y, w, h = bounds
+    if x < 0 or y < 0 or w < 1 or h < 1 or x + w > full_w or y + h > full_h:
+        return {"status": "INVALID", "reason": "ROI_OUT_OF_BOUNDS"}
+    crop = image[y : y + h, x : x + w]
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY).astype(np.float64)
+    values = [float(v) for v in gray.ravel().tolist()]
+    all_channels = crop.astype(np.uint16)
+    found, _contours = candidates(gray.astype(np.uint8), x, y)
+    result = numeric(values)
+    result.update(
         {
-            "status": "WARNING",
-            "reason": "UNHOMED_POSE_UNVERIFIED",
-            "full_frame": measure(*FULL),
-            "development_roi": measure(*ROI),
+            "status": "VALID_PIXELS",
+            "candidate_count": len(found),
+            "candidates": found,
+            "shape_score_is_not_confidence": True,
+            "uncertainty_mm": None,
+            "clipped_all_channels_ge_250_count": int(
+                np.count_nonzero(np.all(all_channels >= 250, axis=2))
+            ),
+            "clipped_all_channels_ge_250_ratio": float(
+                np.mean(np.all(all_channels >= 250, axis=2))
+            ),
+            "grayscale_saturation_ge_250_count": int(np.count_nonzero(gray >= 250)),
+            "grayscale_saturation_ge_250_ratio": float(np.mean(gray >= 250)),
+            "underexposed_all_channels_le_1_count": int(
+                np.count_nonzero(np.all(all_channels <= 1, axis=2))
+            ),
+            "underexposed_all_channels_le_1_ratio": float(
+                np.mean(np.all(all_channels <= 1, axis=2))
+            ),
+            "blur_score": float(cv2.Laplacian(gray, cv2.CV_64F).var()),
+            "contrast_std": float(gray.std()),
+            "bounds_px": [x, y, w, h],
         }
     )
-    return record
+    return result
 
 
 def main() -> int:
-    roots = [
-        Path(
-            r"D:\Desktop\XYZKlipperTool-Captures\20260905T133241Z_VoronBed_camera-ring_T0-canary"
-        ),
-        Path(
-            r"D:\Desktop\XYZKlipperTool-Captures\20260905T133902Z_VoronBed_camera-ring_T0-lowlight"
-        ),
-    ]
-    output = Path(
-        r"D:\Desktop\XYZKlipperTool-Captures\analysis_20260905T135000Z_T0_lighting"
-    )
-    output.mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source-root", action="append", type=Path, required=True)
+    parser.add_argument("--source-manifest", action="append", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--roi", nargs=4, type=int, required=True)
+    args = parser.parse_args()
+    if len(args.source_root) != len(args.source_manifest):
+        raise SystemExit("each source root requires one manifest")
+    output = args.output.resolve()
+    if output.exists() or output.is_symlink():
+        raise SystemExit("output already exists; refusing overwrite")
+    output.mkdir(parents=True)
+    roi = tuple(args.roi)
     records: list[dict[str, object]] = []
-    manifest_hashes: dict[str, str] = {}
-    for root in roots:
-        manifest_path = root / "reports" / "canary-manifest.json"
-        manifest_hashes[str(root)] = hashlib.sha256(
-            manifest_path.read_bytes()
+    source_manifest_sha256: dict[str, str] = {}
+    seen_source_entries: set[tuple[str, str, str]] = set()
+    for root_arg, manifest_arg in zip(args.source_root, args.source_manifest):
+        root = root_arg.resolve()
+        manifest = manifest_arg.resolve()
+        if not manifest.is_file() or root not in manifest.parents:
+            raise SystemExit("manifest must resolve under its source root")
+        source_manifest_sha256[str(manifest)] = hashlib.sha256(
+            manifest.read_bytes()
         ).hexdigest()
-        data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        missing = "lowlight" in root.name
+        data = json.loads(manifest.read_text(encoding="utf-8"))
         for item in data["frames"]:
-            rel = item.get("file", item.get("raw"))
-            path = root / Path(str(rel).replace("/", "\\"))
-            records.append(
-                one(
-                    path,
-                    root.name,
-                    int(item.get("brightness_uint8", item.get("level", 0))),
-                    int(item["frame"]),
-                    missing,
-                    str(item["sha256"]),
-                    output,
+            rel = str(item.get("file", item.get("raw"))).replace("/", "\\")
+            path = (root / rel).resolve()
+            if root not in path.parents or path.suffix.lower() not in {".jpg", ".jpeg"}:
+                raise SystemExit("manifest source path escapes root or is not JPEG")
+            raw = path.read_bytes()
+            digest = str(item["sha256"])
+            source_key = (str(root), digest, rel)
+            if source_key in seen_source_entries:
+                raise SystemExit(f"duplicate manifest source entry: {digest}")
+            seen_source_entries.add(source_key)
+            if (
+                len(raw) == 0
+                or len(raw) > MAX_BYTES
+                or hashlib.sha256(raw).hexdigest() != digest
+            ):
+                raise SystemExit(f"source byte/hash validation failed: {path}")
+            image = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
+            base: dict[str, object] = {
+                "source_manifest": str(manifest),
+                "source": root.name,
+                "name": path.name,
+                "source_sha256": digest,
+                "bytes": len(raw),
+                "level_uint8": int(item.get("brightness_uint8", item.get("level", 0))),
+                "frame": int(item["frame"]),
+                "frame_time": "UNKNOWN",
+                "raw_http_evidence": "MISSING"
+                if "lowlight" in root.name.lower()
+                else "PRESENT_OR_NOT_CLAIMED",
+                "calibration": "UNAVAILABLE",
+                "machine_eligibility": False,
+                "accepted_nozzle": False,
+            }
+            if (
+                image is None
+                or image.ndim != 3
+                or image.shape[0] * image.shape[1] > MAX_PIXELS
+            ):
+                base.update(
+                    {
+                        "status": "INVALID",
+                        "reason": "CORRUPT_OR_OVERSIZED",
+                        "full_frame": None,
+                        "development_roi": None,
+                    }
                 )
+                records.append(base)
+                continue
+            h, w = image.shape[:2]
+            base.update(
+                {
+                    "status": "WARNING",
+                    "reason": "UNHOMED_POSE_UNVERIFIED",
+                    "dimensions_px": [int(w), int(h)],
+                    "full_frame": measure(image, FULL, w, h),
+                    "development_roi": measure(image, roi, w, h),
+                }
             )
+            for name, bounds in (("full_frame", FULL), ("development_roi", roi)):
+                overlay = image.copy()
+                bx, by, bw, bh = bounds
+                cv2.rectangle(
+                    overlay, (bx, by), (bx + bw - 1, by + bh - 1), (0, 255, 255), 2
+                )
+                section = base[name]
+                if isinstance(section, dict):
+                    for candidate in section.get("candidates", []):
+                        center = candidate["center_px"]
+                        cv2.drawMarker(
+                            overlay,
+                            (round(float(center[0])), round(float(center[1]))),
+                            (0, 0, 255),
+                            cv2.MARKER_CROSS,
+                            18,
+                            2,
+                        )
+                cv2.putText(
+                    overlay,
+                    "CANDIDATE ONLY / UNCALIBRATED",
+                    (20, 35),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.8,
+                    (0, 0, 255),
+                    2,
+                )
+                overlay_dir = output / "overlays" / name
+                overlay_dir.mkdir(parents=True, exist_ok=True)
+                overlay_name = f"{root.name}__{path.name}"
+                cv2.imwrite(str(overlay_dir / overlay_name), overlay)
+            records.append(base)
     report = {
-        "schema": "xyz-klipper-tool.archived-pixel-diagnostics.v1",
+        "schema": "xyz-klipper-tool.archived-pixel-candidate-inspection.v1",
         "created_at_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "argv": sys.argv,
         "python": sys.version,
         "platform": platform.platform(),
         "opencv": cv2.__version__,
         "parameters": {
-            "full_frame_requested_px": FULL,
-            "development_roi_requested_px": ROI,
-            "color_clipping_definition": "all BGR channels >= 250",
-            "grayscale_saturation_definition": "grayscale >= 250",
-            "underexposure_definition": "all BGR channels <= 1",
-            "calibration": "none",
+            "full_frame_px": FULL,
+            "development_roi_px": roi,
+            "max_encoded_bytes": MAX_BYTES,
+            "max_pixels": MAX_PIXELS,
+            "calibration": "UNAVAILABLE",
             "machine_eligibility": False,
-            "detector_candidates": "UNSUPPORTED_WITHOUT_CALIBRATION",
+            "shape_score": "bounded geometric score, not confidence probability",
+            "candidate_acceptance": "never accepted as nozzle",
         },
-        "source_manifest_sha256": manifest_hashes,
+        "source_manifest_sha256": source_manifest_sha256,
         "records": records,
     }
     (output / "reports.json").write_text(
         json.dumps(report, indent=2, sort_keys=True, allow_nan=False), encoding="utf-8"
     )
-    summary = (
-        "# Archived pixel diagnostics\n\nCalibration-free diagnostic only; no millimetre transform, nozzle-center claim, machine eligibility, or product brightness default. All 21 source frames are retained, including clipped and underexposed frames. Full-frame requested size is 1280x720; development ROI is x=620,y=230,width=220,height=240. Clipping metrics are named separately: all-channel >=250 versus grayscale >=250. Low-light frames are additionally marked RAW_HTTP_EVIDENCE_MISSING. Provisional visual observation only: L001 appears preferable for further review; this is not a firmware/product default.\n\nSource manifest hashes:\n"
-        + "\n".join(f"- `{k}`: `{v}`" for k, v in manifest_hashes.items())
-        + f"\n\nRecords: {len(records)}; no source files modified.\n"
-    )
-    (output / "SUMMARY.md").write_text(summary, encoding="utf-8")
+    text = "# Archived pixel candidate inspection\n\nDevelopment-only, calibration-free candidate geometry. Red markers show every detected candidate; no marker is an accepted nozzle. No millimetres, freshness, accuracy, holdout, or machine eligibility claim. Full-frame and explicit ROI are both retained. Nine low-light frames carry RAW_HTTP_EVIDENCE_MISSING.\n"
+    (output / "SUMMARY.md").write_text(text, encoding="utf-8")
     (output / "SUMMARY.vi.md").write_text(
-        "# Diagnostic pixel archive\n\nChỉ là diagnostic không calibration; không có biến đổi millimet, claim tâm nozzle, điều kiện máy hoặc default độ sáng sản phẩm. Giữ đủ 21 frame, kể cả frame clipped và underexposed. Kích thước full-frame yêu cầu 1280x720; ROI phát triển là x=620,y=230,width=220,height=240. Metric clipping được đặt tên riêng: toàn bộ channel >=250 so với grayscale >=250. Các frame low-light được đánh dấu thêm RAW_HTTP_EVIDENCE_MISSING. Quan sát thị giác tạm thời: L001 có vẻ phù hợp hơn để xem tiếp; không phải firmware/product default.\n\nHash manifest nguồn:\n"
-        + "\n".join(f"- `{k}`: `{v}`" for k, v in manifest_hashes.items())
-        + f"\n\nSố record: {len(records)}; không sửa file nguồn.\n",
+        "# Kiểm tra candidate pixel từ archive\n\nChỉ dành cho phát triển, hình học candidate không calibration. Marker đỏ hiển thị mọi candidate; không marker nào là nozzle được chấp nhận. Không có millimet, freshness, accuracy, holdout hay điều kiện máy. Giữ cả full-frame và ROI explicit. Chín frame low-light mang nhãn RAW_HTTP_EVIDENCE_MISSING.\n",
         encoding="utf-8",
     )
     return 0
