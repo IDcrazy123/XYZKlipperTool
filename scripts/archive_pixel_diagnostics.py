@@ -124,6 +124,42 @@ def measure(
     return result
 
 
+def load_metadata(
+    root: Path, path: Path, item: dict[str, Any], digest: str
+) -> tuple[dict[str, Any], Path | None]:
+    """Load the supported canary/HIL metadata contract or fail with context."""
+    metadata_rel = item.get("metadata")
+    candidates: list[Path] = []
+    if isinstance(metadata_rel, str):
+        candidates.append((root / metadata_rel.replace("/", "\\")).resolve())
+    if not candidates:
+        relative = path.relative_to(root)
+        run_root = root / relative.parts[0] if relative.parts else root
+        candidates.extend((run_root / "metadata").glob("**/*.json"))
+    for candidate in candidates:
+        if root not in candidate.parents or not candidate.is_file():
+            continue
+        try:
+            metadata = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise SystemExit(f"metadata malformed: {candidate}: {error}") from error
+        if not isinstance(metadata, dict):
+            raise SystemExit(f"metadata must be an object: {candidate}")
+        metadata_digest = metadata.get(
+            "sha256", metadata.get("camera", {}).get("sha256")
+        )
+        if (
+            metadata_rel is not None
+            or metadata_digest == digest
+            or metadata.get("raw_path")
+            == str(path.relative_to(candidate.parents[1])).replace("\\", "/")
+        ):
+            return metadata, candidate
+    if "capture_status" in item or "corpus_inclusion" in item:
+        return item, None
+    raise SystemExit(f"metadata missing or unsupported for source: {path}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-root", action="append", type=Path, required=True)
@@ -150,8 +186,19 @@ def main() -> int:
             manifest.read_bytes()
         ).hexdigest()
         data = json.loads(manifest.read_text(encoding="utf-8"))
-        for item in data["frames"]:
-            rel = str(item.get("file", item.get("raw"))).replace("/", "\\")
+        if not isinstance(data, dict):
+            raise SystemExit(f"manifest must be an object: {manifest}")
+        entries = data.get("frames", data.get("items"))
+        if not isinstance(entries, list):
+            raise SystemExit(f"manifest missing frames/items: {manifest}")
+        for item in entries:
+            if not isinstance(item, dict):
+                raise SystemExit(f"malformed manifest entry: {manifest}")
+            rel = str(item.get("file", item.get("raw", item.get("path", "")))).replace(
+                "/", "\\"
+            )
+            if not rel:
+                raise SystemExit(f"manifest entry missing path: {manifest}")
             path = (root / rel).resolve()
             if root not in path.parents or path.suffix.lower() not in {".jpg", ".jpeg"}:
                 raise SystemExit("manifest source path escapes root or is not JPEG")
@@ -173,22 +220,20 @@ def main() -> int:
                 "name": path.name,
                 "source_sha256": digest,
                 "bytes": len(raw),
-                "level_uint8": int(item.get("brightness_uint8", item.get("level", 0))),
-                "frame": int(item["frame"]),
+                "level_uint8": item.get(
+                    "brightness_uint8", item.get("level", "UNKNOWN")
+                ),
+                "frame": item.get("frame", item.get("frame_id", "UNKNOWN")),
                 "frame_time": "UNKNOWN",
                 "calibration": "UNAVAILABLE",
                 "machine_eligibility": False,
                 "accepted_nozzle": False,
             }
-            metadata: dict[str, Any] = {}
-            metadata_rel = item.get("metadata")
-            if isinstance(metadata_rel, str):
-                metadata_path = (root / metadata_rel.replace("/", "\\")).resolve()
-                if root in metadata_path.parents and metadata_path.is_file():
-                    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-                    base["metadata_sha256"] = hashlib.sha256(
-                        metadata_path.read_bytes()
-                    ).hexdigest()
+            metadata, metadata_path = load_metadata(root, path, item, digest)
+            if metadata_path is not None:
+                base["metadata_sha256"] = hashlib.sha256(
+                    metadata_path.read_bytes()
+                ).hexdigest()
             reasons = metadata.get("reason_codes")
             if isinstance(reasons, list) and all(
                 isinstance(value, str) for value in reasons
@@ -208,6 +253,13 @@ def main() -> int:
                 "homed_axes", metadata.get("homed_axes_before", "UNKNOWN")
             )
             base["frame_time"] = metadata.get("captured_at_utc", "UNKNOWN")
+            capture_status = metadata.get("capture_status", "UNKNOWN")
+            base["source_capture_status"] = capture_status
+            base["source_invalid_reason"] = metadata.get("invalid_reason", "UNKNOWN")
+            base["source_corpus_inclusion"] = metadata.get(
+                "corpus_inclusion", "UNKNOWN"
+            )
+            base["source_verdict"] = metadata.get("verdict", "UNKNOWN")
             try:
                 validate_jpeg_header(raw, MAX_BYTES, MAX_PIXELS)
             except JpegBoundaryError as error:
@@ -245,7 +297,10 @@ def main() -> int:
             h, w = image.shape[:2]
             base.update(
                 {
-                    "status": "WARNING",
+                    "status": capture_status
+                    if capture_status != "UNKNOWN"
+                    else "WARNING",
+                    "reason": metadata.get("invalid_reason", capture_status),
                     "dimensions_px": [int(w), int(h)],
                     "full_frame": measure(image, (0, 0, w, h), w, h),
                     "development_roi": measure(image, roi, w, h),

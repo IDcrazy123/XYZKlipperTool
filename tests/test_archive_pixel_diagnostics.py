@@ -32,6 +32,8 @@ class ArchivedPixelCliTests(unittest.TestCase):
                             "level": 1,
                             "frame": 1,
                             "sha256": digest,
+                            "capture_status": "WARNING",
+                            "corpus_inclusion": "EXCLUDED",
                         }
                     ]
                 }
