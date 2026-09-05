@@ -93,12 +93,24 @@ class QualityDiagnostics:
 
 
 @dataclass(frozen=True)
+class ShapeDiagnostics:
+    """Pixel-only fit evidence retained for one candidate; no millimetre claim."""
+
+    circularity: float
+    aspect_ratio: float
+    radial_cv: float
+    fit_residual_px: float
+    has_hole: bool
+
+
+@dataclass(frozen=True)
 class JpegDetection:
     """Detection plus quality diagnostics and pipeline identity; no side effects or blocking."""
 
     detection: Detection
     quality: QualityDiagnostics
     pipeline: str
+    shape: ShapeDiagnostics | None = None
 
 
 class JpegDetector(Protocol):
@@ -226,6 +238,9 @@ def _result(
     point: tuple[float, float] | None,
     count: int,
     reason: ReasonCode = ReasonCode.NONE,
+    confidence: float = 0.0,
+    residual_px: float | None = None,
+    shape: ShapeDiagnostics | None = None,
 ) -> JpegDetection:
     if point is None or reason is not ReasonCode.NONE:
         return _invalid(
@@ -241,15 +256,43 @@ def _result(
         calibration.camera_fingerprint,
         Pixels(point[0]),
         Pixels(point[1]),
-        1.0,
+        confidence,
         count,
         ReasonCode.NONE,
         Verdict.PASS,
         0.0,
         calibration.uncertainty_mm.value_mm,
         (pipeline,),
+        None,
+        residual_px,
     )
-    return JpegDetection(detection, quality, pipeline)
+    return JpegDetection(detection, quality, pipeline, shape)
+
+
+def _shape_metrics(contour: Any, has_hole: bool) -> ShapeDiagnostics | None:
+    """Compute bounded contour evidence in pixels and reject non-round shapes."""
+    perimeter = float(cv2.arcLength(contour, True))
+    area = float(cv2.contourArea(contour))
+    if perimeter <= 0 or area <= 0 or len(contour) < 8:
+        return None
+    _, _, width, height = cv2.boundingRect(contour)
+    aspect = max(width, height) / max(1, min(width, height))
+    if aspect > 1.5:
+        return None
+    circularity = 4.0 * float(np.pi) * area / (perimeter * perimeter)
+    moments = cv2.moments(contour)
+    if not moments["m00"]:
+        return None
+    cx = moments["m10"] / moments["m00"]
+    cy = moments["m01"] / moments["m00"]
+    points = contour.reshape(-1, 2).astype(np.float64)
+    radii = np.hypot(points[:, 0] - cx, points[:, 1] - cy)
+    mean_radius = float(radii.mean())
+    radial_cv = float(radii.std() / mean_radius) if mean_radius else float("inf")
+    fit_residual = float(radii.std())
+    if circularity < 0.55 or radial_cv > 0.35:
+        return None
+    return ShapeDiagnostics(circularity, aspect, radial_cv, fit_residual, has_hole)
 
 
 class GradientRadialDetector:
@@ -283,15 +326,22 @@ class GradientRadialDetector:
         contours, _ = cv2.findContours(
             edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
-        candidates: list[tuple[float, float]] = []
+        candidates: list[tuple[tuple[float, float], ShapeDiagnostics]] = []
         for contour in contours:
             if cv2.contourArea(contour) >= 12:
-                moments = cv2.moments(contour)
-                if moments["m00"]:
+                approximation = cv2.approxPolyDP(
+                    contour, 0.04 * cv2.arcLength(contour, True), True
+                )
+                shape = _shape_metrics(contour, False)
+                if shape is not None and len(approximation) > 6:
+                    moments = cv2.moments(contour)
                     candidates.append(
                         (
-                            moments["m10"] / moments["m00"] + roi.x_px,
-                            moments["m01"] / moments["m00"] + roi.y_px,
+                            (
+                                moments["m10"] / moments["m00"] + roi.x_px,
+                                moments["m01"] / moments["m00"] + roi.y_px,
+                            ),
+                            shape,
                         )
                     )
         if len(candidates) != 1:
@@ -306,8 +356,18 @@ class GradientRadialDetector:
                 if not candidates
                 else ReasonCode.AMBIGUOUS_CANDIDATE,
             )
+        point, shape = candidates[0]
+        confidence = max(0.0, min(1.0, shape.circularity * (1.0 - shape.radial_cv)))
         return _result(
-            calibration, context, quality, "gradient_radial", candidates[0], 1
+            calibration,
+            context,
+            quality,
+            "gradient_radial",
+            point,
+            1,
+            confidence=confidence,
+            residual_px=shape.fit_residual_px,
+            shape=shape,
         )
 
 
@@ -342,14 +402,32 @@ class ContourEllipseDetector:
         contours, hierarchy = cv2.findContours(
             threshold, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
         )
-        candidates: list[tuple[float, float]] = []
+        candidates: list[tuple[tuple[float, float], ShapeDiagnostics]] = []
         for index, contour in enumerate(contours):
             if hierarchy is not None and hierarchy[0][index][3] != -1:
                 continue
             area = cv2.contourArea(contour)
             if area >= 20 and len(contour) >= 5:
-                (x, y), _ = cv2.minEnclosingCircle(contour)
-                candidates.append((x + roi.x_px, y + roi.y_px))
+                child = hierarchy is not None and hierarchy[0][index][2] != -1
+                if not child:
+                    continue
+                shape = _shape_metrics(contour, True)
+                if shape is None:
+                    continue
+                (x, y), axes, _ = cv2.fitEllipse(contour)
+                aspect = max(float(axes[0]), float(axes[1])) / max(
+                    1.0, min(float(axes[0]), float(axes[1]))
+                )
+                if aspect > 1.5:
+                    continue
+                shape = ShapeDiagnostics(
+                    shape.circularity,
+                    aspect,
+                    shape.radial_cv,
+                    shape.fit_residual_px,
+                    True,
+                )
+                candidates.append(((x + roi.x_px, y + roi.y_px), shape))
         if len(candidates) != 1:
             return _result(
                 calibration,
@@ -362,8 +440,18 @@ class ContourEllipseDetector:
                 if not candidates
                 else ReasonCode.AMBIGUOUS_CANDIDATE,
             )
+        point, shape = candidates[0]
+        confidence = max(0.0, min(1.0, shape.circularity * (1.0 - shape.radial_cv)))
         return _result(
-            calibration, context, quality, "contour_ellipse", candidates[0], 1
+            calibration,
+            context,
+            quality,
+            "contour_ellipse",
+            point,
+            1,
+            confidence=confidence,
+            residual_px=shape.fit_residual_px,
+            shape=shape,
         )
 
 
