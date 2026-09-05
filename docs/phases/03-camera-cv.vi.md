@@ -26,3 +26,4 @@ Test bound capture/decode, calibration malformed/non-finite, checksum/version/fa
 ## Kết thúc
 
 Dừng ở `SUPERVISOR_REVIEW_PENDING`; báo lệnh, coverage, hash artifact, giới hạn evidence, rủi ro OPEN và HIL chính xác. Không bắt đầu Phase 04.
+Phạm vi correction: adapter OpenCV JPEG chỉ phía host dùng identity ROI/calibration explicit, decode bounded, diagnostic chất lượng, plugin gradient/radial và contour/ellipse độc lập, cùng consensus fail-closed. Ảnh user vẫn bị loại khỏi claim reliability.

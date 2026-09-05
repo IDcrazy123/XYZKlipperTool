@@ -15,7 +15,7 @@
 | 00 Governance, sources, license, evidence | `IMPLEMENTED` | Paired governance artifacts, 23-file SHA-256 manifest, 21 Z JSON imports, offline checks passed |
 | 01 Domain model, units, signs, statistics | `PASS` | Supervisor-approved commit `9d58fecb6cc19342c1bcd9dd62eafb8bf03c1a0d`; 16/16 pinned tests, 95% coverage, all listed offline gates pass; physical behavior remains `REQUIRES_HIL` |
 | 02 Adapters and simulator | `PASS` | Supervisor-approved candidate `ce99ca14b4df5e870a79364ef188884c0394dc65`; 27 tests and 91% coverage; directory durability remains OPEN and physical behavior `REQUIRES_HIL` |
-| 03 Camera and vision pipeline | `NEEDS_WORK` | Synthetic HOLDOUT Blob/Circle both TP=0, FN=1, TN=1, precision=0.0, recall=0.0; HIL partial run has 1 invalid T0 + 3 excluded LED-on T1 frames and 0 T2 frames; real sanitized corpus evaluation remains `NEEDS_WORK`; physical behavior `REQUIRES_HIL` |
+| 03 Camera and vision pipeline | `NEEDS_WORK` | Bounded host JPEG adapter and independent candidate tests implemented; real user images remain unlabeled/excluded, synthetic reliability remains unproven, HIL partial run has 1 invalid T0 + 3 excluded LED-on T1 frames and 0 T2 frames; physical behavior `REQUIRES_HIL` |
 | 04 Independent-cycle X/Y orchestration | `PLANNED` | Not started |
 | 05 Physical-switch Z provider | `PLANNED` | Not started |
 | 06 Cartographer Touch Z provider | `PLANNED` | Not started |

@@ -14,7 +14,7 @@ Each stable ID occurs once and has at least one `SRC-*`, `EVID-*`, or `ASSUMPTIO
 | REQ-SAMPLE-001 | Use three independent outer pickup cycles and retain inner-frame hierarchy | `PLANNED` | EVID-XY-001 |
 | REQ-STAT-001 | Report mean, median, sample SD when `n >= 2`, MAD, range, drift, uncertainty, and verdict reasons | `PLANNED` | Master prompt; EVID-XY-001 |
 | REQ-OUTLIER-001 | Declare outlier policy before evaluation; preserve raw and produce unfiltered/filtered summaries | `PLANNED` | Master prompt; EVID-XY-001 |
-| REQ-VISION-001 | Bound camera capture/detection and reject stale, ambiguous, corrupt, or unsupported frames | `PLANNED` | Master prompt; SRC-009 |
+| REQ-VISION-001 | Bound camera capture/detection and reject stale, ambiguous, corrupt, or unsupported frames | `IMPLEMENTED` | Master prompt; SRC-009; SRC-015 |
 | REQ-CORPUS-001 | Build session-separated labeled corpus and benchmark candidate vision methods | `PLANNED` | Master prompt; SRC-009; SRC-010 |
 | REQ-PERSIST-001 | Write state atomically with backup rotation and never mutate completed raw evidence | `PLANNED` | Master prompt; ASSUMPTION: filesystem supports rename |
 | REQ-SCHEMA-001 | Version schemas, support migrations/round trips, and fail closed on unsupported major versions | `PLANNED` | Master prompt; ASSUMPTION: schema versions are monotonic |

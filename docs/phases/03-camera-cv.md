@@ -26,3 +26,4 @@ Capture/decode bounds, malformed/non-finite calibration, persistence checksum/ve
 ## Exit
 
 Stop at `SUPERVISOR_REVIEW_PENDING`; report exact commands, coverage, artifact hashes, evidence limitations, OPEN risks, and HIL boundary. Do not begin Phase 04.
+Correction scope: the host-only OpenCV JPEG adapter now uses explicit ROI/calibration identity, bounded decode, quality diagnostics, independent gradient/radial and contour/ellipse plugins, and fail-closed consensus. User-provided images remain excluded from reliability claims.

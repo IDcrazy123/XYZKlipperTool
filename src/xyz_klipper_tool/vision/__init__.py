@@ -35,6 +35,15 @@ from .detectors import (
     ImageDecoder,
     benchmark_detectors,
 )
+from .jpeg_adapter import (
+    ContourEllipseDetector,
+    ConsensusJpegDetector,
+    GradientRadialDetector,
+    JpegAnalysisLimits,
+    JpegDetection,
+    QualityDiagnostics,
+    RoiBounds,
+)
 
 __all__ = [
     "BlobDetector",
@@ -64,4 +73,11 @@ __all__ = [
     "inventory_json",
     "validate_camera_url",
     "verify_inventory",
+    "ContourEllipseDetector",
+    "ConsensusJpegDetector",
+    "GradientRadialDetector",
+    "JpegAnalysisLimits",
+    "JpegDetection",
+    "QualityDiagnostics",
+    "RoiBounds",
 ]

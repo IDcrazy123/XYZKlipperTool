@@ -13,3 +13,6 @@ No upstream source is copied in Phase 00. If a later phase distributes or derive
 | klipper-toolchanger | `94756dfde9b729fd69f9b8780067821c5c99a528` | GPL-3.0 | candidate adapter comparison |
 
 Before release, add copyright holders, exact URLs, modifications, full license texts, and dependency notices for any actually distributed material. Hardware compatibility remains `REQUIRES_HIL`.
+## opencv-python-headless 4.14.0.94
+
+Used only by the host-side `vision/jpeg_adapter.py` for bounded JPEG decode and image analysis. The Python wrapper is MIT-licensed; OpenCV is Apache-2.0. Bundled third-party notices remain applicable. No upstream implementation is copied.

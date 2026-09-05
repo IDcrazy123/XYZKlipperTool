@@ -14,7 +14,7 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-SAMPLE-001 | EVID-XY-001 | thiết kế sampling hierarchy | planned: test ba outer-cycle |
 | REQ-STAT-001 | EVID-XY-001; Master prompt | Summary/StatisticResult trong `domain/statistics.py` | actual: test sufficiency, counts, SD/MAD/uncertainty/reference drift trong `tests/test_domain.py` |
 | REQ-OUTLIER-001 | EVID-XY-001 | raw bất biến, summary unfiltered/filtered và Rejection trong `statistics.py` | actual: test rejection có lý do, loại invalid, validate threshold |
-| REQ-VISION-001 | SRC-009; Master prompt | ranh giới vision host | planned: test frame cũ/mơ hồ/hỏng |
+| REQ-VISION-001 | SRC-009; SRC-015; Master prompt | ranh giới vision host; `vision/jpeg_adapter.py` | actual: decode JPEG bounded, identity ROI, diagnostic chất lượng, hai pipeline độc lập và test input fail-closed; ảnh thật chưa gán nhãn vẫn bị loại |
 | REQ-CORPUS-001 | SRC-009; SRC-010 | kế hoạch corpus/evaluation | planned: session split/holdout |
 | REQ-PERSIST-001 | Master prompt; ASSUMPTION | persistence policy | planned: atomic write/power-loss |
 | REQ-SCHEMA-001 | Master prompt; ASSUMPTION | `domain/schema.py`; cặp JSON Schema v1 | actual: test contract, round-trip, malformed/version/enum/non-finite fault trong `tests/test_schema.py` |

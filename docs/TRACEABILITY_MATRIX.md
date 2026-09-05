@@ -14,7 +14,7 @@ Every requirement below occurs exactly once.
 | REQ-SAMPLE-001 | EVID-XY-001 | sampling hierarchy design | planned: three outer-cycle test |
 | REQ-STAT-001 | EVID-XY-001; Master prompt | `domain/statistics.py` Summary/StatisticResult | actual: `tests/test_domain.py` sufficiency, counts, SD/MAD/uncertainty/reference drift |
 | REQ-OUTLIER-001 | EVID-XY-001 | `statistics.py` immutable raw plus unfiltered/filtered summaries and Rejection | actual: reasoned rejection, invalid exclusion, threshold validation tests |
-| REQ-VISION-001 | SRC-009; Master prompt | host vision boundary | planned: stale/ambiguous/corrupt frame tests |
+| REQ-VISION-001 | SRC-009; SRC-015; Master prompt | host vision boundary; `vision/jpeg_adapter.py` | actual: bounded JPEG decode, ROI identity, quality diagnostics, independent pipelines, and fail-closed input tests; real unlabeled imagery remains excluded |
 | REQ-CORPUS-001 | SRC-009; SRC-010 | corpus and evaluation plan | planned: session split/holdout gate |
 | REQ-PERSIST-001 | Master prompt; ASSUMPTION | persistence policy | planned: atomic write/power-loss tests |
 | REQ-SCHEMA-001 | Master prompt; ASSUMPTION | `domain/schema.py`; paired v1 JSON Schemas | actual: `tests/test_schema.py` contract, round-trip, malformed/version/enum/non-finite faults |
