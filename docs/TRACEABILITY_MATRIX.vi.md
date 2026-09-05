@@ -14,8 +14,8 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-SAMPLE-001 | EVID-XY-001 | thiết kế sampling hierarchy | planned: test ba outer-cycle |
 | REQ-STAT-001 | EVID-XY-001; Master prompt | Summary/StatisticResult trong `domain/statistics.py` | actual: test sufficiency, counts, SD/MAD/uncertainty/reference drift trong `tests/test_domain.py` |
 | REQ-OUTLIER-001 | EVID-XY-001 | raw bất biến, summary unfiltered/filtered và Rejection trong `statistics.py` | actual: test rejection có lý do, loại invalid, validate threshold |
-| REQ-VISION-001 | SRC-009; Master prompt | ranh giới vision host | planned: test frame cũ/mơ hồ/hỏng |
-| REQ-CORPUS-001 | SRC-009; SRC-010 | kế hoạch corpus/evaluation | planned: session split/holdout |
+| REQ-VISION-001 | SRC-009; SRC-015; Master prompt | ranh giới vision host; `vision/jpeg_adapter.py`; archive inspector | actual: decode JPEG bounded, identity ROI, diagnostic chất lượng, hai pipeline độc lập, ingestion `photos[]` chặt và test input fail-closed; 75 frame thật chưa gán nhãn vẫn bị loại |
+| REQ-CORPUS-001 | SRC-009; SRC-010 | kế hoạch corpus/evaluation | actual: hai session acquisition đã tổ chức và kiểm tra hash; nhãn được review cùng split session độc lập ba phần vẫn `NEEDS_WORK` |
 | REQ-PERSIST-001 | Master prompt; ASSUMPTION | persistence policy | planned: atomic write/power-loss |
 | REQ-SCHEMA-001 | Master prompt; ASSUMPTION | `domain/schema.py`; cặp JSON Schema v1 | actual: test contract, round-trip, malformed/version/enum/non-finite fault trong `tests/test_schema.py` |
 | REQ-EVID-001 | Import Phase 00; EVID-Z-INVALID-001 | provenance policy; manifest | actual: hash 23/23 và JSON 21/21 |
@@ -32,4 +32,11 @@ Mỗi requirement dưới đây xuất hiện đúng một lần.
 | REQ-NONBLOCK-001 | SRC-002; SRC-003 | boundary host/Klippy | planned: fake reactor non-blocking |
 | REQ-INSTALL-001 | Master prompt; ASSUMPTION | roadmap; installer policy | planned: sandbox idempotency |
 | REQ-OPS-001 | Master prompt; ASSUMPTION | progress/reporting records | actual: parity/link/diff; planned release docs |
-| REQ-HIL-001 | EVID-Z-INVALID-001; Master prompt | risk register; HIL run-sheet gate | actual: không hành động vật lý; planned canary |
+| REQ-HIL-001 | EVID-Z-INVALID-001; Master prompt | risk register; HIL run-sheet và `evidence/hil/phase-03/ABORT_REPORT.md` | actual: ghi nhận partial-run fail-closed; không claim T2; tiếp tục cần cho phép home `xyz` |
+| REQ-CAMERA-001 | Master prompt; SRC-009 | contract capture local bounded trong `vision/capture.py` | actual: `tests/test_phase03.py`; gate resource/security |
+| REQ-CALIB-001 | Master prompt; SRC-010 | store versioned checksum trong `vision/calibration.py` | actual: test round-trip/corruption |
+| REQ-DETECT-001 | Master prompt; SRC-009 | model plugin/diagnostic trong `vision/detectors.py` | actual: test candidate/zero/ambiguous |
+| REQ-CORPUS-002 | Master prompt; ASSUMPTION | inventory/split session trong `vision/corpus.py` | actual: test leakage; gate corpus thật NEEDS_WORK |
+| REQ-CALIB-002 | Master prompt; ASSUMPTION | `vision/calibration.py`; schema envelope calibration | actual: test checksum, bound, rotation, recovery corrupt/traversal và fault trước replace |
+| REQ-CORPUS-003 | Master prompt; ASSUMPTION | `vision/corpus.py` inventory/verifier | actual: test path tương đối, hash, mismatch, tâm hữu hạn/không âm và từ chối holdout chưa gán nhãn |
+| REQ-BENCH-001 | Master prompt; ASSUMPTION | `vision/corpus.py` evaluate_benchmark; artifact/schema benchmark synthetic | actual: test report hai candidate, TP/FP/FN/TN và center-error dẫn xuất; ground truth chưa gán nhãn/không đầy đủ bị từ chối; holdout thật `NEEDS_WORK` |

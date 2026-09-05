@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/IDcrazy123/XYZKlipperTool/schemas/calibration-envelope.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "calibration", "checksum"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "checksum": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "calibration": {
+      "type": "object", "additionalProperties": false,
+      "required": ["version", "calibration_id", "camera_identity", "camera_fingerprint", "transform", "residual_px", "uncertainty_mm", "source_sha256", "created_at_utc"],
+      "properties": {
+        "version": {"const": 1}, "calibration_id": {"type": "string", "minLength": 1}, "camera_identity": {"type": "string", "minLength": 1}, "camera_fingerprint": {"type": "string", "minLength": 1},
+        "residual_px": {"type": "number", "minimum": 0}, "uncertainty_mm": {"type": "number", "minimum": 0}, "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "created_at_utc": {"type": "string", "format": "date-time", "pattern": "(?:Z|\\+00:00)$"},
+        "transform": {"type": "object", "additionalProperties": false, "required": ["mm_per_px_x", "mm_per_px_y", "relative_x_mm", "relative_y_mm", "input_frame", "output_frame"], "properties": {"mm_per_px_x": {"type": "number", "exclusiveMinimum": 0}, "mm_per_px_y": {"type": "number", "exclusiveMinimum": 0}, "relative_x_mm": {"type": "number"}, "relative_y_mm": {"type": "number"}, "input_frame": {"const": "camera_image"}, "output_frame": {"const": "tool"}}}
+      }
+    }
+  }
+}

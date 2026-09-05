@@ -14,7 +14,7 @@ Mỗi ID ổn định xuất hiện một lần và có ít nhất một tham ch
 | REQ-SAMPLE-001 | Dùng ba outer pickup cycle độc lập và giữ phân cấp inner frame | `PLANNED` | EVID-XY-001 |
 | REQ-STAT-001 | Báo mean, median, sample SD khi `n >= 2`, MAD, range, drift, uncertainty và reason verdict | `PLANNED` | Master prompt; EVID-XY-001 |
 | REQ-OUTLIER-001 | Khai báo outlier policy trước đánh giá; giữ raw và tạo summary unfiltered/filtered | `PLANNED` | Master prompt; EVID-XY-001 |
-| REQ-VISION-001 | Giới hạn camera/detection và loại frame cũ, mơ hồ, hỏng hoặc không hỗ trợ | `PLANNED` | Master prompt; SRC-009 |
+| REQ-VISION-001 | Giới hạn camera/detection và loại frame cũ, mơ hồ, hỏng hoặc không hỗ trợ | `IMPLEMENTED` | Master prompt; SRC-009; SRC-015 |
 | REQ-CORPUS-001 | Xây corpus gán nhãn tách session và benchmark phương pháp vision ứng viên | `PLANNED` | Master prompt; SRC-009; SRC-010 |
 | REQ-PERSIST-001 | Ghi atomic có backup rotation và không sửa raw evidence hoàn tất | `PLANNED` | Master prompt; ASSUMPTION: filesystem hỗ trợ rename |
 | REQ-SCHEMA-001 | Version schema, hỗ trợ migration/round-trip và fail closed với major không hỗ trợ | `PLANNED` | Master prompt; ASSUMPTION: schema version tăng đơn điệu |
@@ -33,3 +33,10 @@ Mỗi ID ổn định xuất hiện một lần và có ít nhất một tham ch
 | REQ-INSTALL-001 | Install/update/rollback/uninstall idempotent, dry-run, scope-checked, không phá hủy mặc định | `PLANNED` | Master prompt; ASSUMPTION: không purge ngầm |
 | REQ-OPS-001 | Có evidence, diagnostic, support redaction, tài liệu và progress/reporting record chính xác | `PLANNED` | Master prompt; ASSUMPTION: vận hành report-only |
 | REQ-HIL-001 | Giữ tương thích vật lý và production readiness `REQUIRES_HIL` tới khi canary giám sát đạt | `REQUIRES_HIL` | Master prompt; EVID-Z-INVALID-001 |
+| REQ-CAMERA-001 | Giới hạn capture camera local-only, dữ liệu mã hóa, dimension, pixel, age, timeout và retry | `IMPLEMENTED` | Master prompt; SRC-009 |
+| REQ-CALIB-001 | Lưu calibration versioned với transform, residual, uncertainty, identity, provenance, checksum và atomicity | `IMPLEMENTED` | Master prompt; SRC-010; ASSUMPTION: calibration store local |
+| REQ-DETECT-001 | Có plugin detector với diagnostic typed cho zero/ambiguous/corrupt/stale/calibration-mismatch | `IMPLEMENTED` | Master prompt; SRC-009 |
+| REQ-CORPUS-002 | Giữ hash corpus bất biến và holdout tách theo session; dữ liệu tổng hợp không chứng minh reliability | `IMPLEMENTED` | Master prompt; ASSUMPTION: chưa có corpus thật đã sanitize |
+| REQ-CALIB-002 | Validate envelope calibration có version bằng schema, checksum, backup hữu hạn, recovery và bảo toàn trước replace qua fault inject | `IMPLEMENTED` | Master prompt; ASSUMPTION: sandbox filesystem cục bộ |
+| REQ-CORPUS-003 | Tạo và verify inventory nhãn có path tương đối, provenance, byte size, SHA-256 và metadata hữu hạn | `IMPLEMENTED` | Master prompt; ASSUMPTION: chưa có corpus thật đã sanitize |
+| REQ-BENCH-001 | Đánh giá hai pipeline ứng viên trên holdout có nhãn và công bố metrics reason-coded chỉ synthetic | `IMPLEMENTED` | Master prompt; ASSUMPTION: chưa có corpus thật đã sanitize |

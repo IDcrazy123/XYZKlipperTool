@@ -12,3 +12,6 @@
 | RISK-008 | Ghi station partial thành state hiện tại | `MITIGATED-PHASE-02` | temp/flush/replace atomic, checksum, backup và fault test; owner persistence |
 | RISK-009 | Chọn state tool hoặc provider mơ hồ | `MITIGATED-PHASE-02` | runtime typed validation, discovery xác định, selection fail-closed; owner adapter |
 | RISK-010 | Bỏ SAFE_Z bị coi là clearance | `MITIGATED-PHASE-02` | bỏ SAFE_Z từ chối bằng `UNSAFE_APPROACH`; owner station |
+| RISK-011 | Chưa có holdout frame camera thật đã review, gán nhãn và calibration để làm bằng chứng reliability | `OPEN` | giữ 75 frame thật đã kiểm tra hash ở trạng thái `WARNING`/bị loại; cần nhãn tâm được review và split session độc lập; test tổng hợp chỉ mechanics; owner vision |
+| RISK-012 | Độ bền thư mục sau fsync/replace không có bảo đảm portable giữa nền tảng | `OPEN` | chỉ best-effort độ bền file; cần xác minh theo nền tảng trước claim persistence production |
+| RISK-013 | Canary HIL có thể tiếp tục khi nhận dạng tool ambiguous hoặc trục chưa home | `OPEN` | dừng fail-closed; giữ bằng chứng một phần; cần operator cho phép mới và home thành công `xyz` trước khi tiếp tục |

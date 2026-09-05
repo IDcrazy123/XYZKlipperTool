@@ -23,3 +23,7 @@ Trạng thái: `OBSERVED` khi bootstrap kho ngày 2026-08-31. Phase 00 phải m�
 3. Ghi URL, thời điểm truy cập, phiên bản/commit, kết luận nguồn hỗ trợ, điểm xung đột và license.
 4. Nếu tài liệu khác hành vi quan sát, giữ cả hai, tái hiện bằng simulator hoặc HIL đã duyệt, và chặn triển khai đến khi giải quyết contract.
 5. Không nguồn nào được dùng để hợp thức hóa tọa độ mặc định theo một máy. Vị trí phải được dạy bằng lệnh.
+
+## Provenance bằng chứng HIL
+
+Báo cáo và manifest partial-run Phase 03 là hồ sơ operator first-party, không phải nguồn upstream. Chúng giữ endpoint camera, timestamp, trạng thái printer/tool và hash file raw đã quan sát; chúng không chứng minh tương thích camera hay an toàn vật lý. Lượt chạy đã dừng fail-closed và cần cho phép mới cùng home thành công `xyz` trước khi tiếp tục. Inventory `picture/` do user tạo là `USER_PROVIDED_UNLABELED`, read-only, đã ghi hash và bị loại cho tới supervisor review.

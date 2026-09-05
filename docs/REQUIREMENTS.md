@@ -14,7 +14,7 @@ Each stable ID occurs once and has at least one `SRC-*`, `EVID-*`, or `ASSUMPTIO
 | REQ-SAMPLE-001 | Use three independent outer pickup cycles and retain inner-frame hierarchy | `PLANNED` | EVID-XY-001 |
 | REQ-STAT-001 | Report mean, median, sample SD when `n >= 2`, MAD, range, drift, uncertainty, and verdict reasons | `PLANNED` | Master prompt; EVID-XY-001 |
 | REQ-OUTLIER-001 | Declare outlier policy before evaluation; preserve raw and produce unfiltered/filtered summaries | `PLANNED` | Master prompt; EVID-XY-001 |
-| REQ-VISION-001 | Bound camera capture/detection and reject stale, ambiguous, corrupt, or unsupported frames | `PLANNED` | Master prompt; SRC-009 |
+| REQ-VISION-001 | Bound camera capture/detection and reject stale, ambiguous, corrupt, or unsupported frames | `IMPLEMENTED` | Master prompt; SRC-009; SRC-015 |
 | REQ-CORPUS-001 | Build session-separated labeled corpus and benchmark candidate vision methods | `PLANNED` | Master prompt; SRC-009; SRC-010 |
 | REQ-PERSIST-001 | Write state atomically with backup rotation and never mutate completed raw evidence | `PLANNED` | Master prompt; ASSUMPTION: filesystem supports rename |
 | REQ-SCHEMA-001 | Version schemas, support migrations/round trips, and fail closed on unsupported major versions | `PLANNED` | Master prompt; ASSUMPTION: schema versions are monotonic |
@@ -33,3 +33,10 @@ Each stable ID occurs once and has at least one `SRC-*`, `EVID-*`, or `ASSUMPTIO
 | REQ-INSTALL-001 | Make install/update/rollback/uninstall idempotent, dry-run, scope-checked, and non-destructive by default | `PLANNED` | Master prompt; ASSUMPTION: no implicit purge |
 | REQ-OPS-001 | Provide evidence, diagnostics, support redaction, documentation, and exact progress/reporting records | `PLANNED` | Master prompt; ASSUMPTION: report-only operations |
 | REQ-HIL-001 | Keep physical compatibility and production readiness `REQUIRES_HIL` until a supervised canary passes | `REQUIRES_HIL` | Master prompt; EVID-Z-INVALID-001 |
+| REQ-CAMERA-001 | Bound local-only camera capture, encoded data, dimensions, pixels, age, timeout, and retries | `IMPLEMENTED` | Master prompt; SRC-009 |
+| REQ-CALIB-001 | Persist versioned camera calibration with transform, residual, uncertainty, identity, provenance, checksum, and atomicity | `IMPLEMENTED` | Master prompt; SRC-010; ASSUMPTION: calibration store is local |
+| REQ-DETECT-001 | Provide detector plugins with typed zero/ambiguous/corrupt/stale/calibration-mismatch diagnostics | `IMPLEMENTED` | Master prompt; SRC-009 |
+| REQ-CORPUS-002 | Keep immutable corpus hashes and session-separated holdout splits; synthetic data cannot establish reliability | `IMPLEMENTED` | Master prompt; ASSUMPTION: real sanitized corpus is unavailable |
+| REQ-CALIB-002 | Validate versioned calibration envelopes with schema, checksum, bounded backups, recovery and injected pre-replace fault preservation | `IMPLEMENTED` | Master prompt; ASSUMPTION: local filesystem sandbox |
+| REQ-CORPUS-003 | Build and verify relative-path labeled inventories with provenance, byte size, SHA-256 and bounded metadata | `IMPLEMENTED` | Master prompt; ASSUMPTION: real sanitized corpus is unavailable |
+| REQ-BENCH-001 | Evaluate both candidate pipelines on labeled holdout mechanics and publish synthetic-only reason-coded metrics | `IMPLEMENTED` | Master prompt; ASSUMPTION: real sanitized corpus is unavailable |

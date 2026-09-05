@@ -1,0 +1,83 @@
+"""Bounded host-side camera, calibration, detector, and corpus contracts."""
+
+from .calibration import (
+    Calibration,
+    CalibrationStore,
+    JsonCalibrationStore,
+    Transform2D,
+)
+from .capture import (
+    BoundedCameraProvider,
+    CameraClock,
+    CameraFrame,
+    CameraTransport,
+    CaptureLimits,
+    CaptureRequest,
+    CaptureResult,
+    FrameValidationError,
+    validate_camera_url,
+)
+from .corpus import (
+    CorpusEntry,
+    CorpusSplit,
+    build_inventory,
+    deterministic_split,
+    evaluate_benchmark,
+    inventory_json,
+    verify_inventory,
+)
+from .detectors import (
+    BlobDetector,
+    CircleCandidateDetector,
+    Detection,
+    DetectionContext,
+    Detector,
+    ImageDecoder,
+    benchmark_detectors,
+)
+from .jpeg_adapter import (
+    ConsensusJpegDetector,
+    ContourEllipseDetector,
+    GradientRadialDetector,
+    JpegAnalysisLimits,
+    JpegDetection,
+    QualityDiagnostics,
+    RoiBounds,
+)
+
+__all__ = [
+    "BlobDetector",
+    "BoundedCameraProvider",
+    "Calibration",
+    "CalibrationStore",
+    "CameraClock",
+    "CameraFrame",
+    "CameraTransport",
+    "CaptureLimits",
+    "CaptureRequest",
+    "CaptureResult",
+    "CircleCandidateDetector",
+    "ConsensusJpegDetector",
+    "ContourEllipseDetector",
+    "CorpusEntry",
+    "CorpusSplit",
+    "Detection",
+    "DetectionContext",
+    "Detector",
+    "FrameValidationError",
+    "GradientRadialDetector",
+    "ImageDecoder",
+    "JpegAnalysisLimits",
+    "JpegDetection",
+    "JsonCalibrationStore",
+    "QualityDiagnostics",
+    "RoiBounds",
+    "Transform2D",
+    "benchmark_detectors",
+    "build_inventory",
+    "deterministic_split",
+    "evaluate_benchmark",
+    "inventory_json",
+    "validate_camera_url",
+    "verify_inventory",
+]
