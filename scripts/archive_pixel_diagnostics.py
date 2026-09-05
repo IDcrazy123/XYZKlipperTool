@@ -16,6 +16,12 @@ from typing import Any
 import cv2
 import numpy as np
 
+from xyz_klipper_tool.vision.jpeg_bounds import (
+    JpegBoundaryError,
+    read_bounded,
+    validate_jpeg_header,
+)
+
 MAX_BYTES = 8 * 1024 * 1024
 MAX_PIXELS = 64_000_000
 FULL = (0, 0, 1280, 720)
@@ -150,7 +156,7 @@ def main() -> int:
             path = (root / rel).resolve()
             if root not in path.parents or path.suffix.lower() not in {".jpg", ".jpeg"}:
                 raise SystemExit("manifest source path escapes root or is not JPEG")
-            raw = path.read_bytes()
+            raw = read_bounded(path, MAX_BYTES)
             digest = str(item["sha256"])
             source_key = (str(root), digest, rel)
             if source_key in seen_source_entries:
@@ -162,7 +168,6 @@ def main() -> int:
                 or hashlib.sha256(raw).hexdigest() != digest
             ):
                 raise SystemExit(f"source byte/hash validation failed: {path}")
-            image = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
             base: dict[str, object] = {
                 "source_manifest": str(manifest),
                 "source": root.name,
@@ -179,6 +184,25 @@ def main() -> int:
                 "machine_eligibility": False,
                 "accepted_nozzle": False,
             }
+            try:
+                validate_jpeg_header(raw, MAX_BYTES, MAX_PIXELS)
+            except JpegBoundaryError as error:
+                base.update(
+                    {
+                        "status": "INVALID",
+                        "reason": error.reason.value,
+                        "full_frame": None,
+                        "development_roi": None,
+                    }
+                )
+                records.append(base)
+                continue
+            try:
+                image = cv2.imdecode(
+                    np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR
+                )
+            except cv2.error:
+                image = None
             if (
                 image is None
                 or image.ndim != 3

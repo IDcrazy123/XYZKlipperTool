@@ -19,6 +19,7 @@ from xyz_klipper_tool.domain.units import Pixels
 
 from .calibration import Calibration
 from .detectors import Detection, DetectionContext
+from .jpeg_bounds import JpegBoundaryError, validate_jpeg_header
 
 
 @dataclass(frozen=True)
@@ -180,14 +181,21 @@ def _decode_roi(
         > context.max_calibration_age_s.value_s
     ):
         return _invalid(calibration, context, ReasonCode.STALE_FRAME)
-    if (
-        type(encoded_jpeg) is not bytes
-        or not encoded_jpeg
-        or len(encoded_jpeg) > limits.max_encoded_bytes
-    ):
-        return _invalid(calibration, context, ReasonCode.OVERSIZED_INPUT)
+    try:
+        validate_jpeg_header(encoded_jpeg, limits.max_encoded_bytes, limits.max_pixels)
+    except JpegBoundaryError as error:
+        return _invalid(
+            calibration,
+            context,
+            ReasonCode.OVERSIZED_INPUT
+            if error.reason.value == "OVERSIZED_INPUT"
+            else ReasonCode.CORRUPT_INPUT,
+        )
     encoded_array: Any = np.frombuffer(encoded_jpeg, dtype=np.uint8)
-    decoded: Any = cv2.imdecode(encoded_array, cv2.IMREAD_GRAYSCALE)
+    try:
+        decoded: Any = cv2.imdecode(encoded_array, cv2.IMREAD_GRAYSCALE)
+    except cv2.error:
+        return _invalid(calibration, context, ReasonCode.CORRUPT_INPUT)
     if decoded is None or decoded.ndim != 2:
         return _invalid(calibration, context, ReasonCode.CORRUPT_INPUT)
     height, width = cast(tuple[int, int], decoded.shape)

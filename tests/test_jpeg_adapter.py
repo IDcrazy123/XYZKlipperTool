@@ -3,6 +3,7 @@ import unittest
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, cast
+from unittest.mock import patch
 
 import cv2
 import numpy as np
@@ -18,6 +19,11 @@ from xyz_klipper_tool.vision.jpeg_adapter import (
     JpegAnalysisLimits,
     JpegDetection,
     RoiBounds,
+)
+from xyz_klipper_tool.vision.jpeg_bounds import (
+    JpegBoundaryError,
+    JpegBoundaryReason,
+    validate_jpeg_header,
 )
 
 
@@ -79,6 +85,30 @@ class JpegAdapterTests(unittest.TestCase):
         ok, encoded = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, 95])
         self.assertTrue(ok)
         return bytes(encoded)
+
+    def test_header_bound_rejects_before_decoder_allocation(self) -> None:
+        plausible_large = (
+            b"\xff\xd8\xff\xc0\x00\x11\x08\x27\x10\x27\x10" + b"\x01\x11\x00" * 4
+        )
+        with patch("xyz_klipper_tool.vision.jpeg_adapter.cv2.imdecode") as decode:
+            result = GradientRadialDetector().detect_jpeg(
+                plausible_large, self.cal, self.roi, self.context
+            )
+        self.assertEqual(result.detection.reason, ReasonCode.OVERSIZED_INPUT)
+        decode.assert_not_called()
+
+    def test_header_and_decoder_faults_fail_closed(self) -> None:
+        with self.assertRaises(JpegBoundaryError) as error:
+            validate_jpeg_header(b"\xff\xd8\xff", 1000, 1000)
+        self.assertEqual(error.exception.reason, JpegBoundaryReason.CORRUPT_INPUT)
+        with patch(
+            "xyz_klipper_tool.vision.jpeg_adapter.cv2.imdecode",
+            side_effect=cv2.error("injected"),
+        ):
+            result = GradientRadialDetector().detect_jpeg(
+                self.jpeg(), self.cal, self.roi, self.context
+            )
+        self.assertEqual(result.detection.reason, ReasonCode.CORRUPT_INPUT)
 
     def test_both_independent_pipelines_find_off_axis_center(self) -> None:
         encoded = self.jpeg(((74, 42),))
