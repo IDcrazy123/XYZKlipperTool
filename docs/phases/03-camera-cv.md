@@ -15,7 +15,7 @@ Implement bounded host-side camera data contracts, calibration persistence, dete
 
 ## Decisions and assumptions
 
-OpenCV 4.12.0 is a reviewed candidate dependency from SRC-009/SRC-010, but this phase does not copy upstream code or require an installed OpenCV runtime. No sanitized real-frame corpus is available in the current evidence import; synthetic fixtures test mechanics only and cannot establish detection reliability or physical accuracy.
+The host JPEG adapter and archived pixel inspection require the pinned OpenCV runtime; the pure domain remains OpenCV-independent. This phase does not copy upstream code. The 21 real frames are WARNING/unhomed and lack calibration/ground truth, so they are development diagnostics only and cannot establish detection reliability or physical accuracy.
 
 All dimensions, encoded bytes, retries, timeouts, frame age, candidate count, and diagnostic strings are bounded. Camera URLs accept only explicitly allowlisted local schemes/hosts; credentials and path traversal are rejected. Calibration origin is separate from station origin and no historical scale/origin/tolerance is a default.
 

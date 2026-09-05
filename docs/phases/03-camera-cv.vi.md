@@ -15,7 +15,7 @@ Triển khai contract dữ liệu capture camera phía host có giới hạn, pe
 
 ## Quyết định và giả định
 
-OpenCV 4.12.0 là dependency ứng viên đã review từ SRC-009/SRC-010, nhưng phase này không sao chép code upstream và không bắt buộc runtime OpenCV. Hiện evidence import không có corpus frame thật đã sanitize; fixture tổng hợp chỉ test mechanics, không chứng minh reliability detection hay độ chính xác vật lý.
+Adapter JPEG host và kiểm tra pixel archive cần runtime OpenCV đã pin; pure domain vẫn độc lập OpenCV. Phase này không sao chép code upstream. 21 frame thật đều WARNING/unhomed và thiếu calibration/ground truth, nên chỉ là diagnostic phát triển, không chứng minh reliability detection hay độ chính xác vật lý.
 
 Mọi dimension, encoded byte, retry, timeout, frame age, số candidate và chuỗi diagnostic đều hữu hạn. URL camera chỉ nhận scheme/host local được allowlist rõ; credential và path traversal bị từ chối. Origin calibration tách khỏi origin station và không có scale/origin/tolerance lịch sử làm default.
 
