@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "run_id": "hil-20260901-0146",
+  "frame_id": "cycle-1-tool-0-frame-1",
+  "raw_path": "raw/cycle-1/tool-0/frame-1.jpg",
+  "source_endpoint": "http://192.168.1.43:8086/image",
+  "capture_status": "INVALID",
+  "invalid_reason": "WRONG_CAMERA_SOURCE",
+  "corpus_inclusion": "EXCLUDED",
+  "byte_size": 51118,
+  "sha256": "053cd76906b7545b145694b682ca321100707ec0c033910bad9605896313b4d3",
+  "operator_authorization": "H1-2026-09-01",
+  "note": "Preserved unchanged; operator corrected required source to VoronBed /webcam/?action=snapshot. No product corpus use."
+}

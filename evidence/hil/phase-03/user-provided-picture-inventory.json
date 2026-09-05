@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "inventory_kind": "user-provided-picture-read-only-proposal",
+  "created_at_local": "2026-09-05",
+  "provenance": "USER_PROVIDED_UNLABELED",
+  "corpus_status": "EXCLUDED_PENDING_SUPERVISOR_REVIEW",
+  "mutation_policy": "Original filenames and bytes were not changed; this inventory is not a calibration, development, or holdout manifest.",
+  "missing_fields": ["session_id", "ground_truth", "tool_id", "illumination_state", "camera_identity", "capture_timestamp"],
+  "files": [
+    {"path": "picture/nozzle_dim_lighting_eval1.jpg", "byte_size": 28755, "sha256": "867be66e1170273fd43f99a4c89de2ba2f89b897d64450420c770759d471d7d3"},
+    {"path": "picture/nozzle_high_glare_eval2.jpg", "byte_size": 132681, "sha256": "ee621c8e1d52cdaea23e337f01d08f04748829a2d12df411b5c3c746df7dd217"},
+    {"path": "picture/real_cam_left.jpg", "byte_size": 29518, "sha256": "0957170bc809d4c876826d6a1a25cf2649d7dc77caadc52c73c31a869e0dffd4"},
+    {"path": "picture/real_cam_right.jpg", "byte_size": 28960, "sha256": "fc93cb0258b65c9e0e7acf8b42bb678c99daf6b222f0a844f061e196446d792a"},
+    {"path": "picture/Screenshot 2026-09-05 181143.png", "byte_size": 626506, "sha256": "2622ffd3f0abda59efa9644c2582bd97b52f441b95239ae1f175bbaa838eba9c"},
+    {"path": "picture/Screenshot 2026-09-05 181218.png", "byte_size": 741034, "sha256": "90504e0e070678cfc524f4e4cadb65c6f7fb55fc075dca254083fb6f7c7c40ea"},
+    {"path": "picture/Screenshot 2026-09-05 181437.png", "byte_size": 652987, "sha256": "6139cdeef6704e5cb3e085d615c211329172f88718e2e7733ffcd49aa47358e3"},
+    {"path": "picture/Screenshot 2026-09-05 181453.png", "byte_size": 740789, "sha256": "b02d70603cd80ddfc2f9a82624c683d351b264e1111ece926f5fad3189062f05"},
+    {"path": "picture/Screenshot 2026-09-05 181515.png", "byte_size": 579213, "sha256": "25265f4cc6886702509fb358afc1b6d923c072a21ad9abb17a009b53c9a83bbb"},
+    {"path": "picture/Screenshot 2026-09-05 181602.png", "byte_size": 629872, "sha256": "d46f001f7fa5ddc8ad429be4e22f6ecbb2c814a7ef383a0e616e6234424420ce"},
+    {"path": "picture/Screenshot 2026-09-05 181615.png", "byte_size": 741297, "sha256": "645acc0e2e1210a9324a12769646b7abecfc2d05b9034a2dd19f8ff20212f297"},
+    {"path": "picture/Screenshot 2026-09-05 181648.png", "byte_size": 649497, "sha256": "9b960a489f88887887468cc599f5e44b4dabf65e7fa18b89ebee444c6d251e44"},
+    {"path": "picture/Screenshot 2026-09-05 181706.png", "byte_size": 575200, "sha256": "a1516e5d2a82f6d8c85fc28fd42a1f65f9d25140d65d22a98f330f1ab256c07c"},
+    {"path": "picture/Screenshot 2026-09-05 181716.png", "byte_size": 724533, "sha256": "4b06d239cc7353eb6b0180703fb8fe2ac55c2d587a8dd27e378247f7ef838607"},
+    {"path": "picture/Screenshot 2026-09-05 181802.png", "byte_size": 568464, "sha256": "a65196af5f9a68077feee9371903bf4a87873c4c18e7e89db3aeda43c88e354d"},
+    {"path": "picture/Screenshot 2026-09-05 181811.png", "byte_size": 749840, "sha256": "d293c7b2bd6229395b5f6d63d84335bdcdd878178bff372c043975eb3848ae18"},
+    {"path": "picture/Screenshot 2026-09-05 181926.png", "byte_size": 557328, "sha256": "0c1eb7b7d6c96091ddc4e36a26f1b0ad8e2916fb3c79d4cf55cd96d8c0fb7d11"}
+  ]
+}

@@ -5,8 +5,8 @@
 - Production readiness: **NOT READY**
 - Current phase: Phase 03 — camera capture, calibration, and detector framework
 - Phase state: `NEEDS_WORK` — offline evidence/persistence tooling is candidate only; real sanitized session-separated holdout is absent
-- Next gate: supervisor review of Phase 03 correction 5E; synthetic holdout is not reliability evidence; physical behavior remains `REQUIRES_HIL`
-- Physical printer actions: none authorized by this repository state
+- Next gate: Phase 03 remains `NEEDS_WORK`; partial HIL canary aborted fail-closed, synthetic holdout is not reliability evidence, and physical behavior remains `REQUIRES_HIL`
+- Physical printer actions: blocked; fresh explicit operator authorization and successful `xyz` homing are required
 
 ## Phase ledger
 
@@ -15,7 +15,7 @@
 | 00 Governance, sources, license, evidence | `IMPLEMENTED` | Paired governance artifacts, 23-file SHA-256 manifest, 21 Z JSON imports, offline checks passed |
 | 01 Domain model, units, signs, statistics | `PASS` | Supervisor-approved commit `9d58fecb6cc19342c1bcd9dd62eafb8bf03c1a0d`; 16/16 pinned tests, 95% coverage, all listed offline gates pass; physical behavior remains `REQUIRES_HIL` |
 | 02 Adapters and simulator | `PASS` | Supervisor-approved candidate `ce99ca14b4df5e870a79364ef188884c0394dc65`; 27 tests and 91% coverage; directory durability remains OPEN and physical behavior `REQUIRES_HIL` |
-| 03 Camera and vision pipeline | `NEEDS_WORK` | Synthetic HOLDOUT Blob/Circle both TP=0, FN=1, TN=1, precision=0.0, recall=0.0; real sanitized corpus evaluation remains `NEEDS_WORK`; physical behavior separately `REQUIRES_HIL` |
+| 03 Camera and vision pipeline | `NEEDS_WORK` | Synthetic HOLDOUT Blob/Circle both TP=0, FN=1, TN=1, precision=0.0, recall=0.0; HIL partial run has 1 invalid T0 + 3 excluded LED-on T1 frames and 0 T2 frames; real sanitized corpus evaluation remains `NEEDS_WORK`; physical behavior `REQUIRES_HIL` |
 | 04 Independent-cycle X/Y orchestration | `PLANNED` | Not started |
 | 05 Physical-switch Z provider | `PLANNED` | Not started |
 | 06 Cartographer Touch Z provider | `PLANNED` | Not started |

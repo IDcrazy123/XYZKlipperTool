@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "run_id": "hil-20260901-0201-voronbed-t1",
+  "cycle": 1,
+  "session_id": "hil-20260901-0201-voronbed-t1-cycle-1",
+  "outer_cycle_id": "cycle-1",
+  "frame_id": "cycle-1-tool-1-frame-2",
+  "requested_tool": "tool T1",
+  "declarative_tool": "tool T1",
+  "detected_tool": "tool T1",
+  "camera_name": "VoronBed",
+  "camera_uid": "48efbfd8-83c8-488a-9fb8-b409905e808b",
+  "camera_source_url": "http://192.168.1.43/webcam/?action=snapshot",
+  "camera_source_url_fingerprint": "d45b583fde5129e08e73e1ae076992ed6129abea3d01860cf7419e295369fb0e",
+  "gcode_position_mm": {"x": 170.0, "y": 20.0, "z": 40.0},
+  "toolhead_position_mm": {
+    "z": 40.236,
+    "y": 19.805,
+    "x": 169.841
+  },
+  "homed_axes": "xyz",
+  "heater_targets_celsius": {
+    "extruder1": 0.0,
+    "extruder": 0.0,
+    "heater_bed": 0.0,
+    "extruder3": 0.0,
+    "extruder4": 0.0,
+    "extruder2": 0.0
+  },
+  "heater_temperatures_celsius": {
+    "extruder1": 41.19,
+    "extruder": 38.41,
+    "heater_bed": 45.06,
+    "extruder3": 40.18,
+    "extruder4": 39.47,
+    "extruder2": 40.03
+  },
+  "content_type": "image/jpeg",
+  "byte_size": 289975,
+  "sha256": "ee60944c0c6cc693ad3ac41cd2259a676729a60b037f2ae4a6ba6f77c9fb1f24",
+  "captured_at_utc": "2026-09-01T02:43:14.9539295Z",
+  "klipper_version": "v0.13.0-740-g60fc7aa67-dirty",
+  "moonraker_version": "v0.11.0-0-g985c1d0",
+  "station_provenance": "operator-authorized run-scoped station near X=170,Y=20,Z=40; no product default",
+  "operator_authorization": "H1-2026-09-01",
+  "capture_status": "OBSERVED_LED_ON",
+  "corpus_inclusion": "EXCLUDED",
+  "illumination_state": "TOOL_LEDS_ON",
+  "verdict": "OBSERVED",
+  "raw_path": "raw/tool-1/frame-2.jpg"
+}

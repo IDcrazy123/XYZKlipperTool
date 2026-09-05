@@ -23,3 +23,7 @@ Status: `OBSERVED` during repository bootstrap on 2026-08-31. Phase 00 must re-o
 3. Record URL, access timestamp, version/commit, exact supported claim, conflict notes, and license.
 4. When docs and observed behavior disagree, preserve both, reproduce on a simulator or approved HIL run, and block implementation until the contract is resolved.
 5. No source may justify a machine-specific default coordinate. Stations are taught by command.
+
+## HIL evidence provenance
+
+The Phase 03 partial-run report and manifest are first-party operator records, not upstream sources. They preserve observed camera endpoints, timestamps, printer/tool state, and raw-file hashes; they do not establish camera compatibility or physical safety. The run was aborted fail-closed and requires fresh authorization plus successful `xyz` homing before continuation. The user-created `picture/` inventory is `USER_PROVIDED_UNLABELED`, read-only, hash-recorded, and excluded pending supervisor review.
