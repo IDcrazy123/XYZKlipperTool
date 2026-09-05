@@ -111,6 +111,10 @@ class JpegDetection:
     quality: QualityDiagnostics
     pipeline: str
     shape: ShapeDiagnostics | None = None
+    pipeline_candidate_counts: tuple[int, int] | tuple[()] = ()
+    pipeline_reasons: tuple[str, str] | tuple[()] = ()
+    pipeline_shape_scores: tuple[float | None, float | None] | tuple[()] = ()
+    geometric_disagreement_px: float | None = None
 
 
 class JpegDetector(Protocol):
@@ -242,6 +246,10 @@ def _result(
     confidence: float = 0.0,
     residual_px: float | None = None,
     shape: ShapeDiagnostics | None = None,
+    pipeline_candidate_counts: tuple[int, int] | tuple[()] = (),
+    pipeline_reasons: tuple[str, str] | tuple[()] = (),
+    pipeline_shape_scores: tuple[float | None, float | None] | tuple[()] = (),
+    geometric_disagreement_px: float | None = None,
 ) -> JpegDetection:
     if point is None or reason is not ReasonCode.NONE:
         return _invalid(
@@ -262,13 +270,22 @@ def _result(
         count,
         ReasonCode.NONE,
         Verdict.PASS,
-        0.0,
+        max(0.0, (context.now_utc - context.captured_at_utc).total_seconds()),
         calibration.uncertainty_mm.value_mm,
         (pipeline,),
         None,
         residual_px,
     )
-    return JpegDetection(detection, quality, pipeline, shape)
+    return JpegDetection(
+        detection,
+        quality,
+        pipeline,
+        shape,
+        pipeline_candidate_counts,
+        pipeline_reasons,
+        pipeline_shape_scores,
+        geometric_disagreement_px,
+    )
 
 
 def _shape_metrics(contour: Any, has_hole: bool) -> ShapeDiagnostics | None:
@@ -539,5 +556,27 @@ class ConsensusJpegDetector:
                 )
                 / 2,
             ),
-            1,
+            2,
+            confidence=min(first.detection.confidence, second.detection.confidence),
+            residual_px=max(
+                value
+                for value in (
+                    first.detection.center_residual_px,
+                    second.detection.center_residual_px,
+                )
+                if value is not None
+            ),
+            pipeline_candidate_counts=(
+                first.detection.candidate_count,
+                second.detection.candidate_count,
+            ),
+            pipeline_reasons=(
+                first.detection.reason.value,
+                second.detection.reason.value,
+            ),
+            pipeline_shape_scores=(
+                first.shape.circularity if first.shape is not None else None,
+                second.shape.circularity if second.shape is not None else None,
+            ),
+            geometric_disagreement_px=distance,
         )

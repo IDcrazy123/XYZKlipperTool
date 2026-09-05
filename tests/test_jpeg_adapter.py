@@ -105,6 +105,21 @@ class JpegAdapterTests(unittest.TestCase):
             )
         self.assertGreater(first.quality.contrast_std, 5.0)
 
+    def test_successful_consensus_retains_geometry_and_age(self) -> None:
+        result = ConsensusJpegDetector().detect_jpeg(
+            self.jpeg(), self.cal, self.roi, self.context
+        )
+        self.assertEqual(result.detection.verdict, Verdict.PASS)
+        self.assertEqual(result.detection.candidate_count, 2)
+        self.assertEqual(result.pipeline_candidate_counts, (1, 1))
+        self.assertEqual(
+            result.pipeline_reasons, (ReasonCode.NONE.value, ReasonCode.NONE.value)
+        )
+        self.assertEqual(len(result.pipeline_shape_scores), 2)
+        self.assertIsNotNone(result.geometric_disagreement_px)
+        self.assertGreater(result.detection.frame_age_s, 0.0)
+        self.assertIsNotNone(result.detection.center_residual_px)
+
     def test_consensus_rejects_multiple_candidates_and_disagreement(self) -> None:
         multiple = ConsensusJpegDetector().detect_jpeg(
             self.jpeg(((45, 40), (85, 55))), self.cal, self.roi, self.context
